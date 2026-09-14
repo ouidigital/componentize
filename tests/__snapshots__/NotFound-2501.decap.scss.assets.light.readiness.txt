@@ -1,0 +1,2 @@
+draft
+- Intermediate Astro + Decap CMS ships with LESS only — run "npm i -D sass" in the project before using this SCSS component.

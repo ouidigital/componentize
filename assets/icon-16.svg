@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16" role="img" aria-label="Componentize">
+  <!--
+    Optical size for the toolbar. The full mark's two stacked blocks merge into
+    a smudge at 16px, so this variant keeps one block and fattens the brackets.
+    Same idea, drawn for the pixels it actually gets.
+  -->
+  <rect width="16" height="16" rx="3.5" fill="#111827"/>
+  <g fill="none" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M6.1 4H4.9a.9.9 0 0 0-.9.9v6.2a.9.9 0 0 0 .9.9h1.2"/>
+    <path d="M9.9 4h1.2a.9.9 0 0 1 .9.9v6.2a.9.9 0 0 1-.9.9H9.9"/>
+  </g>
+  <rect x="6.9" y="7.1" width="2.2" height="1.8" rx="0.9" fill="#ffffff"/>
+</svg>

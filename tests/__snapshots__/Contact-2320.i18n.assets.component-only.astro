@@ -1,0 +1,490 @@
+---
+/**
+ * Contact-2320 — generated from CodeStitch stitch #2320.
+ * Source: https://codestitch.app/app/dashboard/stitches/2320
+ * Target: Advanced Astro i18n @ 5de7f5fe
+ *
+ * Draft — needs attention before shipping:
+ *   - This component needs 4 more files (src/locales/en/contact2320.json, src/locales/fr/contact2320.json, src/assets/images/contact/house-cdf41f6c.jpg, …) — use Download ZIP, or the imports will not resolve.
+ *   - The fr locale file holds the English copy — translate it before this goes live.
+ */
+
+// Utils
+import { getLocaleFromUrl } from "@js/localeUtils";
+import { useTranslations } from "@js/translationUtils";
+
+// Components
+import { Picture } from "astro:assets";
+import { Icon } from "astro-icon/components";
+
+// Images
+import house from "@assets/images/contact/house-cdf41f6c.jpg";
+
+const locale = getLocaleFromUrl(Astro.url);
+const t = useTranslations(locale);
+---
+
+<!-- ============================================ -->
+<!--                Contact Forms                 -->
+<!-- ============================================ -->
+
+<section id="contact-2320">
+	<div class="cs-container">
+		<div class="cs-content">
+			<span class="cs-topper">{t("contact2320:containers.0.topper")}</span>
+			<h2 class="cs-title">{t("contact2320:containers.0.title")}</h2>
+			<!-- Form -->
+			<form class="cs-form" id="cs-form-323-2320" name="Contact Form" method="post">
+				<label class="cs-label">
+					{t("contact2320:containers.0.labels.0.label")}
+					<input
+						class="cs-input"
+						required
+						type="text"
+						name="name"
+						placeholder={t("contact2320:containers.0.labels.0.input.placeholder")}
+					/>
+				</label>
+				<label class="cs-label cs-email">
+					{t("contact2320:containers.0.labels.1.label")}
+					<input
+						class="cs-input"
+						required
+						type="email"
+						name="email"
+						placeholder={t("contact2320:containers.0.labels.1.input.placeholder")}
+					/>
+				</label>
+				<label class="cs-label cs-phone">
+					{t("contact2320:containers.0.labels.2.label")}
+					<input
+						class="cs-input"
+						required
+						type="tel"
+						name="phone"
+						placeholder={t("contact2320:containers.0.labels.2.input.placeholder")}
+					/>
+				</label>
+				<label class="cs-label cs-services">
+					{t("contact2320:containers.0.labels.3.label")}
+					<select class="cs-input" name="Services">
+						<option value="" disabled selected="">{t("contact2320:containers.0.labels.3.option")}</option>
+						<option value="New Construction">{t("contact2320:containers.0.labels.3.option-2")}</option>
+						<option value="Remodels">{t("contact2320:containers.0.labels.3.option-3")}</option>
+						<option value="Cabinets">{t("contact2320:containers.0.labels.3.option-4")}</option>
+					</select>
+				</label>
+				<label class="cs-label">
+					{t("contact2320:containers.0.labels.4.label")}
+					<textarea class="cs-input cs-textarea" required name="Message" placeholder={t("contact2320:containers.0.labels.4.input.placeholder")}></textarea>
+				</label>
+				<button class="cs-button-solid cs-submit" type="submit">{t("contact2320:containers.0.button")}</button>
+			</form>
+		</div>
+		<!-- Map Image, pin is made in the Figma then export as one image -->
+		<div class="cs-map">
+			<div class="cs-iframe-wrapper">
+				<iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d172153.33373691145!2d-122.33979794999999!3d47.608715!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x5490102c93e83355%3A0x102565466944d59a!2sSeattle%2C%20WA!5e0!3m2!1sen!2sus!4v1739169879796!5m2!1sen!2sus" width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+			</div>
+			<div class="cs-box">
+				<Icon
+					name="yellow-pin-a98d1dc1"
+					class="cs-icon"
+					width="40"
+					height="40"
+					aria-hidden="true"
+				/>
+				<div class="cs-flex">
+					<span class="cs-header">{t("contact2320:containers.0.header")}</span>
+					<span class="cs-address">{t("contact2320:containers.0.address")}</span>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="cs-container2">
+		<Picture
+			src={house}
+			alt={t("contact2320:picture.alt")}
+			formats={["avif", "webp"]}
+			width="1280"
+			height="243"
+			pictureAttributes={{ class: "cs-background" }}
+		/>
+		<div class="cs-hours">
+			<div class="cs-topper">{t("contact2320:topper")}</div>
+			<span class="cs-hours-info">{t("contact2320:hoursInfo")}</span>
+		</div>
+	</div>
+</section>
+
+<style lang="less">
+
+	/*-- -------------------------- -->
+	<---          Contact           -->
+	<--- -------------------------- -*/
+
+	/* Mobile - 360px */
+	@media only screen and (min-width: 0rem) {
+	    #contact-2320 {
+	        padding: var(--sectionPadding);
+	        display: flex;
+	        flex-direction: column;
+	        /* 48px - 64px */
+	        gap: clamp(3rem, 6vw, 4rem);
+	        position: relative;
+	        z-index: 1;
+
+	        .cs-container {
+	            width: 100%;
+	            /* changes to 1280px at desktop */
+	            max-width: (580/16rem);
+	            margin: auto;
+	            display: flex;
+	            justify-content: center;
+	            align-items: center;
+	            flex-direction: column;
+	            /* 48px - 64px */
+	            gap: clamp(3rem, 6vw, 4rem);
+	        }
+
+	        .cs-container2 {
+	            width: 100%;
+	            /* changes to 1280px at desktop */
+	            max-width: (580/16rem);
+	            padding: (80/16rem) (48/16rem);
+	            margin: auto;
+	            position: relative;
+	            z-index: 1;
+
+	            .cs-topper {
+	                color: #fff;
+	            }
+	        }
+
+	        .cs-content {
+	            text-align: left;
+	        }
+
+	        .cs-title {
+	            margin-bottom: (32/16rem);
+	        }
+
+	        .cs-form {
+	            border-radius: (16/16rem);
+	            display: flex;
+	            justify-content: space-between;
+	            flex-wrap: wrap;
+	            align-items: center;
+	            gap: (12/16rem);
+	        }
+
+	        .cs-label {
+	            /* 14px - 16px */
+	            font-size: clamp(0.875rem, 1.5vw, 1rem);
+	            width: 100%;
+	            color: var(--headerColor);
+	            display: flex;
+	            flex-direction: column;
+	            justify-content: center;
+	            align-items: flex-start;
+	            gap: (4/16rem);
+	        }
+
+	        .cs-input {
+	            font-size: (16/16rem);
+	            width: 100%;
+	            height: (56/16rem);
+	            padding: 0;
+	            padding-left: (24/16rem);
+	            color: var(--headerColor);
+	            background-color: #f7f7f7;
+	            border: none;
+	            /* prevents padding from adding to height and width */
+	            box-sizing: border-box;
+	            &::placeholder {
+	                color: #7d799c;
+	                opacity: 0.6;
+	            }
+	        }
+
+	        .cs-textarea {
+	            min-height: (120/16rem);
+	            padding-top: (24/16rem);
+	            margin-bottom: (12/16rem);
+	            font-family: inherit;
+	        }
+
+	        .cs-button-solid {
+	            font-size: (16/16rem);
+	            /* 46px - 56px */
+	            line-height: clamp(2.875rem, 5.5vw, 3.5rem);
+	            text-decoration: none;
+	            font-weight: 700;
+	            text-align: center;
+	            margin: 0;
+	            color: #fff;
+	            padding: 0 (24/16rem);
+	            background-color: var(--primary);
+	            display: inline-block;
+	            position: relative;
+	            z-index: 1;
+	            /* prevents padding from adding to the width */
+	            box-sizing: border-box;
+
+	            &:before {
+	                content: "";
+	                position: absolute;
+	                height: 100%;
+	                width: 0%;
+	                background: #000;
+	                opacity: 1;
+	                top: 0;
+	                left: 0;
+	                z-index: -1;
+	                border-radius: (4/16rem);
+	                transition: width 0.3s;
+	            }
+
+	            &:hover {
+	                &:before {
+	                    width: 100%;
+	                }
+	            }
+	        }
+
+	        .cs-submit {
+	            text-transform: uppercase;
+	            background-color: var(--secondaryLight);
+	            color: var(--headerColor);
+	            border: none;
+	            transition: color 0.3s;
+	            &:hover {
+	                cursor: pointer;
+	                color: #fff;
+	            }
+	        }
+
+	        .cs-map {
+	            width: 100%;
+	            max-width: (630/16rem);
+	            height: (400/16rem);
+	            position: relative;
+	            z-index: 1;
+	            display: block;
+	        }
+
+	        .cs-iframe-wrapper {
+	            width: 100%;
+	            position: absolute;
+	            top: 0;
+	            left: 0;
+	            /* 40px - 56px */
+	            bottom: clamp(2.5rem, 5vw, 3.5rem);
+
+	            iframe {
+	                position: absolute;
+	                top: 0;
+	                left: 0;
+	                height: 100%;
+	                width: 100%;
+	                object-fit: cover;
+	            }
+	        }
+
+	        .cs-box {
+	            width: 90%;
+	            max-width: (450/16rem);
+	            /* 16px - 32px top & bottom */
+	            /* 16px left & right */
+	            padding: clamp(1rem, 3vw, 2rem) clamp(1rem, 2.4vw, 1rem);
+	            background-color: #fff;
+	            display: flex;
+	            align-items: flex-start;
+	            gap: (8/16rem);
+	            position: absolute;
+	            bottom: 0;
+	            left: 50%;
+	            transform: translateX(-50%);
+	            z-index: 100;
+
+	            &:before {
+	                content: '';
+	                width: 100%;
+	                height: 100%;
+	                background: var(--primary);
+	                pointer-events: none;
+	                opacity: .1;
+	                display: block;
+	                position: absolute;
+	                top: 0;
+	                left: 0;
+	                z-index: -1;
+	            }
+	        }
+
+	        .cs-icon {
+	            width: (32/16rem);
+	            height: auto;
+	            display: block;
+	        }
+
+	        .cs-flex {
+	            display: flex;
+	            flex-direction: column;
+	        }
+
+	        .cs-header {
+	            font-size: (20/16rem);
+	            font-weight: 700;
+	            line-height: 1.2em;
+	            margin: 0 0 (8/16rem);
+	            color: var(--headerColor);
+	        }
+
+	        .cs-address {
+	            font-size: clamp(.75rem, 2.8vw, 1rem);
+	            line-height: 1.5em;
+	            margin: 0;
+	            color: var(--bodyTextColor);
+	        }
+
+	        .cs-hours {
+	            text-align: center;
+	            display: flex;
+	            flex-direction: column;
+	            align-items: center;
+	        }
+
+	        .cs-hours-info {
+	            /* 20px - 25px */
+	            font-size: clamp(1.25rem, 3vw, 1.5625rem);
+	            line-height: 1.2em;
+	            font-weight: 700;
+	            width: 60%;
+	            max-width: 28ch;
+	            margin: 0;
+	            color: var(--bodyTextColorWhite);
+	        }
+
+	        .cs-background {
+	            width: 100%;
+	            height: 100%;
+	            display: block;
+	            position: absolute;
+	            top: 0;
+	            left: 0;
+	            z-index: -1;
+
+	            &:before {
+	                /* background color overlay */
+	                content: '';
+	                position: absolute;
+	                display: block;
+	                height: 100%;
+	                width: 100%;
+	                background: #000;
+	                opacity: .72;
+	                top: 0;
+	                left: 0;
+	                z-index: 1;
+	            }
+
+	            img {
+	                position: absolute;
+	                top: 0;
+	                left: 0;
+	                height: 100%;
+	                width: 100%;
+	                /* Makes img tag act as a background image */
+	                object-fit: cover;
+	            }
+	        }
+
+	    }
+	}
+
+	/* Small Desktop - 1024px */
+	@media only screen and (min-width: 64rem) {
+	    #contact-2320 {
+	        .cs-container {
+	            max-width: (1280/16rem);
+	            flex-direction: row;
+	            justify-content: space-between;
+	            align-items: stretch;
+	            gap: (52/16rem);
+	        }
+
+	        .cs-container2 {
+	            max-width: (1280/16rem);
+	        }
+
+	        .cs-content {
+	            max-width: (522/16rem);
+	            /* 24px - 80px */
+	            padding: clamp(2rem, 5vw, 5rem) 0;
+	        }
+
+	        .cs-title,
+	        .cs-topper,
+	        .cs-text {
+	            text-align: left;
+	            margin-left: 0;
+	        }
+
+	        .cs-title {
+	            max-width: (522/16rem);
+	        }
+
+	        .cs-services,
+	        .cs-phone {
+	            width: 47%;
+	        }
+
+	        .cs-button-solid {
+	            margin-left: 0;
+	        }
+
+	        .cs-map {
+	            max-width: (630/16rem);
+	            height: auto;
+	            order: -1;
+	        }
+	    }
+	}
+
+	/* Dark Mode */
+	@media only screen and (min-width: 0rem) {
+	    body.dark-mode {
+	        #contact-2320 {
+	            .cs-topper {
+	                color: var(--secondaryLight);
+	            }
+
+	            .cs-title, .cs-header, .cs-address {
+	                color: var(--bodyTextColorWhite);
+	            }
+
+	            .cs-box {
+	                background-color: var(--dark);
+	                &:before {
+	                    background-color: #000;
+	                    opacity: .4;
+	                }
+	            }
+
+	            .cs-label {
+	                color: var(--bodyTextColorWhite);
+	            }
+
+	            .cs-input {
+	                background-color: rgba(255, 255, 255, 0.05);
+	                color: var(--bodyTextColorWhite);
+	                &::placeholder {
+	                    color: #fff;
+	                    opacity: 0.5;
+	                }
+	            }
+	        }
+	    }
+	}
+</style>

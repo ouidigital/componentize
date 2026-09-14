@@ -1,0 +1,196 @@
+{
+	"key": "advanced-i18n",
+	"kitId": "i18n",
+	"label": "Advanced Astro i18n",
+	"repo": "CodeStitchOfficial/Advanced-Astro-i18n",
+	"sha": "5de7f5fe97344ed75239df1a8824c23e4d06df84",
+	"astroVersion": "^6.3.3",
+	"hasLess": true,
+	"hasSass": false,
+	"aliases": [
+		"@layouts/*",
+		"@assets/*",
+		"@data/*",
+		"@styles/*",
+		"@components/*",
+		"@js/*",
+		"@config/*",
+		"@locales/*"
+	],
+	"locales": [
+		"en",
+		"fr"
+	],
+	"defaultLocale": "en",
+	"routes": [
+		"/",
+		"/404",
+		"/about",
+		"/admin",
+		"/contact",
+		"/reviews"
+	],
+	"routeSegments": [
+		"about",
+		"project-1",
+		"project-2",
+		"projects",
+		"reviews"
+	],
+	"icons": [
+		"mdi--caret",
+		"mdi--language",
+		"mdi--laptop",
+		"mdi--moon",
+		"mdi--sun",
+		"quote-white"
+	],
+	"globalRules": {
+		".cs-topper": {
+			"font-size": "var(--topperfontsize)",
+			"font-weight": "700",
+			"line-height": "1.2em",
+			"text-transform": "uppercase",
+			"letter-spacing": "0.1em",
+			"color": "var(--primarylight)",
+			"display": "block"
+		},
+		".cs-title": {
+			"font-size": "var(--headerfontsize)",
+			"font-weight": "900",
+			"line-height": "1.2em",
+			"margin": "0 auto (16/16rem)",
+			"color": "var(--headercolor)",
+			"position": "relative"
+		},
+		".cs-text": {
+			"font-size": "var(--bodyfontsize)",
+			"line-height": "1.5em",
+			"width": "100%",
+			"margin": "0 auto",
+			"color": "var(--bodytextcolor)"
+		},
+		".cs-button-solid": {
+			"font-size": "(16/16rem)",
+			"font-weight": "bold",
+			"line-height": "(50/16em)",
+			"text-align": "center",
+			"text-transform": "uppercase",
+			"text-decoration": "none",
+			"width": "auto",
+			"height": "(50/16rem)",
+			"padding": "0 (30/16rem)",
+			"color": "var(--light)",
+			"background-color": "var(--primary)",
+			"display": "inline-block",
+			"position": "relative",
+			"z-index": "1",
+			"transition": "color 0.3s",
+			"transition-delay": "0.1s"
+		}
+	},
+	"globalRootVars": [
+		"--accent",
+		"--bodyFontSize",
+		"--bodyTextColor",
+		"--bodyTextColorWhite",
+		"--dark",
+		"--grey",
+		"--headerColor",
+		"--headerFontSize",
+		"--light",
+		"--medium",
+		"--primary",
+		"--primaryDark",
+		"--primaryLight",
+		"--secondary",
+		"--secondaryLight",
+		"--sectionPadding",
+		"--topperFontSize"
+	],
+	"cspicture": {
+		"exists": true,
+		"props": [
+			"src",
+			"alt"
+		],
+		"supportsArtDirection": false
+	},
+	"businessData": {
+		"exists": true,
+		"exportName": "BUSINESS",
+		"importPath": "@data/client",
+		"socials": [
+			"facebook",
+			"instagram"
+		]
+	},
+	"navScript": {
+		"exists": true,
+		"hooks": [
+			"cs-navigation",
+			"cs-active",
+			"cs-open",
+			"cs-dropdown",
+			"cs-li-link",
+			"mobile-menu-toggle"
+		],
+		"fingerprint": [
+			"\" \"",
+			"\"(max-width: 63.9375rem)\"",
+			"\".cs-drop-li > .cs-li-link\"",
+			"\".cs-dropdown\"",
+			"\".cs-dropdown-button\"",
+			"\"Enter\"",
+			"\"Escape\"",
+			"\"aria-expanded\"",
+			"\"click\"",
+			"\"cs-active\"",
+			"\"false\"",
+			"\"focusout\"",
+			"\"keydown\"",
+			"\"true\"",
+			"'aria-expanded'",
+			"'astro:page-load'",
+			"'body'",
+			"'click'",
+			"'cs-active'",
+			"'cs-navigation'",
+			"'cs-open'",
+			"'mobile-menu-toggle'",
+			"CSbody",
+			"CSnavbarMenu",
+			"addEventListener",
+			"ariaExpanded",
+			"classList",
+			"contains",
+			"dropdownButton",
+			"dropdownElements",
+			"dropdownLinks",
+			"element",
+			"escapePressed",
+			"event",
+			"forEach",
+			"getAttribute",
+			"getElementById",
+			"href",
+			"isExpanded",
+			"key",
+			"link",
+			"location",
+			"matchMedia",
+			"matches",
+			"maxWidthMediaQuery",
+			"mobileMenuToggle",
+			"preventDefault",
+			"querySelector",
+			"querySelectorAll",
+			"relatedTarget",
+			"remove",
+			"setAttribute",
+			"stopPropagation",
+			"toggle",
+			"toggleMenu"
+		]
+	}
+}

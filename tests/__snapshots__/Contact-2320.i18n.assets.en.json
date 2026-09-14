@@ -1,0 +1,49 @@
+{
+	"containers": [
+		{
+			"topper": "Contact Us",
+			"title": "Get In Touch With Clarkes Construction",
+			"labels": [
+				{
+					"label": "Name",
+					"input": {
+						"placeholder": "Name"
+					}
+				},
+				{
+					"label": "Email",
+					"input": {
+						"placeholder": "Email"
+					}
+				},
+				{
+					"label": "Phone",
+					"input": {
+						"placeholder": "Phone"
+					}
+				},
+				{
+					"label": "Services",
+					"option": "Select a Service",
+					"option-2": "New Construction",
+					"option-3": "Remodels",
+					"option-4": "Cabinets"
+				},
+				{
+					"label": "Message",
+					"input": {
+						"placeholder": "Write message..."
+					}
+				}
+			],
+			"button": "Send Message",
+			"header": "Location",
+			"address": "38 Bridge Street, Andover, England, SP10 1BW"
+		}
+	],
+	"picture": {
+		"alt": "house"
+	},
+	"topper": "Working Hours",
+	"hoursInfo": "Monday - Saturday: 10:00 - 20:00 Sunday: Closed"
+}

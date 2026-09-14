@@ -1,0 +1,2 @@
+draft
+- This navigation script and Intermediate Astro + Decap CMS's sitewide nav.js both drive #cs-navigation, so every menu click would fire twice. Delete this <script> or stop importing the kit's nav.js before shipping.

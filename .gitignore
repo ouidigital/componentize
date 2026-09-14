@@ -1,0 +1,7 @@
+node_modules/
+dist/
+.acceptance/
+test-results/
+playwright-report/
+panel.png
+*.zip

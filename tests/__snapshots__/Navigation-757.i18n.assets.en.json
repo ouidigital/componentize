@@ -1,0 +1,29 @@
+{
+	"logo": {
+		"ariaLabel": "Return to [Company Name] Home page"
+	},
+	"nav": {
+		"ariaLabel": "main navigation"
+	},
+	"toggle": {
+		"ariaLabel": "mobile menu toggle"
+	},
+	"lis": [
+		{
+			"liLink": "Home"
+		},
+		{
+			"liLink": "About"
+		},
+		{
+			"liLink": "Services"
+		},
+		{
+			"liLink": "About Us"
+		},
+		{
+			"liLink": "FAQ"
+		}
+	],
+	"button": "Contact Us"
+}

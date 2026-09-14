@@ -1,0 +1,235 @@
+
+/*-- -------------------------- -->
+<---            Hero            -->
+<--- -------------------------- -*/
+
+/* Mobile - 360px */
+@media only screen and (min-width: 0rem) {
+    #hero-1946 {
+        padding: var(--sectionPadding);
+        /* 160px - 200px */
+        padding-top: clamp(10rem, 20vw, 12.5rem);
+        overflow: hidden;
+        position: relative;
+        z-index: 1;
+
+        .cs-container {
+            width: 100%;
+            max-width: (1280/16rem);
+            margin: auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .cs-content {
+            /* set text align to left if content needs to be left aligned */
+            text-align: center;
+            width: 100%;
+            /* 40px - 52px */
+            margin-bottom: clamp(2.5rem, 5vw, 3.25rem);
+            display: flex;
+            flex-direction: column;
+            /* centers content horizontally, set to flex-start to left align */
+            align-items: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .cs-flex {
+            /* prevents flexbox from squishing it */
+            flex: none;
+        }
+
+        .cs-title {
+            /* 39px - 61px */
+            font-size: clamp(2.438rem, 5vw, 3.813rem);
+        }
+
+        .cs-text {
+            margin-bottom: (20/16rem);
+        }
+
+        .cs-button-solid {
+            font-size: (16/16rem);
+            font-weight: 700;
+            /* 46px - 56px */
+            line-height: clamp(2.875rem, 5.5vw, 3.5rem);
+            text-align: center;
+            text-decoration: none;
+            min-width: (150/16rem);
+            margin: 0;
+            /* prevents padding from adding to the width */
+            box-sizing: border-box;
+            /* 32px - 48px */
+            padding: 0 clamp(2rem, 4vw, 3rem);
+            background-color: var(--primary);
+            color: var(--bodyTextColorWhite);
+            display: inline-block;
+            position: relative;
+            z-index: 1;
+            transition: color 0.3s;
+            transition: background-color 0.3s;
+
+            &:hover {
+                background-color: #000;
+                color: #fff;
+            }
+        }
+
+        .cs-picture {
+            width: 100%;
+            /* 280px - 510px */
+            height: clamp(17.5rem, 58.6vw, 31.875rem);
+            /* 16px - 20px */
+            margin-bottom: clamp(1rem, 2vw, 1.25rem);
+            display: block;
+            position: relative;
+
+            img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                border-radius: (40/16rem);
+                position: absolute;
+            }
+        }
+
+        .cs-card-group {
+            width: 100%;
+            margin: 0;
+            padding: 0;
+            display: grid;
+            justify-content: center;
+            grid-template-columns: repeat(12, 1fr);
+            /* 16px - 20px */
+            gap: clamp(1rem, 2vw, 1.25rem);
+        }
+
+        .cs-item {
+            text-align: center;
+            list-style: none;
+            width: 100%;
+            margin: 0;
+            box-sizing: border-box;
+            /* 24px - 32px */
+            padding: clamp(1.5rem, 3vw, 2rem);
+            background-color: #F7F7F7;
+            border-radius: (20/16rem);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            grid-column: span 12;
+            position: relative;
+            z-index: 1;
+            transition: border-color 0.3s;
+
+            &:hover {
+                border-color: var(--primary);
+
+                .cs-h3 {
+                    color: var(--primary);
+                }
+
+                .cs-icon {
+                    transform: rotateY(360deg);
+                }
+            }
+        }
+
+        .cs-icon-picture {
+            margin-bottom: (20/16rem);
+            perspective: 700px;
+            transform-style: preserve-3d;
+        }
+
+        .cs-icon {
+            width: (40/16rem);
+            height: auto;
+            display: block;
+            transition: transform 0.5s;
+        }
+
+        .cs-h3 {
+            font-size: (20/16rem);
+            line-height: 1.5em;
+            text-align: inherit;
+            margin: 0;
+            margin-bottom: (12/16rem);
+            color: var(--headerColor);
+            transition: color 0.3s;
+        }
+
+        .cs-item-text {
+            /* 14px - 16px */
+            font-size: clamp(0.875rem, 1.5vw, 1rem);
+            line-height: 1.5em;
+            text-align: inherit;
+            margin: 0;
+            color: var(--bodyTextColor);
+        }
+    }
+}
+
+/* Tablet - 768px */
+@media only screen and (min-width: 48rem) {
+    #hero-1946 {
+        .cs-text {
+            font-size: (20/16rem);
+        }
+
+        .cs-item {
+            text-align: left;
+            margin: 0;
+            align-items: flex-start;
+            grid-column: span 6;
+        }
+    }
+}
+
+/* Small Desktop - 1024px */
+@media only screen and (min-width: 64rem) {
+    #hero-1946 {
+        .cs-content {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .cs-title {
+            max-width: (750/16rem);
+        }
+
+        .cs-item {
+            grid-column: span 3;
+        }
+    }
+}
+
+/* Large Desktop 1300px */
+@media only screen and (min-width: 81.25rem) {
+    #hero-1946 {
+        .cs-title {
+            margin: 0;
+        }
+
+        .cs-container {
+            flex-direction: column;
+        }
+
+        .cs-content {
+            text-align: left;
+            max-width: (1280/16rem);
+            gap: (20/16rem);
+            flex-direction: row;
+            align-items: flex-start;
+        }
+
+        .cs-flex {
+            width: 50%;
+            max-width: (630/16rem);
+        }
+    }
+}
+                                

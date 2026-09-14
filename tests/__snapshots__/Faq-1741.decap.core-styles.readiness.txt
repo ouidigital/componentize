@@ -1,0 +1,2 @@
+draft
+- Core Styles were written to src/styles/codestitch-core.less, but nothing imports them yet — merge them into src/styles/root.less (see INSTALL.md). Intermediate Astro + Decap CMS already defines most of them.

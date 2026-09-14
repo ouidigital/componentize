@@ -1,0 +1,2 @@
+draft
+- 4 links point at pages Intermediate Astro + Decap CMS does not ship: /services/, /about-us/, /faq/, /contact-us/ — create them, or repoint the links.

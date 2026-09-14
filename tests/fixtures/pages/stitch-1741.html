@@ -1,0 +1,3298 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="HandheldFriendly" content="True">
+        <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=.5, maximum-scale=3">
+        <meta name="format-detection" content="telephone=no"/>
+        <meta name="csrf-token" content="0mK281qAnC6G6iaqUwDaRmDc75LUKWYydw8frrRa">
+        <meta name="description" content="CodeStitch">
+        <title>Code of Stitch</title>
+
+        <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+        <link rel="stylesheet" href="https://codestitch.app/site/css/core-styles-cgp.css">
+        <link rel="stylesheet" href="https://codestitch.app/site/css/core-styles.css?v=4">
+        <link rel="stylesheet" href="https://codestitch.app/site/css/user-dash.css">
+        <link rel="stylesheet" href="https://codestitch.app/site/css/custom.css">
+
+        
+        <link rel="stylesheet" href="https://codestitch.app/site/css/main.css">
+        <!-- Google Tag Manager -->
+<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-PZJD98JC');</script>
+<!-- End Google Tag Manager -->    </head>
+    <body class="">
+    <!-- Google Tag Manager (noscript) -->
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-PZJD98JC"
+height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+<!-- End Google Tag Manager (noscript) -->        <div id="navigation">
+            <!-- ============================================ -->
+<!--                   Header                     -->
+<!-- ============================================ -->
+
+<header>
+    <a class="logo" aria-label="click to go back to dashboard home" href="https://codestitch.app/app">
+        <img aria-hidden="true" src="https://codestitch.app/site/images/code-stitch-logo.svg" alt="code stitch logo" width="189" height="24" decoding="async">
+    </a>
+	    	<a href="https://codestitch.app/login" class="profile-info">
+    		<span id="profile-name">Login</span>
+    	</a>
+    
+    <button id="hamburger">
+        <span></span>
+        <span></span>
+        <span></span>
+    </button>
+</header>
+
+<style>
+    [name="cs-tag-clear"]:hover {
+        background-color: #000 !important;
+        color: #fff !important;
+    }
+</style>
+            <!-- ============================================ -->
+<!--                 Naviagtion                   -->
+<!-- ============================================ -->
+
+<nav>
+    <!--Top Main Nav-->
+    <ul class="main-nav">
+        <li>
+            <a href="https://codestitch.app/app" >
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M6.10483 13.8476V11.8031C6.10482 11.2831 6.52877 10.8605 7.05403 10.857H8.97808C9.50585 10.857 9.93369 11.2806 9.93369 11.8031V11.8031V13.8539C9.93357 14.2954 10.2895 14.6563 10.7354 14.6666H12.0181C13.2968 14.6666 14.3334 13.6404 14.3334 12.3745V12.3745V6.55854C14.3265 6.06053 14.0903 5.59288 13.692 5.28867L9.30517 1.79018C8.53664 1.18102 7.44416 1.18102 6.67563 1.79018L2.30804 5.29502C1.90819 5.59799 1.67161 6.06642 1.66669 6.56489V12.3745C1.66669 13.6404 2.70327 14.6666 3.98196 14.6666H5.26466C5.72159 14.6666 6.092 14.2999 6.092 13.8476V13.8476" stroke="#0C293E" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                Dashboard
+            </a>
+        </li>
+        <li>
+            <a href="https://codestitch.app/app/dashboard/folders" >
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path fill-rule="evenodd" clip-rule="evenodd" d="M14.2793 10.4881C14.2793 12.8734 12.8733 14.2794 10.4879 14.2794H5.29994C2.90861 14.2794 1.49994 12.8734 1.49994 10.4881V5.28806C1.49994 2.90606 2.37594 1.50006 4.76194 1.50006H6.09527C6.57394 1.50073 7.02461 1.72539 7.31127 2.10873L7.91994 2.91806C8.20794 3.30073 8.65861 3.52606 9.13727 3.52673H11.0239C13.4153 3.52673 14.2979 4.74406 14.2979 7.17806L14.2793 10.4881Z" stroke="#6E7191" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M4.98737 9.64199H10.8107" stroke="#6E7191" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                Saved Stitches
+            </a>
+        </li>
+            </ul>
+
+         <span class="stitch-header">Stitch Catalog</span>
+<div class="toggleBtn">
+    <div class="slideBg "></div>
+    <div class="active">Demo</div>
+    <div class="">All</div>
+</div>
+
+<!--Stitch Directory-->
+<ul id="stitch-list">
+    <!--Main Level Category-->
+
+                    <li class="dropdown ">
+            <span class="category category_toggle">E-Commerce <img class="category_toggle" aria-hidden="true" src="https://codestitch.app/site/images/icons/carrot-down.svg" alt="carrot icon" width="20" height="20" decoding="async"></span>
+            <ul class="child_list">
+                <li>
+                    <a href="https://codestitch.app/app/dashboard/catalog/sections/100">
+                        All <span class="cat-options">(4)</span>
+                    </a>
+                </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/232">
+                            Collections 
+                            <span id="nav-center-counter" class="cat-options">(3)</span>
+                        </a>
+                    </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/230">
+                            Featured Products 
+                            <span id="nav-center-counter" class="cat-options">(0)</span>
+                        </a>
+                    </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/229">
+                            Hero 
+                            <span id="nav-center-counter" class="cat-options">(0)</span>
+                        </a>
+                    </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/231">
+                            Pop Up Modals 
+                            <span id="nav-center-counter" class="cat-options">(0)</span>
+                        </a>
+                    </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/233">
+                            Promotional CTA 
+                            <span id="nav-center-counter" class="cat-options">(1)</span>
+                        </a>
+                    </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/234">
+                            Store Products 
+                            <span id="nav-center-counter" class="cat-options">(0)</span>
+                        </a>
+                    </li>
+                            </ul>
+        </li>
+                    <li class="dropdown ">
+            <span class="category category_toggle">Buttons <img class="category_toggle" aria-hidden="true" src="https://codestitch.app/site/images/icons/carrot-down.svg" alt="carrot icon" width="20" height="20" decoding="async"></span>
+            <ul class="child_list">
+                <li>
+                    <a href="https://codestitch.app/app/dashboard/catalog/sections/22">
+                        All <span class="cat-options">(1)</span>
+                    </a>
+                </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/212">
+                            Non Standard 
+                            <span id="nav-center-counter" class="cat-options">(0)</span>
+                        </a>
+                    </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/35">
+                            Squared 
+                            <span id="nav-center-counter" class="cat-options">(1)</span>
+                        </a>
+                    </li>
+                            </ul>
+        </li>
+                    <li class="dropdown ">
+            <span class="category category_toggle">Navigation <img class="category_toggle" aria-hidden="true" src="https://codestitch.app/site/images/icons/carrot-down.svg" alt="carrot icon" width="20" height="20" decoding="async"></span>
+            <ul class="child_list">
+                <li>
+                    <a href="https://codestitch.app/app/dashboard/catalog/sections/1">
+                        All <span class="cat-options">(2)</span>
+                    </a>
+                </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/144">
+                            + Dropdown 
+                            <span id="nav-center-counter" class="cat-options">(1)</span>
+                        </a>
+                    </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/143">
+                            + Top Bar 
+                            <span id="nav-center-counter" class="cat-options">(0)</span>
+                        </a>
+                    </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/355">
+                            Double Dropdown 
+                            <span id="nav-center-counter" class="cat-options">(0)</span>
+                        </a>
+                    </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/3">
+                            Standard 
+                            <span id="nav-center-counter" class="cat-options">(1)</span>
+                        </a>
+                    </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/145">
+                            Top Bar + Dropdown 
+                            <span id="nav-center-counter" class="cat-options">(0)</span>
+                        </a>
+                    </li>
+                            </ul>
+        </li>
+                    <li class="dropdown ">
+            <span class="category category_toggle">Hero Section <img class="category_toggle" aria-hidden="true" src="https://codestitch.app/site/images/icons/carrot-down.svg" alt="carrot icon" width="20" height="20" decoding="async"></span>
+            <ul class="child_list">
+                <li>
+                    <a href="https://codestitch.app/app/dashboard/catalog/sections/2">
+                        All <span class="cat-options">(7)</span>
+                    </a>
+                </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/29">
+                            Centered 
+                            <span id="nav-center-counter" class="cat-options">(2)</span>
+                        </a>
+                    </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/235">
+                            Grid 
+                            <span id="nav-center-counter" class="cat-options">(0)</span>
+                        </a>
+                    </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/30">
+                            Landing + Services 
+                            <span id="nav-center-counter" class="cat-options">(3)</span>
+                        </a>
+                    </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/28">
+                            Left Aligned 
+                            <span id="nav-center-counter" class="cat-options">(1)</span>
+                        </a>
+                    </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/91">
+                            Right Aligned 
+                            <span id="nav-center-counter" class="cat-options">(1)</span>
+                        </a>
+                    </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/443">
+                            Slideshow 
+                            <span id="nav-center-counter" class="cat-options">(0)</span>
+                        </a>
+                    </li>
+                            </ul>
+        </li>
+                    <li class="dropdown ">
+            <span class="category category_toggle">Services <img class="category_toggle" aria-hidden="true" src="https://codestitch.app/site/images/icons/carrot-down.svg" alt="carrot icon" width="20" height="20" decoding="async"></span>
+            <ul class="child_list">
+                <li>
+                    <a href="https://codestitch.app/app/dashboard/catalog/sections/3">
+                        All <span class="cat-options">(16)</span>
+                    </a>
+                </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/15">
+                            3 Card 
+                            <span id="nav-center-counter" class="cat-options">(4)</span>
+                        </a>
+                    </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/13">
+                            4 Card 
+                            <span id="nav-center-counter" class="cat-options">(4)</span>
+                        </a>
+                    </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/104">
+                            5 Card 
+                            <span id="nav-center-counter" class="cat-options">(1)</span>
+                        </a>
+                    </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/14">
+                            6 Card 
+                            <span id="nav-center-counter" class="cat-options">(2)</span>
+                        </a>
+                    </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/73">
+                            8 Card 
+                            <span id="nav-center-counter" class="cat-options">(1)</span>
+                        </a>
+                    </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/226">
+                            Combo 
+                            <span id="nav-center-counter" class="cat-options">(2)</span>
+                        </a>
+                    </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/105">
+                            Side By Side 
+                            <span id="nav-center-counter" class="cat-options">(2)</span>
+                        </a>
+                    </li>
+                            </ul>
+        </li>
+                    <li class="dropdown ">
+            <span class="category category_toggle">Content Flair <img class="category_toggle" aria-hidden="true" src="https://codestitch.app/site/images/icons/carrot-down.svg" alt="carrot icon" width="20" height="20" decoding="async"></span>
+            <ul class="child_list">
+                <li>
+                    <a href="https://codestitch.app/app/dashboard/catalog/sections/78">
+                        All <span class="cat-options">(3)</span>
+                    </a>
+                </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/170">
+                            Button Boxes 
+                            <span id="nav-center-counter" class="cat-options">(1)</span>
+                        </a>
+                    </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/173">
+                            Content Groups 
+                            <span id="nav-center-counter" class="cat-options">(1)</span>
+                        </a>
+                    </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/169">
+                            Lists 
+                            <span id="nav-center-counter" class="cat-options">(1)</span>
+                        </a>
+                    </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/171">
+                            Quotes 
+                            <span id="nav-center-counter" class="cat-options">(0)</span>
+                        </a>
+                    </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/174">
+                            Stats 
+                            <span id="nav-center-counter" class="cat-options">(0)</span>
+                        </a>
+                    </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/172">
+                            Toppers 
+                            <span id="nav-center-counter" class="cat-options">(0)</span>
+                        </a>
+                    </li>
+                            </ul>
+        </li>
+                    <li class="dropdown ">
+            <span class="category category_toggle">Side By Side <img class="category_toggle" aria-hidden="true" src="https://codestitch.app/site/images/icons/carrot-down.svg" alt="carrot icon" width="20" height="20" decoding="async"></span>
+            <ul class="child_list">
+                <li>
+                    <a href="https://codestitch.app/app/dashboard/catalog/sections/4">
+                        All <span class="cat-options">(34)</span>
+                    </a>
+                </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/384">
+                            Combo 
+                            <span id="nav-center-counter" class="cat-options">(0)</span>
+                        </a>
+                    </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/214">
+                            Non Standard 
+                            <span id="nav-center-counter" class="cat-options">(1)</span>
+                        </a>
+                    </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/20">
+                            Reverse 
+                            <span id="nav-center-counter" class="cat-options">(11)</span>
+                        </a>
+                    </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/21">
+                            Reverse Pair 
+                            <span id="nav-center-counter" class="cat-options">(5)</span>
+                        </a>
+                    </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/31">
+                            Reverse Triplet 
+                            <span id="nav-center-counter" class="cat-options">(3)</span>
+                        </a>
+                    </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/19">
+                            Standard 
+                            <span id="nav-center-counter" class="cat-options">(14)</span>
+                        </a>
+                    </li>
+                            </ul>
+        </li>
+                    <li class="dropdown ">
+            <span class="category category_toggle">Gallery <img class="category_toggle" aria-hidden="true" src="https://codestitch.app/site/images/icons/carrot-down.svg" alt="carrot icon" width="20" height="20" decoding="async"></span>
+            <ul class="child_list">
+                <li>
+                    <a href="https://codestitch.app/app/dashboard/catalog/sections/5">
+                        All <span class="cat-options">(7)</span>
+                    </a>
+                </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/279">
+                            4 Images 
+                            <span id="nav-center-counter" class="cat-options">(1)</span>
+                        </a>
+                    </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/203">
+                            5 Images 
+                            <span id="nav-center-counter" class="cat-options">(1)</span>
+                        </a>
+                    </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/100">
+                            6 Images 
+                            <span id="nav-center-counter" class="cat-options">(1)</span>
+                        </a>
+                    </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/101">
+                            8 Images 
+                            <span id="nav-center-counter" class="cat-options">(2)</span>
+                        </a>
+                    </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/126">
+                            Full Width 
+                            <span id="nav-center-counter" class="cat-options">(0)</span>
+                        </a>
+                    </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/17">
+                            Mosaic 
+                            <span id="nav-center-counter" class="cat-options">(0)</span>
+                        </a>
+                    </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/102">
+                            Multi Gallery 
+                            <span id="nav-center-counter" class="cat-options">(1)</span>
+                        </a>
+                    </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/259">
+                            Simple 
+                            <span id="nav-center-counter" class="cat-options">(1)</span>
+                        </a>
+                    </li>
+                            </ul>
+        </li>
+                    <li class="dropdown ">
+            <span class="category category_toggle">Meet Our Team <img class="category_toggle" aria-hidden="true" src="https://codestitch.app/site/images/icons/carrot-down.svg" alt="carrot icon" width="20" height="20" decoding="async"></span>
+            <ul class="child_list">
+                <li>
+                    <a href="https://codestitch.app/app/dashboard/catalog/sections/43">
+                        All <span class="cat-options">(5)</span>
+                    </a>
+                </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/176">
+                            2 Card 
+                            <span id="nav-center-counter" class="cat-options">(0)</span>
+                        </a>
+                    </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/72">
+                            3 Card 
+                            <span id="nav-center-counter" class="cat-options">(1)</span>
+                        </a>
+                    </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/98">
+                            4 Card 
+                            <span id="nav-center-counter" class="cat-options">(2)</span>
+                        </a>
+                    </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/211">
+                            5 Card 
+                            <span id="nav-center-counter" class="cat-options">(1)</span>
+                        </a>
+                    </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/92">
+                            6 Card 
+                            <span id="nav-center-counter" class="cat-options">(0)</span>
+                        </a>
+                    </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/264">
+                            7 Card 
+                            <span id="nav-center-counter" class="cat-options">(0)</span>
+                        </a>
+                    </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/222">
+                            8 Card 
+                            <span id="nav-center-counter" class="cat-options">(1)</span>
+                        </a>
+                    </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/227">
+                            Combo 
+                            <span id="nav-center-counter" class="cat-options">(0)</span>
+                        </a>
+                    </li>
+                            </ul>
+        </li>
+                    <li class="dropdown ">
+            <span class="category category_toggle">Steps <img class="category_toggle" aria-hidden="true" src="https://codestitch.app/site/images/icons/carrot-down.svg" alt="carrot icon" width="20" height="20" decoding="async"></span>
+            <ul class="child_list">
+                <li>
+                    <a href="https://codestitch.app/app/dashboard/catalog/sections/52">
+                        All <span class="cat-options">(4)</span>
+                    </a>
+                </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/89">
+                            3 Steps 
+                            <span id="nav-center-counter" class="cat-options">(2)</span>
+                        </a>
+                    </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/88">
+                            4 Steps 
+                            <span id="nav-center-counter" class="cat-options">(2)</span>
+                        </a>
+                    </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/216">
+                            5 Steps 
+                            <span id="nav-center-counter" class="cat-options">(0)</span>
+                        </a>
+                    </li>
+                            </ul>
+        </li>
+                    <li class="dropdown ">
+            <span class="category category_toggle">Stats <img class="category_toggle" aria-hidden="true" src="https://codestitch.app/site/images/icons/carrot-down.svg" alt="carrot icon" width="20" height="20" decoding="async"></span>
+            <ul class="child_list">
+                <li>
+                    <a href="https://codestitch.app/app/dashboard/catalog/sections/13">
+                        All <span class="cat-options">(5)</span>
+                    </a>
+                </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/352">
+                            2 Stats 
+                            <span id="nav-center-counter" class="cat-options">(0)</span>
+                        </a>
+                    </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/11">
+                            3 Stats 
+                            <span id="nav-center-counter" class="cat-options">(0)</span>
+                        </a>
+                    </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/8">
+                            4 Stats 
+                            <span id="nav-center-counter" class="cat-options">(3)</span>
+                        </a>
+                    </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/106">
+                            Combos 
+                            <span id="nav-center-counter" class="cat-options">(1)</span>
+                        </a>
+                    </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/109">
+                            Timeline 
+                            <span id="nav-center-counter" class="cat-options">(1)</span>
+                        </a>
+                    </li>
+                            </ul>
+        </li>
+                    <li class="dropdown ">
+            <span class="category category_toggle">Pricing <img class="category_toggle" aria-hidden="true" src="https://codestitch.app/site/images/icons/carrot-down.svg" alt="carrot icon" width="20" height="20" decoding="async"></span>
+            <ul class="child_list">
+                <li>
+                    <a href="https://codestitch.app/app/dashboard/catalog/sections/49">
+                        All <span class="cat-options">(7)</span>
+                    </a>
+                </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/200">
+                            2 Card 
+                            <span id="nav-center-counter" class="cat-options">(0)</span>
+                        </a>
+                    </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/82">
+                            3 Card 
+                            <span id="nav-center-counter" class="cat-options">(3)</span>
+                        </a>
+                    </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/196">
+                            Menu&#039;s 
+                            <span id="nav-center-counter" class="cat-options">(2)</span>
+                        </a>
+                    </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/347">
+                            Price List 
+                            <span id="nav-center-counter" class="cat-options">(0)</span>
+                        </a>
+                    </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/81">
+                            w/ Toggles 
+                            <span id="nav-center-counter" class="cat-options">(2)</span>
+                        </a>
+                    </li>
+                            </ul>
+        </li>
+                    <li class="dropdown ">
+            <span class="category category_toggle">FAQ <img class="category_toggle" aria-hidden="true" src="https://codestitch.app/site/images/icons/carrot-down.svg" alt="carrot icon" width="20" height="20" decoding="async"></span>
+            <ul class="child_list">
+                <li>
+                    <a href="https://codestitch.app/app/dashboard/catalog/sections/50">
+                        All <span class="cat-options">(4)</span>
+                    </a>
+                </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/213">
+                            Multi FAQ&#039;s 
+                            <span id="nav-center-counter" class="cat-options">(0)</span>
+                        </a>
+                    </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/99">
+                            Side By Side 
+                            <span id="nav-center-counter" class="cat-options">(2)</span>
+                        </a>
+                    </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/83">
+                            Standard 
+                            <span id="nav-center-counter" class="cat-options">(2)</span>
+                        </a>
+                    </li>
+                            </ul>
+        </li>
+                    <li class="dropdown ">
+            <span class="category category_toggle">Why Choose Us <img class="category_toggle" aria-hidden="true" src="https://codestitch.app/site/images/icons/carrot-down.svg" alt="carrot icon" width="20" height="20" decoding="async"></span>
+            <ul class="child_list">
+                <li>
+                    <a href="https://codestitch.app/app/dashboard/catalog/sections/19">
+                        All <span class="cat-options">(11)</span>
+                    </a>
+                </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/12">
+                            3 Card 
+                            <span id="nav-center-counter" class="cat-options">(1)</span>
+                        </a>
+                    </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/74">
+                            4 Card 
+                            <span id="nav-center-counter" class="cat-options">(1)</span>
+                        </a>
+                    </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/215">
+                            6 Card 
+                            <span id="nav-center-counter" class="cat-options">(0)</span>
+                        </a>
+                    </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/16">
+                            Side By Side 
+                            <span id="nav-center-counter" class="cat-options">(9)</span>
+                        </a>
+                    </li>
+                            </ul>
+        </li>
+                    <li class="dropdown ">
+            <span class="category category_toggle">Quotes <img class="category_toggle" aria-hidden="true" src="https://codestitch.app/site/images/icons/carrot-down.svg" alt="carrot icon" width="20" height="20" decoding="async"></span>
+            <ul class="child_list">
+                <li>
+                    <a href="https://codestitch.app/app/dashboard/catalog/sections/62">
+                        All <span class="cat-options">(0)</span>
+                    </a>
+                </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/125">
+                            Single Quotes 
+                            <span id="nav-center-counter" class="cat-options">(0)</span>
+                        </a>
+                    </li>
+                            </ul>
+        </li>
+                    <li class="dropdown ">
+            <span class="category category_toggle">MISC <img class="category_toggle" aria-hidden="true" src="https://codestitch.app/site/images/icons/carrot-down.svg" alt="carrot icon" width="20" height="20" decoding="async"></span>
+            <ul class="child_list">
+                <li>
+                    <a href="https://codestitch.app/app/dashboard/catalog/sections/56">
+                        All <span class="cat-options">(5)</span>
+                    </a>
+                </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/317">
+                            Careers 
+                            <span id="nav-center-counter" class="cat-options">(0)</span>
+                        </a>
+                    </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/225">
+                            Content 
+                            <span id="nav-center-counter" class="cat-options">(0)</span>
+                        </a>
+                    </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/248">
+                            Locations 
+                            <span id="nav-center-counter" class="cat-options">(1)</span>
+                        </a>
+                    </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/127">
+                            Logos 
+                            <span id="nav-center-counter" class="cat-options">(1)</span>
+                        </a>
+                    </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/132">
+                            Maps 
+                            <span id="nav-center-counter" class="cat-options">(0)</span>
+                        </a>
+                    </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/320">
+                            Popups 
+                            <span id="nav-center-counter" class="cat-options">(0)</span>
+                        </a>
+                    </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/244">
+                            Tables 
+                            <span id="nav-center-counter" class="cat-options">(1)</span>
+                        </a>
+                    </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/119">
+                            Video 
+                            <span id="nav-center-counter" class="cat-options">(2)</span>
+                        </a>
+                    </li>
+                            </ul>
+        </li>
+                    <li class="dropdown ">
+            <span class="category category_toggle">Reviews <img class="category_toggle" aria-hidden="true" src="https://codestitch.app/site/images/icons/carrot-down.svg" alt="carrot icon" width="20" height="20" decoding="async"></span>
+            <ul class="child_list">
+                <li>
+                    <a href="https://codestitch.app/app/dashboard/catalog/sections/20">
+                        All <span class="cat-options">(14)</span>
+                    </a>
+                </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/27">
+                            2 Card 
+                            <span id="nav-center-counter" class="cat-options">(4)</span>
+                        </a>
+                    </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/26">
+                            3 Card 
+                            <span id="nav-center-counter" class="cat-options">(3)</span>
+                        </a>
+                    </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/130">
+                            4 Card 
+                            <span id="nav-center-counter" class="cat-options">(0)</span>
+                        </a>
+                    </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/446">
+                            5 Card 
+                            <span id="nav-center-counter" class="cat-options">(0)</span>
+                        </a>
+                    </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/319">
+                            8 Card 
+                            <span id="nav-center-counter" class="cat-options">(0)</span>
+                        </a>
+                    </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/24">
+                            Full Width 
+                            <span id="nav-center-counter" class="cat-options">(0)</span>
+                        </a>
+                    </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/25">
+                            Single Review 
+                            <span id="nav-center-counter" class="cat-options">(7)</span>
+                        </a>
+                    </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/377">
+                            Slideshow 
+                            <span id="nav-center-counter" class="cat-options">(0)</span>
+                        </a>
+                    </li>
+                            </ul>
+        </li>
+                    <li class="dropdown ">
+            <span class="category category_toggle">Forms &amp; Contact <img class="category_toggle" aria-hidden="true" src="https://codestitch.app/site/images/icons/carrot-down.svg" alt="carrot icon" width="20" height="20" decoding="async"></span>
+            <ul class="child_list">
+                <li>
+                    <a href="https://codestitch.app/app/dashboard/catalog/sections/44">
+                        All <span class="cat-options">(8)</span>
+                    </a>
+                </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/75">
+                            Contact Forms 
+                            <span id="nav-center-counter" class="cat-options">(8)</span>
+                        </a>
+                    </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/95">
+                            Contact Info 
+                            <span id="nav-center-counter" class="cat-options">(0)</span>
+                        </a>
+                    </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/93">
+                            Subscribe 
+                            <span id="nav-center-counter" class="cat-options">(0)</span>
+                        </a>
+                    </li>
+                            </ul>
+        </li>
+                    <li class="dropdown ">
+            <span class="category category_toggle">Events <img class="category_toggle" aria-hidden="true" src="https://codestitch.app/site/images/icons/carrot-down.svg" alt="carrot icon" width="20" height="20" decoding="async"></span>
+            <ul class="child_list">
+                <li>
+                    <a href="https://codestitch.app/app/dashboard/catalog/sections/94">
+                        All <span class="cat-options">(3)</span>
+                    </a>
+                </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/220">
+                            3 Card 
+                            <span id="nav-center-counter" class="cat-options">(1)</span>
+                        </a>
+                    </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/201">
+                            4 Card 
+                            <span id="nav-center-counter" class="cat-options">(0)</span>
+                        </a>
+                    </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/202">
+                            Side By Side 
+                            <span id="nav-center-counter" class="cat-options">(2)</span>
+                        </a>
+                    </li>
+                            </ul>
+        </li>
+                    <li class="dropdown ">
+            <span class="category category_toggle">Blog <img class="category_toggle" aria-hidden="true" src="https://codestitch.app/site/images/icons/carrot-down.svg" alt="carrot icon" width="20" height="20" decoding="async"></span>
+            <ul class="child_list">
+                <li>
+                    <a href="https://codestitch.app/app/dashboard/catalog/sections/79">
+                        All <span class="cat-options">(3)</span>
+                    </a>
+                </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/175">
+                            Recent Posts 
+                            <span id="nav-center-counter" class="cat-options">(3)</span>
+                        </a>
+                    </li>
+                            </ul>
+        </li>
+                    <li class="dropdown ">
+            <span class="category category_toggle">Call To Action <img class="category_toggle" aria-hidden="true" src="https://codestitch.app/site/images/icons/carrot-down.svg" alt="carrot icon" width="20" height="20" decoding="async"></span>
+            <ul class="child_list">
+                <li>
+                    <a href="https://codestitch.app/app/dashboard/catalog/sections/7">
+                        All <span class="cat-options">(4)</span>
+                    </a>
+                </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/206">
+                            Combos 
+                            <span id="nav-center-counter" class="cat-options">(1)</span>
+                        </a>
+                    </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/23">
+                            Contained 
+                            <span id="nav-center-counter" class="cat-options">(0)</span>
+                        </a>
+                    </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/4">
+                            Full Width 
+                            <span id="nav-center-counter" class="cat-options">(2)</span>
+                        </a>
+                    </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/90">
+                            Subscribe Forms 
+                            <span id="nav-center-counter" class="cat-options">(1)</span>
+                        </a>
+                    </li>
+                            </ul>
+        </li>
+                    <li class="dropdown ">
+            <span class="category category_toggle">Footer <img class="category_toggle" aria-hidden="true" src="https://codestitch.app/site/images/icons/carrot-down.svg" alt="carrot icon" width="20" height="20" decoding="async"></span>
+            <ul class="child_list">
+                <li>
+                    <a href="https://codestitch.app/app/dashboard/catalog/sections/21">
+                        All <span class="cat-options">(6)</span>
+                    </a>
+                </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/86">
+                            2 Column 
+                            <span id="nav-center-counter" class="cat-options">(0)</span>
+                        </a>
+                    </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/85">
+                            3 Column 
+                            <span id="nav-center-counter" class="cat-options">(1)</span>
+                        </a>
+                    </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/87">
+                            4 Column 
+                            <span id="nav-center-counter" class="cat-options">(2)</span>
+                        </a>
+                    </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/50">
+                            5 Column 
+                            <span id="nav-center-counter" class="cat-options">(1)</span>
+                        </a>
+                    </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/217">
+                            Combo 
+                            <span id="nav-center-counter" class="cat-options">(0)</span>
+                        </a>
+                    </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/33">
+                            Simple 
+                            <span id="nav-center-counter" class="cat-options">(2)</span>
+                        </a>
+                    </li>
+                            </ul>
+        </li>
+                    <li class="dropdown ">
+            <span class="category category_toggle">Dark Mode <img class="category_toggle" aria-hidden="true" src="https://codestitch.app/site/images/icons/carrot-down.svg" alt="carrot icon" width="20" height="20" decoding="async"></span>
+            <ul class="child_list">
+                <li>
+                    <a href="https://codestitch.app/app/dashboard/catalog/sections/23">
+                        All <span class="cat-options">(1)</span>
+                    </a>
+                </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/36">
+                            Standard 
+                            <span id="nav-center-counter" class="cat-options">(1)</span>
+                        </a>
+                    </li>
+                            </ul>
+        </li>
+                    <li class="dropdown ">
+            <span class="category category_toggle">Interior Pages <img class="category_toggle" aria-hidden="true" src="https://codestitch.app/site/images/icons/carrot-down.svg" alt="carrot icon" width="20" height="20" decoding="async"></span>
+            <ul class="child_list">
+                <li>
+                    <a href="https://codestitch.app/app/dashboard/catalog/sections/55">
+                        All <span class="cat-options">(4)</span>
+                    </a>
+                </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/440">
+                            404 
+                            <span id="nav-center-counter" class="cat-options">(1)</span>
+                        </a>
+                    </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/97">
+                            About Page 
+                            <span id="nav-center-counter" class="cat-options">(0)</span>
+                        </a>
+                    </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/96">
+                            Contact Page 
+                            <span id="nav-center-counter" class="cat-options">(0)</span>
+                        </a>
+                    </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/131">
+                            Content Page 
+                            <span id="nav-center-counter" class="cat-options">(1)</span>
+                        </a>
+                    </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/260">
+                            FAQ Page 
+                            <span id="nav-center-counter" class="cat-options">(1)</span>
+                        </a>
+                    </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/197">
+                            Menus 
+                            <span id="nav-center-counter" class="cat-options">(0)</span>
+                        </a>
+                    </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/441">
+                            Not Found 
+                            <span id="nav-center-counter" class="cat-options">(0)</span>
+                        </a>
+                    </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/94">
+                            Page Banners 
+                            <span id="nav-center-counter" class="cat-options">(1)</span>
+                        </a>
+                    </li>
+                                    <li>
+                        <a class="" href="https://codestitch.app/app/dashboard/catalog/364">
+                            Service Page 
+                            <span id="nav-center-counter" class="cat-options">(0)</span>
+                        </a>
+                    </li>
+                            </ul>
+        </li>
+    </ul>
+ </nav>
+        </div>
+
+        <!-- ============================================ -->
+        <!--              Main Content Area               -->
+        <!-- ============================================ -->
+
+        <main id="main">
+                <div class="section-content --white p-56 page-dash" style="max-width: none!important;">
+        <section class="section">
+            <a href="https://codestitch.app" class="btn close--btn mb-24">
+                <span class="ico ico-16">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M15.0005 6.99997H3.83047L8.71047 2.11997C9.10047 1.72997 9.10047 1.08997 8.71047 0.699971C8.32047 0.309971 7.69047 0.309971 7.30047 0.699971L0.710469 7.28997C0.320469 7.67997 0.320469 8.30997 0.710469 8.69997L7.30047 15.29C7.69047 15.68 8.32047 15.68 8.71047 15.29C9.10047 14.9 9.10047 14.27 8.71047 13.88L3.83047 8.99997H15.0005C15.5505 8.99997 16.0005 8.54997 16.0005 7.99997C16.0005 7.44997 15.5505 6.99997 15.0005 6.99997Z" fill="CURRENTCOLOR"></path>
+                    </svg>
+                </span>
+            </a>
+            <div class="section-head --end-align mb-22">
+                <div class="heading-block mb-10">
+                    <h2 class="heading heading-2 mb-8">Standard</h2>
+                </div>
+            </div>
+            <div class="section-body">
+                <div id="CODE_TABS" data-code-tabs="">
+                    <div class="CODE_TABS__HEAD">
+                        <div class="controls-item">
+                            <ul class="code_list tab-nav mr-10">
+                                                                    <li class="code_list__item active-tab"> 
+                                        <a href="#" class="code_list_link" data-codeid="10175" data-codetype="html">
+                                            <span class="ico mr-5 ico-20">
+                                                <img src="https://codestitch.app/site/images/icons/ico-html.svg" alt="ico-code">
+                                            </span>
+                                            <span class="info">HTML</span>
+                                        </a>
+                                    </li>
+                                                                    <li class="code_list__item "> 
+                                        <a href="#" class="code_list_link" data-codeid="10176" data-codetype="js">
+                                            <span class="ico mr-5 ico-20">
+                                                <img src="https://codestitch.app/site/images/icons/ico-js.svg" alt="ico-code">
+                                            </span>
+                                            <span class="info">JS</span>
+                                        </a>
+                                    </li>
+                                                                    <li class="code_list__item "> 
+                                        <a href="#" class="code_list_link" data-codeid="10177" data-codetype="css">
+                                            <span class="ico mr-5 ico-20">
+                                                <img src="https://codestitch.app/site/images/icons/ico-css.svg" alt="ico-code">
+                                            </span>
+                                            <span class="info">CSS</span>
+                                        </a>
+                                    </li>
+                                                                                                <li class="code_list__item"> 
+                                    <a href="#" class="code_list_link" data-codeid="-1" data-codetype="core-styles">
+                                        <span class="ico mr-5 ico-20">
+                                            <img src="https://codestitch.app/site/images/icons/ico-css.svg" alt="ico-code">
+                                        </span>
+                                        <span class="info">Core Styles</span>
+                                    </a>
+                                </li>
+                                                            </ul>
+                        </div>
+
+                        <div class="controls-item">
+                            <div class="css-types">
+                                <span><b>Choose your preferred CSS</b></span>
+                                <div class="css-type-selector">
+                                                                            <label class="radio-styles-wrapper">
+                                            <input class="radio-styles" type="radio" data-css-type="CSS" name="css-light" value="10177" checked>
+                                            CSS
+                                        </label>
+                                                                            <label class="radio-styles-wrapper">
+                                            <input class="radio-styles" type="radio" data-css-type="LESS" name="css-light" value="10179" >
+                                            LESS
+                                        </label>
+                                                                            <label class="radio-styles-wrapper">
+                                            <input class="radio-styles" type="radio" data-css-type="SCSS" name="css-light" value="10181" >
+                                            SCSS
+                                        </label>
+                                                                    </div>
+                                <div class="css-type-selector d-none">
+                                                                            <label class="radio-styles-wrapper">
+                                            <input class="radio-styles" type="radio" data-css-type="CSS Dark" name="css-dark" value="10178" checked>
+                                            CSS Dark
+                                        </label>
+                                                                            <label class="radio-styles-wrapper">
+                                            <input class="radio-styles" type="radio" data-css-type="LESS Dark" name="css-dark" value="10180" >
+                                            LESS Dark
+                                        </label>
+                                                                            <label class="radio-styles-wrapper">
+                                            <input class="radio-styles" type="radio" data-css-type="SCSS Dark" name="css-dark" value="10182" >
+                                            SCSS Dark
+                                        </label>
+                                                                    </div>
+                            </div>
+                                                        <div class="core-styles-types d-none">
+                                <span><b>Choose your preferred Core Styles CSS</b></span>
+                                <div class="core-styles-type-selector">
+                                                                            <label class="radio-styles-wrapper">
+                                            <input class="radio-styles" name="core-styles-radio" type="radio" data-core-styles-type="CSS" value="core-styles-CSS" checked>
+                                            CSS
+                                        </label>
+                                                                            <label class="radio-styles-wrapper">
+                                            <input class="radio-styles" name="core-styles-radio" type="radio" data-core-styles-type="LESS" value="core-styles-LESS" >
+                                            LESS
+                                        </label>
+                                                                            <label class="radio-styles-wrapper">
+                                            <input class="radio-styles" name="core-styles-radio" type="radio" data-core-styles-type="SCSS" value="core-styles-SCSS" >
+                                            SCSS
+                                        </label>
+                                                                    </div>
+                            </div>
+                                                                                        <div class="css-mode">
+                                    <label class="d-none">
+                                        <input hidden id="css-theme-default" checked type="radio" name="css-theme" value="light">
+                                        <a class="btn primary button-solid css-default"><span>-</span> Dark Mode</a>
+                                    </label>
+                                    <label>
+                                        <input hidden id="css-theme-dark" type="radio" name="css-theme" value="dark">
+                                        <a class="btn primary button-solid css-default"><span>+</span> Dark Mode</a>
+                                    </label>
+                                </div>
+                                                        <a href="#" class="btn btn--copy">
+                                <span class="ico ico-20 mr-8"><img src="https://codestitch.app/site/images/icons/ico-copy.svg" alt="copy"></span>
+                                <span class="info">Copy <span class="d-none-768">to Clipboard</span></span>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="CODE_TABS__BODY">
+                        
+                                                                                <div class="tab active-tab" data-codeid="10175">
+                                <textarea class="CODE-TEXTAREA" style="display: none;" data-cmtype="application/xml">
+&lt;!-- ============================================ --&gt;
+&lt;!--                    FAQ                       --&gt;
+&lt;!-- ============================================ --&gt;
+
+&lt;section id=&quot;faq-1741&quot;&gt;
+    &lt;div class=&quot;cs-container&quot;&gt;
+        &lt;div class=&quot;cs-content&quot;&gt;
+            &lt;span class=&quot;cs-topper&quot;&gt;Frequently Asked Questions&lt;/span&gt;
+            &lt;h2 class=&quot;cs-title&quot;&gt;A Healthy Mind in a Healthy Body&lt;/h2&gt;
+            &lt;a href=&quot;&quot; class=&quot;cs-button-solid&quot;&gt;
+                Ask Another Questions
+            &lt;/a&gt;
+        &lt;/div&gt;
+        &lt;div class=&quot;cs-flex-group&quot;&gt;
+            &lt;ul class=&quot;cs-faq-group&quot;&gt;
+                &lt;!-- Active class added as default --&gt;
+                &lt;li class=&quot;cs-faq-item active&quot;&gt;
+                    &lt;button class=&quot;cs-button&quot;&gt;
+                        &lt;span class=&quot;cs-button-text&quot;&gt;
+                            How do I place an order?
+                        &lt;/span&gt;
+                    &lt;/button&gt;
+                    &lt;p class=&quot;cs-item-text&quot;&gt;
+                        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sit convallis nunc neque, bibendum pulvinar vitae commodo velit. Proin diam tortor sed malesuada nunc, habitant. Dignissim ipsum porta enim, magna urna, quam. 
+                    &lt;/p&gt;
+                &lt;/li&gt;
+                &lt;li class=&quot;cs-faq-item&quot;&gt;
+                    &lt;button class=&quot;cs-button&quot;&gt;
+                        &lt;span class=&quot;cs-button-text&quot;&gt;
+                            What payment methods do you accept?
+                        &lt;/span&gt;
+                    &lt;/button&gt;
+                    &lt;p class=&quot;cs-item-text&quot;&gt;
+                        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sit convallis nunc neque, bibendum pulvinar vitae commodo velit. Proin diam tortor sed malesuada nunc, habitant. Dignissim ipsum porta enim, magna urna, quam. 
+                    &lt;/p&gt;
+                &lt;/li&gt;
+                &lt;li class=&quot;cs-faq-item&quot;&gt;
+                    &lt;button class=&quot;cs-button&quot;&gt;
+                        &lt;span class=&quot;cs-button-text&quot;&gt;
+                            How can I track my order?
+                        &lt;/span&gt;
+                    &lt;/button&gt;
+                    &lt;p class=&quot;cs-item-text&quot;&gt;
+                        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sit convallis nunc neque, bibendum pulvinar vitae commodo velit. Proin diam tortor sed malesuada nunc, habitant. Dignissim ipsum porta enim, magna urna, quam. 
+                    &lt;/p&gt;
+                &lt;/li&gt;
+                &lt;li class=&quot;cs-faq-item&quot;&gt;
+                    &lt;button class=&quot;cs-button&quot;&gt;
+                        &lt;span class=&quot;cs-button-text&quot;&gt;
+                            What is your return policy?
+                        &lt;/span&gt;
+                    &lt;/button&gt;
+                    &lt;p class=&quot;cs-item-text&quot;&gt;
+                        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sit convallis nunc neque, bibendum pulvinar vitae commodo velit. Proin diam tortor sed malesuada nunc, habitant. Dignissim ipsum porta enim, magna urna, quam. 
+                    &lt;/p&gt;
+                &lt;/li&gt;
+                &lt;li class=&quot;cs-faq-item&quot;&gt;
+                    &lt;button class=&quot;cs-button&quot;&gt;
+                        &lt;span class=&quot;cs-button-text&quot;&gt;
+                            Do you offer international shipping?
+                        &lt;/span&gt;
+                    &lt;/button&gt;
+                    &lt;p class=&quot;cs-item-text&quot;&gt;
+                        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sit convallis nunc neque, bibendum pulvinar vitae commodo velit. Proin diam tortor sed malesuada nunc, habitant. Dignissim ipsum porta enim, magna urna, quam. 
+                    &lt;/p&gt;
+                &lt;/li&gt;
+                &lt;li class=&quot;cs-faq-item&quot;&gt;
+                    &lt;button class=&quot;cs-button&quot;&gt;
+                        &lt;span class=&quot;cs-button-text&quot;&gt;
+                            How can I contact customer support?
+                        &lt;/span&gt;
+                    &lt;/button&gt;
+                    &lt;p class=&quot;cs-item-text&quot;&gt;
+                        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sit convallis nunc neque, bibendum pulvinar vitae commodo velit. Proin diam tortor sed malesuada nunc, habitant. Dignissim ipsum porta enim, magna urna, quam. 
+                    &lt;/p&gt;
+                &lt;/li&gt;
+            &lt;/ul&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;
+    &lt;div class=&quot;cs-gallery&quot;&gt;
+        &lt;!--Picture 1--&gt;
+        &lt;picture class=&quot;cs-picture&quot;&gt;
+            &lt;source media=&quot;(max-width: 600px)&quot; srcset=&quot;https://csimages2.nyc3.digitaloceanspaces.com/Images/People/gym-faq-1.jpg&quot;&gt;
+            &lt;source media=&quot;(min-width: 601px)&quot; srcset=&quot;https://csimages2.nyc3.digitaloceanspaces.com/Images/People/gym-faq-1.jpg&quot;&gt;
+            &lt;img loading=&quot;lazy&quot; decoding=&quot;async&quot; src=&quot;https://csimages2.nyc3.digitaloceanspaces.com/Images/People/gym-faq-1.jpg&quot; alt=&quot;gallery&quot; width=&quot;272&quot; height=&quot;320&quot;&gt;
+        &lt;/picture&gt;
+        &lt;!--Picture 2--&gt;
+        &lt;picture class=&quot;cs-picture&quot;&gt;
+            &lt;source media=&quot;(max-width: 600px)&quot; srcset=&quot;https://csimages2.nyc3.digitaloceanspaces.com/Images/People/gym-faq-2.jpg&quot;&gt;
+            &lt;source media=&quot;(min-width: 601px)&quot; srcset=&quot;https://csimages2.nyc3.digitaloceanspaces.com/Images/People/gym-faq-2.jpg&quot;&gt;
+            &lt;img loading=&quot;lazy&quot; decoding=&quot;async&quot; src=&quot;https://csimages2.nyc3.digitaloceanspaces.com/Images/People/gym-faq-2.jpg&quot; alt=&quot;gallery&quot; width=&quot;272&quot; height=&quot;320&quot;&gt;
+        &lt;/picture&gt;
+        &lt;!--Picture 3--&gt;
+        &lt;picture class=&quot;cs-picture&quot;&gt;
+            &lt;source media=&quot;(max-width: 600px)&quot; srcset=&quot;https://csimages2.nyc3.digitaloceanspaces.com/Images/People/gym-faq-3.jpg&quot;&gt;
+            &lt;source media=&quot;(min-width: 601px)&quot; srcset=&quot;https://csimages2.nyc3.digitaloceanspaces.com/Images/People/gym-faq-3.jpg&quot;&gt;
+            &lt;img loading=&quot;lazy&quot; decoding=&quot;async&quot; src=&quot;https://csimages2.nyc3.digitaloceanspaces.com/Images/People/gym-faq-3.jpg&quot; alt=&quot;gallery&quot; width=&quot;272&quot; height=&quot;320&quot;&gt;
+        &lt;/picture&gt;
+        &lt;!--Picture 4--&gt;
+        &lt;picture class=&quot;cs-picture&quot;&gt;
+            &lt;source media=&quot;(max-width: 600px)&quot; srcset=&quot;https://csimages2.nyc3.digitaloceanspaces.com/Images/People/gym-faq-4.jpg&quot;&gt;
+            &lt;source media=&quot;(min-width: 601px)&quot; srcset=&quot;https://csimages2.nyc3.digitaloceanspaces.com/Images/People/gym-faq-4.jpg&quot;&gt;
+            &lt;img loading=&quot;lazy&quot; decoding=&quot;async&quot; src=&quot;https://csimages2.nyc3.digitaloceanspaces.com/Images/People/gym-faq-4.jpg&quot; alt=&quot;gallery&quot; width=&quot;272&quot; height=&quot;320&quot;&gt;
+        &lt;/picture&gt;
+        &lt;!--Picture 5--&gt;
+        &lt;picture class=&quot;cs-picture&quot;&gt;
+            &lt;source media=&quot;(max-width: 600px)&quot; srcset=&quot;https://csimages2.nyc3.digitaloceanspaces.com/Images/People/gym-faq-5.jpg&quot;&gt;
+            &lt;source media=&quot;(min-width: 601px)&quot; srcset=&quot;https://csimages2.nyc3.digitaloceanspaces.com/Images/People/gym-faq-5.jpg&quot;&gt;
+            &lt;img loading=&quot;lazy&quot; decoding=&quot;async&quot; src=&quot;https://csimages2.nyc3.digitaloceanspaces.com/Images/People/gym-faq-5.jpg&quot; alt=&quot;gallery&quot; width=&quot;272&quot; height=&quot;320&quot;&gt;
+        &lt;/picture&gt;
+    &lt;/div&gt;
+&lt;/section&gt;
+                                </textarea>
+                            </div>
+                                                                                <div class="tab " data-codeid="10176">
+                                <textarea class="CODE-TEXTAREA" style="display: none;" data-cmtype="javascript">
+const faqItems = Array.from(document.querySelectorAll(&#039;.cs-faq-item&#039;));
+for (const item of faqItems) {
+    const onClick = () =&gt; {
+        item.classList.toggle(&#039;active&#039;);
+    };
+    item.addEventListener(&#039;click&#039;, onClick);
+}
+                                </textarea>
+                            </div>
+                                                                                <div class="tab " data-codeid="10177">
+                                <textarea class="CODE-TEXTAREA" style="display: none;" data-cmtype="css">
+/*-- -------------------------- --&gt;
+&lt;---            FAQ             --&gt;
+&lt;--- -------------------------- -*/
+
+/* Mobile - 360px */
+@media only screen and (min-width: 0rem) {
+  #faq-1741 {
+    padding: var(--sectionPadding);
+    position: relative;
+  }
+  #faq-1741 .cs-container {
+    width: 100%;
+    /* changes to 1280px at desktop */
+    max-width: 36.5rem;
+    margin: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    /* 48px - 64px */
+    gap: clamp(3rem, 6vw, 4rem);
+  }
+  #faq-1741 .cs-content {
+    /* set text align to left if content needs to be left aligned */
+    text-align: center;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    /* centers content horizontally, set to flex-start to left align */
+    align-items: center;
+  }
+  #faq-1741 .cs-title {
+    max-width: 15ch;
+    margin: 0 0 2rem;
+  }
+  #faq-1741 .cs-button-solid {
+    font-size: 1rem;
+    font-weight: 700;
+    /* 46px - 56px */
+    line-height: clamp(2.875rem, 5.5vw, 3.5rem);
+    text-align: center;
+    text-decoration: none;
+    min-width: 9.375rem;
+    margin: 0;
+    /* prevents padding from adding to the width */
+    box-sizing: border-box;
+    padding: 0 1.5rem;
+    background-color: var(--primary);
+    color: #fff;
+    display: inline-block;
+    position: relative;
+    z-index: 1;
+  }
+  #faq-1741 .cs-button-solid:before {
+    content: &quot;&quot;;
+    width: 0%;
+    height: 100%;
+    background: #000;
+    opacity: 1;
+    border-radius: 0.25rem;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: -1;
+    transition: width 0.3s;
+  }
+  #faq-1741 .cs-button-solid:hover:before {
+    width: 100%;
+  }
+  #faq-1741 .cs-faq-group {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  #faq-1741 .cs-faq-item {
+    list-style: none;
+    width: 100%;
+    /* clips all corners of the button that overlap the rounded border */
+    overflow: hidden;
+    transition: border-bottom 0.3s;
+  }
+  #faq-1741 .cs-faq-item.active .cs-button {
+    background-color: var(--primary);
+    color: var(--bodyTextColorWhite);
+  }
+  #faq-1741 .cs-faq-item.active .cs-button:before {
+    background-color: var(--bodyTextColorWhite);
+    transform: rotate(315deg);
+  }
+  #faq-1741 .cs-faq-item.active .cs-button:after {
+    background-color: var(--bodyTextColorWhite);
+    transform: rotate(-315deg);
+  }
+  #faq-1741 .cs-faq-item.active .cs-item-text {
+    height: auto;
+    /* 16px - 24px */
+    padding: 1rem clamp(1rem, 2vw, 1.5rem);
+    opacity: 1;
+    border: 1px solid #e8e8e8;
+  }
+  #faq-1741 .cs-button {
+    /* 16px - 20px */
+    font-size: clamp(1rem, 2.5vw, 1.25rem);
+    font-weight: bold;
+    line-height: 1.2em;
+    text-align: left;
+    width: 100%;
+    padding: 1rem;
+    padding-left: 3.25rem;
+    background-color: transparent;
+    color: var(--headerColor);
+    border: 1px solid #e8e8e8;
+    display: block;
+    position: relative;
+    transition: background-color 0.3s, color 0.3s;
+  }
+  #faq-1741 .cs-button:hover {
+    cursor: pointer;
+  }
+  #faq-1741 .cs-button:before {
+    /* left line */
+    content: &quot;&quot;;
+    width: 0.5rem;
+    height: 0.125rem;
+    background-color: var(--headerColor);
+    opacity: 1;
+    display: block;
+    position: absolute;
+    top: 45%;
+    left: 1.125rem;
+    transform: rotate(45deg);
+    transition: transform 0.5s;
+    /* animate the transform from the left side of the x axis, and the center of the y */
+    transform-origin: left center;
+  }
+  #faq-1741 .cs-button:after {
+    /* right line */
+    content: &quot;&quot;;
+    width: 0.5rem;
+    height: 0.125rem;
+    background-color: var(--headerColor);
+    opacity: 1;
+    display: block;
+    position: absolute;
+    top: 45%;
+    left: 1.3125rem;
+    transform: rotate(-45deg);
+    transition: transform 0.5s;
+    /* animate the transform from the right side of the x axis, and the center of the y */
+    transform-origin: right center;
+  }
+  #faq-1741 .cs-item-text {
+    /* 14px - 16px */
+    font-size: clamp(0.875rem, 1.5vw, 1rem);
+    line-height: 1.5em;
+    height: 0;
+    margin: 0;
+    /* clips the text so it doesn&#039;t show up */
+    overflow: hidden;
+    color: var(--bodyTextColor);
+    opacity: 0;
+    transition: opacity 0.3s, padding-bottom 0.3s;
+  }
+  #faq-1741 .cs-gallery {
+    width: 100%;
+    /* changes to 1720 at tablet */
+    max-width: 36.5rem;
+    margin: clamp(3rem, 6vw, 4rem) auto 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    /* 16px - 20px */
+    gap: clamp(1rem, 1.5vw, 1.25rem);
+  }
+  #faq-1741 .cs-picture {
+    /* 210px - 400px */
+    min-height: clamp(13.125rem, 27vw, 25rem);
+    display: block;
+    grid-column: span 5;
+    grid-row: span 1;
+    position: relative;
+  }
+  #faq-1741 .cs-picture img {
+    width: 100%;
+    height: 100%;
+    /* makes it act like a background image */
+    object-fit: cover;
+    position: absolute;
+    top: 0;
+    left: 0;
+  }
+}
+/* Tablet - 768px */
+@media only screen and (min-width: 48rem) {
+  #faq-1741 .cs-gallery {
+    max-width: 107.5rem;
+  }
+  #faq-1741 .cs-picture {
+    grid-column: span 1;
+  }
+}
+/* Desktop - 1024px */
+@media only screen and (min-width: 64rem) {
+  #faq-1741 .cs-container {
+    max-width: 80rem;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: stretch;
+  }
+  #faq-1741 .cs-content {
+    text-align: left;
+    width: 40%;
+    align-items: flex-start;
+    /* prevents flexbox from squishing it */
+    flex: none;
+  }
+  #faq-1741 .cs-gallery {
+    grid-template-columns: repeat(5, 1fr);
+  }
+  #faq-1741 .cs-picture {
+    grid-column: span 1;
+  }
+  #faq-1741 .cs-picture:nth-of-type(4),
+  #faq-1741 .cs-picture:nth-of-type(5) {
+    grid-column: span 1;
+  }
+}
+                                </textarea>
+                            </div>
+                                                                                <div class="tab " data-codeid="10178">
+                                <textarea class="CODE-TEXTAREA" style="display: none;" data-cmtype="css">
+/*-- -------------------------- --&gt;
+&lt;---            FAQ             --&gt;
+&lt;--- -------------------------- -*/
+
+/* Mobile - 360px */
+@media only screen and (min-width: 0rem) {
+  #faq-1741 {
+    padding: var(--sectionPadding);
+    position: relative;
+  }
+  #faq-1741 .cs-container {
+    width: 100%;
+    /* changes to 1280px at desktop */
+    max-width: 36.5rem;
+    margin: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    /* 48px - 64px */
+    gap: clamp(3rem, 6vw, 4rem);
+  }
+  #faq-1741 .cs-content {
+    /* set text align to left if content needs to be left aligned */
+    text-align: center;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    /* centers content horizontally, set to flex-start to left align */
+    align-items: center;
+  }
+  #faq-1741 .cs-title {
+    max-width: 15ch;
+    margin: 0 0 2rem;
+  }
+  #faq-1741 .cs-button-solid {
+    font-size: 1rem;
+    font-weight: 700;
+    /* 46px - 56px */
+    line-height: clamp(2.875rem, 5.5vw, 3.5rem);
+    text-align: center;
+    text-decoration: none;
+    min-width: 9.375rem;
+    margin: 0;
+    /* prevents padding from adding to the width */
+    box-sizing: border-box;
+    padding: 0 1.5rem;
+    background-color: var(--primary);
+    color: #fff;
+    display: inline-block;
+    position: relative;
+    z-index: 1;
+  }
+  #faq-1741 .cs-button-solid:before {
+    content: &quot;&quot;;
+    width: 0%;
+    height: 100%;
+    background: #000;
+    opacity: 1;
+    border-radius: 0.25rem;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: -1;
+    transition: width 0.3s;
+  }
+  #faq-1741 .cs-button-solid:hover:before {
+    width: 100%;
+  }
+  #faq-1741 .cs-faq-group {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  #faq-1741 .cs-faq-item {
+    list-style: none;
+    width: 100%;
+    /* clips all corners of the button that overlap the rounded border */
+    overflow: hidden;
+    transition: border-bottom 0.3s;
+  }
+  #faq-1741 .cs-faq-item.active .cs-button {
+    background-color: var(--primary);
+    color: var(--bodyTextColorWhite);
+  }
+  #faq-1741 .cs-faq-item.active .cs-button:before {
+    background-color: var(--bodyTextColorWhite);
+    transform: rotate(315deg);
+  }
+  #faq-1741 .cs-faq-item.active .cs-button:after {
+    background-color: var(--bodyTextColorWhite);
+    transform: rotate(-315deg);
+  }
+  #faq-1741 .cs-faq-item.active .cs-item-text {
+    height: auto;
+    /* 16px - 24px */
+    padding: 1rem clamp(1rem, 2vw, 1.5rem);
+    opacity: 1;
+    border: 1px solid #e8e8e8;
+  }
+  #faq-1741 .cs-button {
+    /* 16px - 20px */
+    font-size: clamp(1rem, 2.5vw, 1.25rem);
+    font-weight: bold;
+    line-height: 1.2em;
+    text-align: left;
+    width: 100%;
+    padding: 1rem;
+    padding-left: 3.25rem;
+    background-color: transparent;
+    color: var(--headerColor);
+    border: 1px solid #e8e8e8;
+    display: block;
+    position: relative;
+    transition: background-color 0.3s, color 0.3s;
+  }
+  #faq-1741 .cs-button:hover {
+    cursor: pointer;
+  }
+  #faq-1741 .cs-button:before {
+    /* left line */
+    content: &quot;&quot;;
+    width: 0.5rem;
+    height: 0.125rem;
+    background-color: var(--headerColor);
+    opacity: 1;
+    display: block;
+    position: absolute;
+    top: 45%;
+    left: 1.125rem;
+    transform: rotate(45deg);
+    transition: transform 0.5s;
+    /* animate the transform from the left side of the x axis, and the center of the y */
+    transform-origin: left center;
+  }
+  #faq-1741 .cs-button:after {
+    /* right line */
+    content: &quot;&quot;;
+    width: 0.5rem;
+    height: 0.125rem;
+    background-color: var(--headerColor);
+    opacity: 1;
+    display: block;
+    position: absolute;
+    top: 45%;
+    left: 1.3125rem;
+    transform: rotate(-45deg);
+    transition: transform 0.5s;
+    /* animate the transform from the right side of the x axis, and the center of the y */
+    transform-origin: right center;
+  }
+  #faq-1741 .cs-item-text {
+    /* 14px - 16px */
+    font-size: clamp(0.875rem, 1.5vw, 1rem);
+    line-height: 1.5em;
+    height: 0;
+    margin: 0;
+    /* clips the text so it doesn&#039;t show up */
+    overflow: hidden;
+    color: var(--bodyTextColor);
+    opacity: 0;
+    transition: opacity 0.3s, padding-bottom 0.3s;
+  }
+  #faq-1741 .cs-gallery {
+    width: 100%;
+    /* changes to 1720 at tablet */
+    max-width: 36.5rem;
+    margin: clamp(3rem, 6vw, 4rem) auto 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    /* 16px - 20px */
+    gap: clamp(1rem, 1.5vw, 1.25rem);
+  }
+  #faq-1741 .cs-picture {
+    /* 210px - 400px */
+    min-height: clamp(13.125rem, 27vw, 25rem);
+    display: block;
+    grid-column: span 5;
+    grid-row: span 1;
+    position: relative;
+  }
+  #faq-1741 .cs-picture img {
+    width: 100%;
+    height: 100%;
+    /* makes it act like a background image */
+    object-fit: cover;
+    position: absolute;
+    top: 0;
+    left: 0;
+  }
+}
+/* Tablet - 768px */
+@media only screen and (min-width: 48rem) {
+  #faq-1741 .cs-gallery {
+    max-width: 107.5rem;
+  }
+  #faq-1741 .cs-picture {
+    grid-column: span 1;
+  }
+}
+/* Desktop - 1024px */
+@media only screen and (min-width: 64rem) {
+  #faq-1741 .cs-container {
+    max-width: 80rem;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: stretch;
+  }
+  #faq-1741 .cs-content {
+    text-align: left;
+    width: 40%;
+    align-items: flex-start;
+    /* prevents flexbox from squishing it */
+    flex: none;
+  }
+  #faq-1741 .cs-gallery {
+    grid-template-columns: repeat(5, 1fr);
+  }
+  #faq-1741 .cs-picture {
+    grid-column: span 1;
+  }
+  #faq-1741 .cs-picture:nth-of-type(4),
+  #faq-1741 .cs-picture:nth-of-type(5) {
+    grid-column: span 1;
+  }
+}
+/* Dark Mode */
+@media only screen and (min-width: 0rem) {
+  body.dark-mode #faq-1741 .cs-title,
+  body.dark-mode #faq-1741 .cs-item-text {
+    color: var(--bodyTextColorWhite);
+  }
+  body.dark-mode #faq-1741 .cs-faq-item.active .cs-button {
+    background-color: var(--primary);
+    color: var(--bodyTextColorWhite);
+  }
+  body.dark-mode #faq-1741 .cs-faq-item.active .cs-button:before,
+  body.dark-mode #faq-1741 .cs-faq-item.active .cs-button:after {
+    background-color: var(--bodyTextColorWhite);
+  }
+  body.dark-mode #faq-1741 .cs-faq-item.active .cs-item-text {
+    /* 20px - 24px */
+    padding-top: clamp(1.25rem, 1.3vw, 1.5rem);
+    border-color: var(--accent);
+  }
+  body.dark-mode #faq-1741 .cs-button {
+    color: var(--bodyTextColorWhite);
+    border-color: var(--accent);
+  }
+  body.dark-mode #faq-1741 .cs-button:before,
+  body.dark-mode #faq-1741 .cs-button:after {
+    background-color: var(--bodyTextColorWhite);
+  }
+}
+                                </textarea>
+                            </div>
+                                                                                <div class="tab " data-codeid="10179">
+                                <textarea class="CODE-TEXTAREA" style="display: none;" data-cmtype="css">
+/*-- -------------------------- --&gt;
+&lt;---            FAQ             --&gt;
+&lt;--- -------------------------- -*/
+
+/* Mobile - 360px */
+@media only screen and (min-width: 0rem) {
+    #faq-1741 {
+        padding: var(--sectionPadding);
+        position: relative;
+
+        .cs-container {
+            width: 100%;
+            /* changes to 1280px at desktop */
+            max-width: (584/16rem);
+            margin: auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            /* 48px - 64px */
+            gap: clamp(3rem, 6vw, 4rem);
+        }
+
+        .cs-content {
+            /* set text align to left if content needs to be left aligned */
+            text-align: center;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            /* centers content horizontally, set to flex-start to left align */
+            align-items: center;
+        }
+
+        .cs-title {
+            max-width: 15ch;
+            margin: 0 0 (32/16rem);
+        }
+
+        .cs-button-solid {
+            font-size: (16/16rem);
+            font-weight: 700;
+            /* 46px - 56px */
+            line-height: clamp(2.875rem, 5.5vw, 3.5rem);
+            text-align: center;
+            text-decoration: none;
+            min-width: (150/16rem);
+            margin: 0;
+            /* prevents padding from adding to the width */
+            box-sizing: border-box;
+            padding: 0 (24/16rem);
+            background-color: var(--primary);
+            color: #fff;
+            display: inline-block;
+            position: relative;
+            z-index: 1;
+
+            &amp;:before {
+                content: &quot;&quot;;
+                width: 0%;
+                height: 100%;
+                background: #000;
+                opacity: 1;
+                border-radius: (4/16rem);
+                position: absolute;
+                top: 0;
+                left: 0;
+                z-index: -1;
+                transition: width 0.3s;
+            }
+
+            &amp;:hover {
+                &amp;:before {
+                    width: 100%;
+                }
+            }
+        }
+
+        .cs-faq-group {
+            width: 100%;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: (12/16rem);
+        }
+
+        .cs-faq-item {
+            list-style: none;
+            width: 100%;
+            /* clips all corners of the button that overlap the rounded border */
+            overflow: hidden;
+            transition: border-bottom 0.3s;
+
+            &amp;.active {
+                .cs-button {
+                    background-color: var(--primary);
+                    color: var(--bodyTextColorWhite);
+
+                    &amp;:before {
+                        background-color: var(--bodyTextColorWhite);
+                        transform: rotate(315deg);
+                    }
+
+                    &amp;:after {
+                        background-color: var(--bodyTextColorWhite);
+                        transform: rotate(-315deg);
+                    }
+                }
+
+                .cs-item-text {
+                    height: auto;
+                    /* 16px - 24px */
+                    padding: (16/16rem) clamp(1rem, 2vw, 1.5rem);
+                    opacity: 1;
+                    border: 1px solid #e8e8e8;
+                }
+            }
+        }
+
+        .cs-button {
+            /* 16px - 20px */
+            font-size: clamp(1rem, 2.5vw, 1.25rem);
+            font-weight: bold;
+            line-height: 1.2em;
+            text-align: left;
+            width: 100%;
+            padding: (16/16rem);
+            padding-left: (52/16rem);
+            background-color: transparent;
+            color: var(--headerColor);
+            border: 1px solid #e8e8e8;
+            display: block;
+            position: relative;
+            transition: background-color 0.3s, color 0.3s;
+
+            &amp;:hover {
+                cursor: pointer;
+            }
+
+            &amp;:before {
+                /* left line */
+                content: &quot;&quot;;
+                width: (8/16rem);
+                height: (2/16rem);
+                background-color: var(--headerColor);
+                opacity: 1;
+                display: block;
+                position: absolute;
+                top: 45%;
+                left: (18/16rem);
+                transform: rotate(45deg);
+                transition: transform 0.5s;
+                /* animate the transform from the left side of the x axis, and the center of the y */
+                transform-origin: left center;
+            }
+
+            &amp;:after {
+                /* right line */
+                content: &quot;&quot;;
+                width: (8/16rem);
+                height: (2/16rem);
+                background-color: var(--headerColor);
+                opacity: 1;
+                display: block;
+                position: absolute;
+                top: 45%;
+                left: (21/16rem);
+                transform: rotate(-45deg);
+                transition: transform 0.5s;
+                /* animate the transform from the right side of the x axis, and the center of the y */
+                transform-origin: right center;
+            }
+        }
+
+        .cs-item-text {
+            /* 14px - 16px */
+            font-size: clamp(0.875rem, 1.5vw, 1rem);
+            line-height: 1.5em;
+            height: 0;
+            margin: 0;
+            /* clips the text so it doesn&#039;t show up */
+            overflow: hidden;
+            color: var(--bodyTextColor);
+            opacity: 0;
+            transition: opacity 0.3s, padding-bottom 0.3s;
+        }
+
+        .cs-gallery {
+            width: 100%;
+            /* changes to 1720 at tablet */
+            max-width: (584/16rem);
+            margin: clamp(3rem, 6vw, 4rem) auto 0;
+            padding: 0;
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            /* 16px - 20px */
+            gap: clamp(1rem, 1.5vw, 1.25rem);
+        }
+
+        .cs-picture {
+            /* 210px - 400px */
+            min-height: clamp(13.125rem, 27vw, 25rem);
+            display: block;
+            grid-column: span 5;
+            grid-row: span 1;
+            position: relative;
+
+            img {
+                width: 100%;
+                height: 100%;
+                /* makes it act like a background image */
+                object-fit: cover;
+                position: absolute;
+                top: 0;
+                left: 0;
+            }
+        }
+    }
+}
+
+/* Tablet - 768px */
+@media only screen and (min-width: 48rem) {
+    #faq-1741 {
+        .cs-gallery {
+            max-width: (1720/16rem);
+        }
+
+        .cs-picture {
+            grid-column: span 1;
+        }
+    }
+}
+
+/* Desktop - 1024px */
+@media only screen and (min-width: 64rem) {
+    #faq-1741 {
+        .cs-container {
+            max-width: (1280/16rem);
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: stretch;
+        }
+
+        .cs-content {
+            text-align: left;
+            width: 40%;
+            align-items: flex-start;
+            /* prevents flexbox from squishing it */
+            flex: none;
+        }
+
+        .cs-gallery {
+            grid-template-columns: repeat(5, 1fr);
+        }
+
+        .cs-picture {
+            grid-column: span 1;
+
+            &amp;:nth-of-type(4),
+            &amp;:nth-of-type(5) {
+                grid-column: span 1;
+            }
+        }
+    }
+}
+                                </textarea>
+                            </div>
+                                                                                <div class="tab " data-codeid="10180">
+                                <textarea class="CODE-TEXTAREA" style="display: none;" data-cmtype="css">
+/*-- -------------------------- --&gt;
+&lt;---            FAQ             --&gt;
+&lt;--- -------------------------- -*/
+
+/* Mobile - 360px */
+@media only screen and (min-width: 0rem) {
+    #faq-1741 {
+        padding: var(--sectionPadding);
+        position: relative;
+
+        .cs-container {
+            width: 100%;
+            /* changes to 1280px at desktop */
+            max-width: (584/16rem);
+            margin: auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            /* 48px - 64px */
+            gap: clamp(3rem, 6vw, 4rem);
+        }
+
+        .cs-content {
+            /* set text align to left if content needs to be left aligned */
+            text-align: center;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            /* centers content horizontally, set to flex-start to left align */
+            align-items: center;
+        }
+
+        .cs-title {
+            max-width: 15ch;
+            margin: 0 0 (32/16rem);
+        }
+
+        .cs-button-solid {
+            font-size: (16/16rem);
+            font-weight: 700;
+            /* 46px - 56px */
+            line-height: clamp(2.875rem, 5.5vw, 3.5rem);
+            text-align: center;
+            text-decoration: none;
+            min-width: (150/16rem);
+            margin: 0;
+            /* prevents padding from adding to the width */
+            box-sizing: border-box;
+            padding: 0 (24/16rem);
+            background-color: var(--primary);
+            color: #fff;
+            display: inline-block;
+            position: relative;
+            z-index: 1;
+
+            &amp;:before {
+                content: &quot;&quot;;
+                width: 0%;
+                height: 100%;
+                background: #000;
+                opacity: 1;
+                border-radius: (4/16rem);
+                position: absolute;
+                top: 0;
+                left: 0;
+                z-index: -1;
+                transition: width 0.3s;
+            }
+
+            &amp;:hover {
+                &amp;:before {
+                    width: 100%;
+                }
+            }
+        }
+
+        .cs-faq-group {
+            width: 100%;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: (12/16rem);
+        }
+
+        .cs-faq-item {
+            list-style: none;
+            width: 100%;
+            /* clips all corners of the button that overlap the rounded border */
+            overflow: hidden;
+            transition: border-bottom 0.3s;
+
+            &amp;.active {
+                .cs-button {
+                    background-color: var(--primary);
+                    color: var(--bodyTextColorWhite);
+
+                    &amp;:before {
+                        background-color: var(--bodyTextColorWhite);
+                        transform: rotate(315deg);
+                    }
+
+                    &amp;:after {
+                        background-color: var(--bodyTextColorWhite);
+                        transform: rotate(-315deg);
+                    }
+                }
+
+                .cs-item-text {
+                    height: auto;
+                    /* 16px - 24px */
+                    padding: (16/16rem) clamp(1rem, 2vw, 1.5rem);
+                    opacity: 1;
+                    border: 1px solid #e8e8e8;
+                }
+            }
+        }
+
+        .cs-button {
+            /* 16px - 20px */
+            font-size: clamp(1rem, 2.5vw, 1.25rem);
+            font-weight: bold;
+            line-height: 1.2em;
+            text-align: left;
+            width: 100%;
+            padding: (16/16rem);
+            padding-left: (52/16rem);
+            background-color: transparent;
+            color: var(--headerColor);
+            border: 1px solid #e8e8e8;
+            display: block;
+            position: relative;
+            transition: background-color 0.3s, color 0.3s;
+
+            &amp;:hover {
+                cursor: pointer;
+            }
+
+            &amp;:before {
+                /* left line */
+                content: &quot;&quot;;
+                width: (8/16rem);
+                height: (2/16rem);
+                background-color: var(--headerColor);
+                opacity: 1;
+                display: block;
+                position: absolute;
+                top: 45%;
+                left: (18/16rem);
+                transform: rotate(45deg);
+                transition: transform 0.5s;
+                /* animate the transform from the left side of the x axis, and the center of the y */
+                transform-origin: left center;
+            }
+
+            &amp;:after {
+                /* right line */
+                content: &quot;&quot;;
+                width: (8/16rem);
+                height: (2/16rem);
+                background-color: var(--headerColor);
+                opacity: 1;
+                display: block;
+                position: absolute;
+                top: 45%;
+                left: (21/16rem);
+                transform: rotate(-45deg);
+                transition: transform 0.5s;
+                /* animate the transform from the right side of the x axis, and the center of the y */
+                transform-origin: right center;
+            }
+        }
+
+        .cs-item-text {
+            /* 14px - 16px */
+            font-size: clamp(0.875rem, 1.5vw, 1rem);
+            line-height: 1.5em;
+            height: 0;
+            margin: 0;
+            /* clips the text so it doesn&#039;t show up */
+            overflow: hidden;
+            color: var(--bodyTextColor);
+            opacity: 0;
+            transition: opacity 0.3s, padding-bottom 0.3s;
+        }
+
+        .cs-gallery {
+            width: 100%;
+            /* changes to 1720 at tablet */
+            max-width: (584/16rem);
+            margin: clamp(3rem, 6vw, 4rem) auto 0;
+            padding: 0;
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            /* 16px - 20px */
+            gap: clamp(1rem, 1.5vw, 1.25rem);
+        }
+
+        .cs-picture {
+            /* 210px - 400px */
+            min-height: clamp(13.125rem, 27vw, 25rem);
+            display: block;
+            grid-column: span 5;
+            grid-row: span 1;
+            position: relative;
+
+            img {
+                width: 100%;
+                height: 100%;
+                /* makes it act like a background image */
+                object-fit: cover;
+                position: absolute;
+                top: 0;
+                left: 0;
+            }
+        }
+    }
+}
+
+/* Tablet - 768px */
+@media only screen and (min-width: 48rem) {
+    #faq-1741 {
+        .cs-gallery {
+            max-width: (1720/16rem);
+        }
+
+        .cs-picture {
+            grid-column: span 1;
+        }
+    }
+}
+
+/* Desktop - 1024px */
+@media only screen and (min-width: 64rem) {
+    #faq-1741 {
+        .cs-container {
+            max-width: (1280/16rem);
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: stretch;
+        }
+
+        .cs-content {
+            text-align: left;
+            width: 40%;
+            align-items: flex-start;
+            /* prevents flexbox from squishing it */
+            flex: none;
+        }
+
+        .cs-gallery {
+            grid-template-columns: repeat(5, 1fr);
+        }
+
+        .cs-picture {
+            grid-column: span 1;
+
+            &amp;:nth-of-type(4),
+            &amp;:nth-of-type(5) {
+                grid-column: span 1;
+            }
+        }
+    }
+}
+
+/* Dark Mode */
+@media only screen and (min-width: 0rem) {
+    body.dark-mode {
+        #faq-1741 {
+            .cs-title,
+            .cs-item-text {
+                color: var(--bodyTextColorWhite);
+            }
+
+            .cs-faq-item {
+                &amp;.active {
+                    .cs-button {
+                        background-color: var(--primary);
+                        color: var(--bodyTextColorWhite);
+
+                        &amp;:before,
+                        &amp;:after {
+                            background-color: var(--bodyTextColorWhite);
+                        }
+                    }
+
+                    .cs-item-text {
+                        /* 20px - 24px */
+                        padding-top: clamp(1.25rem, 1.3vw, 1.5rem);
+                        border-color: var(--accent);
+                    }
+                }
+            }
+
+            .cs-button {
+                color: var(--bodyTextColorWhite);
+                border-color: var(--accent);
+
+                &amp;:before,
+                &amp;:after {
+                    background-color: var(--bodyTextColorWhite);
+                }
+            }
+        }
+    }
+}
+                                </textarea>
+                            </div>
+                                                                                <div class="tab " data-codeid="10181">
+                                <textarea class="CODE-TEXTAREA" style="display: none;" data-cmtype="css">
+/*-- -------------------------- --&gt;
+&lt;---            FAQ             --&gt;
+&lt;--- -------------------------- -*/
+
+/* Mobile - 360px */
+@media only screen and (min-width: 0rem) {
+    #faq-1741 {
+        padding: var(--sectionPadding);
+        position: relative;
+
+        .cs-container {
+            width: 100%;
+            /* changes to 1280px at desktop */
+            max-width: calc(584/16 * 1rem);
+            margin: auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            /* 48px - 64px */
+            gap: clamp(3rem, 6vw, 4rem);
+        }
+
+        .cs-content {
+            /* set text align to left if content needs to be left aligned */
+            text-align: center;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            /* centers content horizontally, set to flex-start to left align */
+            align-items: center;
+        }
+
+        .cs-title {
+            max-width: 15ch;
+            margin: 0 0 calc(32/16 * 1rem);
+        }
+
+        .cs-button-solid {
+            font-size: calc(16/16 * 1rem);
+            font-weight: 700;
+            /* 46px - 56px */
+            line-height: clamp(2.875rem, 5.5vw, 3.5rem);
+            text-align: center;
+            text-decoration: none;
+            min-width: calc(150/16 * 1rem);
+            margin: 0;
+            /* prevents padding from adding to the width */
+            box-sizing: border-box;
+            padding: 0 calc(24/16 * 1rem);
+            background-color: var(--primary);
+            color: #fff;
+            display: inline-block;
+            position: relative;
+            z-index: 1;
+
+            &amp;:before {
+                content: &quot;&quot;;
+                width: 0%;
+                height: 100%;
+                background: #000;
+                opacity: 1;
+                border-radius: calc(4/16 * 1rem);
+                position: absolute;
+                top: 0;
+                left: 0;
+                z-index: -1;
+                transition: width 0.3s;
+            }
+
+            &amp;:hover {
+                &amp;:before {
+                    width: 100%;
+                }
+            }
+        }
+
+        .cs-faq-group {
+            width: 100%;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: calc(12/16 * 1rem);
+        }
+
+        .cs-faq-item {
+            list-style: none;
+            width: 100%;
+            /* clips all corners of the button that overlap the rounded border */
+            overflow: hidden;
+            transition: border-bottom 0.3s;
+
+            &amp;.active {
+                .cs-button {
+                    background-color: var(--primary);
+                    color: var(--bodyTextColorWhite);
+
+                    &amp;:before {
+                        background-color: var(--bodyTextColorWhite);
+                        transform: rotate(315deg);
+                    }
+
+                    &amp;:after {
+                        background-color: var(--bodyTextColorWhite);
+                        transform: rotate(-315deg);
+                    }
+                }
+
+                .cs-item-text {
+                    height: auto;
+                    /* 16px - 24px */
+                    padding: calc(16/16 * 1rem) clamp(1rem, 2vw, 1.5rem);
+                    opacity: 1;
+                    border: 1px solid #e8e8e8;
+                }
+            }
+        }
+
+        .cs-button {
+            /* 16px - 20px */
+            font-size: clamp(1rem, 2.5vw, 1.25rem);
+            font-weight: bold;
+            line-height: 1.2em;
+            text-align: left;
+            width: 100%;
+            padding: calc(16/16 * 1rem);
+            padding-left: calc(52/16 * 1rem);
+            background-color: transparent;
+            color: var(--headerColor);
+            border: 1px solid #e8e8e8;
+            display: block;
+            position: relative;
+            transition: background-color 0.3s, color 0.3s;
+
+            &amp;:hover {
+                cursor: pointer;
+            }
+
+            &amp;:before {
+                /* left line */
+                content: &quot;&quot;;
+                width: calc(8/16 * 1rem);
+                height: calc(2/16 * 1rem);
+                background-color: var(--headerColor);
+                opacity: 1;
+                display: block;
+                position: absolute;
+                top: 45%;
+                left: calc(18/16 * 1rem);
+                transform: rotate(45deg);
+                transition: transform 0.5s;
+                /* animate the transform from the left side of the x axis, and the center of the y */
+                transform-origin: left center;
+            }
+
+            &amp;:after {
+                /* right line */
+                content: &quot;&quot;;
+                width: calc(8/16 * 1rem);
+                height: calc(2/16 * 1rem);
+                background-color: var(--headerColor);
+                opacity: 1;
+                display: block;
+                position: absolute;
+                top: 45%;
+                left: calc(21/16 * 1rem);
+                transform: rotate(-45deg);
+                transition: transform 0.5s;
+                /* animate the transform from the right side of the x axis, and the center of the y */
+                transform-origin: right center;
+            }
+        }
+
+        .cs-item-text {
+            /* 14px - 16px */
+            font-size: clamp(0.875rem, 1.5vw, 1rem);
+            line-height: 1.5em;
+            height: 0;
+            margin: 0;
+            /* clips the text so it doesn&#039;t show up */
+            overflow: hidden;
+            color: var(--bodyTextColor);
+            opacity: 0;
+            transition: opacity 0.3s, padding-bottom 0.3s;
+        }
+
+        .cs-gallery {
+            width: 100%;
+            /* changes to 1720 at tablet */
+            max-width: calc(584/16 * 1rem);
+            margin: clamp(3rem, 6vw, 4rem) auto 0;
+            padding: 0;
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            /* 16px - 20px */
+            gap: clamp(1rem, 1.5vw, 1.25rem);
+        }
+
+        .cs-picture {
+            /* 210px - 400px */
+            min-height: clamp(13.125rem, 27vw, 25rem);
+            display: block;
+            grid-column: span 5;
+            grid-row: span 1;
+            position: relative;
+
+            img {
+                width: 100%;
+                height: 100%;
+                /* makes it act like a background image */
+                object-fit: cover;
+                position: absolute;
+                top: 0;
+                left: 0;
+            }
+        }
+    }
+}
+
+/* Tablet - 768px */
+@media only screen and (min-width: 48rem) {
+    #faq-1741 {
+        .cs-gallery {
+            max-width: calc(1720/16 * 1rem);
+        }
+
+        .cs-picture {
+            grid-column: span 1;
+        }
+    }
+}
+
+/* Desktop - 1024px */
+@media only screen and (min-width: 64rem) {
+    #faq-1741 {
+        .cs-container {
+            max-width: calc(1280/16 * 1rem);
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: stretch;
+        }
+
+        .cs-content {
+            text-align: left;
+            width: 40%;
+            align-items: flex-start;
+            /* prevents flexbox from squishing it */
+            flex: none;
+        }
+
+        .cs-gallery {
+            grid-template-columns: repeat(5, 1fr);
+        }
+
+        .cs-picture {
+            grid-column: span 1;
+
+            &amp;:nth-of-type(4),
+            &amp;:nth-of-type(5) {
+                grid-column: span 1;
+            }
+        }
+    }
+}
+                                </textarea>
+                            </div>
+                                                                                <div class="tab " data-codeid="10182">
+                                <textarea class="CODE-TEXTAREA" style="display: none;" data-cmtype="css">
+/*-- -------------------------- --&gt;
+&lt;---            FAQ             --&gt;
+&lt;--- -------------------------- -*/
+
+/* Mobile - 360px */
+@media only screen and (min-width: 0rem) {
+    #faq-1741 {
+        padding: var(--sectionPadding);
+        position: relative;
+
+        .cs-container {
+            width: 100%;
+            /* changes to 1280px at desktop */
+            max-width: calc(584/16 * 1rem);
+            margin: auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            /* 48px - 64px */
+            gap: clamp(3rem, 6vw, 4rem);
+        }
+
+        .cs-content {
+            /* set text align to left if content needs to be left aligned */
+            text-align: center;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            /* centers content horizontally, set to flex-start to left align */
+            align-items: center;
+        }
+
+        .cs-title {
+            max-width: 15ch;
+            margin: 0 0 calc(32/16 * 1rem);
+        }
+
+        .cs-button-solid {
+            font-size: calc(16/16 * 1rem);
+            font-weight: 700;
+            /* 46px - 56px */
+            line-height: clamp(2.875rem, 5.5vw, 3.5rem);
+            text-align: center;
+            text-decoration: none;
+            min-width: calc(150/16 * 1rem);
+            margin: 0;
+            /* prevents padding from adding to the width */
+            box-sizing: border-box;
+            padding: 0 calc(24/16 * 1rem);
+            background-color: var(--primary);
+            color: #fff;
+            display: inline-block;
+            position: relative;
+            z-index: 1;
+
+            &amp;:before {
+                content: &quot;&quot;;
+                width: 0%;
+                height: 100%;
+                background: #000;
+                opacity: 1;
+                border-radius: calc(4/16 * 1rem);
+                position: absolute;
+                top: 0;
+                left: 0;
+                z-index: -1;
+                transition: width 0.3s;
+            }
+
+            &amp;:hover {
+                &amp;:before {
+                    width: 100%;
+                }
+            }
+        }
+
+        .cs-faq-group {
+            width: 100%;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: calc(12/16 * 1rem);
+        }
+
+        .cs-faq-item {
+            list-style: none;
+            width: 100%;
+            /* clips all corners of the button that overlap the rounded border */
+            overflow: hidden;
+            transition: border-bottom 0.3s;
+
+            &amp;.active {
+                .cs-button {
+                    background-color: var(--primary);
+                    color: var(--bodyTextColorWhite);
+
+                    &amp;:before {
+                        background-color: var(--bodyTextColorWhite);
+                        transform: rotate(315deg);
+                    }
+
+                    &amp;:after {
+                        background-color: var(--bodyTextColorWhite);
+                        transform: rotate(-315deg);
+                    }
+                }
+
+                .cs-item-text {
+                    height: auto;
+                    /* 16px - 24px */
+                    padding: calc(16/16 * 1rem) clamp(1rem, 2vw, 1.5rem);
+                    opacity: 1;
+                    border: 1px solid #e8e8e8;
+                }
+            }
+        }
+
+        .cs-button {
+            /* 16px - 20px */
+            font-size: clamp(1rem, 2.5vw, 1.25rem);
+            font-weight: bold;
+            line-height: 1.2em;
+            text-align: left;
+            width: 100%;
+            padding: calc(16/16 * 1rem);
+            padding-left: calc(52/16 * 1rem);
+            background-color: transparent;
+            color: var(--headerColor);
+            border: 1px solid #e8e8e8;
+            display: block;
+            position: relative;
+            transition: background-color 0.3s, color 0.3s;
+
+            &amp;:hover {
+                cursor: pointer;
+            }
+
+            &amp;:before {
+                /* left line */
+                content: &quot;&quot;;
+                width: calc(8/16 * 1rem);
+                height: calc(2/16 * 1rem);
+                background-color: var(--headerColor);
+                opacity: 1;
+                display: block;
+                position: absolute;
+                top: 45%;
+                left: calc(18/16 * 1rem);
+                transform: rotate(45deg);
+                transition: transform 0.5s;
+                /* animate the transform from the left side of the x axis, and the center of the y */
+                transform-origin: left center;
+            }
+
+            &amp;:after {
+                /* right line */
+                content: &quot;&quot;;
+                width: calc(8/16 * 1rem);
+                height: calc(2/16 * 1rem);
+                background-color: var(--headerColor);
+                opacity: 1;
+                display: block;
+                position: absolute;
+                top: 45%;
+                left: calc(21/16 * 1rem);
+                transform: rotate(-45deg);
+                transition: transform 0.5s;
+                /* animate the transform from the right side of the x axis, and the center of the y */
+                transform-origin: right center;
+            }
+        }
+
+        .cs-item-text {
+            /* 14px - 16px */
+            font-size: clamp(0.875rem, 1.5vw, 1rem);
+            line-height: 1.5em;
+            height: 0;
+            margin: 0;
+            /* clips the text so it doesn&#039;t show up */
+            overflow: hidden;
+            color: var(--bodyTextColor);
+            opacity: 0;
+            transition: opacity 0.3s, padding-bottom 0.3s;
+        }
+
+        .cs-gallery {
+            width: 100%;
+            /* changes to 1720 at tablet */
+            max-width: calc(584/16 * 1rem);
+            margin: clamp(3rem, 6vw, 4rem) auto 0;
+            padding: 0;
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            /* 16px - 20px */
+            gap: clamp(1rem, 1.5vw, 1.25rem);
+        }
+
+        .cs-picture {
+            /* 210px - 400px */
+            min-height: clamp(13.125rem, 27vw, 25rem);
+            display: block;
+            grid-column: span 5;
+            grid-row: span 1;
+            position: relative;
+
+            img {
+                width: 100%;
+                height: 100%;
+                /* makes it act like a background image */
+                object-fit: cover;
+                position: absolute;
+                top: 0;
+                left: 0;
+            }
+        }
+    }
+}
+
+/* Tablet - 768px */
+@media only screen and (min-width: 48rem) {
+    #faq-1741 {
+        .cs-gallery {
+            max-width: calc(1720/16 * 1rem);
+        }
+
+        .cs-picture {
+            grid-column: span 1;
+        }
+    }
+}
+
+/* Desktop - 1024px */
+@media only screen and (min-width: 64rem) {
+    #faq-1741 {
+        .cs-container {
+            max-width: calc(1280/16 * 1rem);
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: stretch;
+        }
+
+        .cs-content {
+            text-align: left;
+            width: 40%;
+            align-items: flex-start;
+            /* prevents flexbox from squishing it */
+            flex: none;
+        }
+
+        .cs-gallery {
+            grid-template-columns: repeat(5, 1fr);
+        }
+
+        .cs-picture {
+            grid-column: span 1;
+
+            &amp;:nth-of-type(4),
+            &amp;:nth-of-type(5) {
+                grid-column: span 1;
+            }
+        }
+    }
+}
+
+/* Dark Mode */
+@media only screen and (min-width: 0rem) {
+    body.dark-mode {
+        #faq-1741 {
+            .cs-title,
+            .cs-item-text {
+                color: var(--bodyTextColorWhite);
+            }
+
+            .cs-faq-item {
+
+                &amp;.active {
+                    .cs-button {
+                        background-color: var(--primary);
+                        color: var(--bodyTextColorWhite);
+
+                        &amp;:before,
+                        &amp;:after {
+                            background-color: var(--bodyTextColorWhite);
+                        }
+                    }
+
+                    .cs-item-text {
+                        /* 20px - 24px */
+                        padding-top: clamp(1.25rem, 1.3vw, 1.5rem);
+                        border-color: var(--accent);
+                    }
+                }
+            }
+
+            .cs-button {
+                color: var(--bodyTextColorWhite);
+                border-color: var(--accent);
+
+                &amp;:before,
+                &amp;:after {
+                    background-color: var(--bodyTextColorWhite);
+                }
+            }
+        }
+    }
+}
+                                </textarea>
+                            </div>
+                                                <div class="tab" data-codeid="core-styles-CSS">
+                                                        <textarea class="CODE-TEXTAREA" style="display: none;" data-cmtype="css">
+:root {
+    /* Add these styles to your global stylesheet, which is used across all site pages. You only need to do this once. All elements in the library derive their variables and base styles from this central sheet, simplifying site-wide edits. For instance, if you want to modify how your h2&#039;s appear across the site, you just update it once in the global styles, and the changes apply everywhere. */
+    --primary: #ff6a3e;
+    --primaryLight: #ffba43;
+    --secondary: #ffba43;
+    --secondaryLight: #ffba43;
+    --headerColor: #1a1a1a;
+    --bodyTextColor: #4e4b66;
+    --bodyTextColorWhite: #fafbfc;
+    /* 13px - 16px */
+    --topperFontSize: clamp(0.8125rem, 1.6vw, 1rem);
+    /* 31px - 49px */
+    --headerFontSize: clamp(1.9375rem, 3.9vw, 3.0625rem);
+    --bodyFontSize: 1rem;
+    /* 60px - 100px top and bottom */
+    --sectionPadding: clamp(3.75rem, 7.82vw, 6.25rem) 1rem;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+}
+
+*, *:before, *:after {
+    /* prevents padding from affecting height and width */
+    box-sizing: border-box;
+}
+.cs-topper {
+    font-size: var(--topperFontSize);
+    line-height: 1.2em;
+    text-transform: uppercase;
+    text-align: inherit;
+    letter-spacing: .1em;
+    font-weight: 700;
+    color: var(--primary);
+    margin-bottom: 0.25rem;
+    display: block;
+}
+
+.cs-title {
+    font-size: var(--headerFontSize);
+    font-weight: 900;
+    line-height: 1.2em;
+    text-align: inherit;
+    max-width: 43.75rem;
+    margin: 0 0 1rem 0;
+    color: var(--headerColor);
+    position: relative;
+}
+
+.cs-text {
+    font-size: var(--bodyFontSize);
+    line-height: 1.5em;
+    text-align: inherit;
+    width: 100%;
+    max-width: 40.625rem;
+    margin: 0;
+    color: var(--bodyTextColor);
+}
+                            </textarea>
+                        </div>
+                        <div class="tab" data-codeid="core-styles-LESS">
+                            <textarea class="CODE-TEXTAREA" style="display: none;" data-cmtype="css">
+:root {
+    /* Add these styles to your global stylesheet, which is used across all site pages. You only need to do this once. All elements in the library derive their variables and base styles from this central sheet, simplifying site-wide edits. For instance, if you want to modify how your h2&#039;s appear across the site, you just update it once in the global styles, and the changes apply everywhere. */
+    --primary: #ff6a3e;
+    --primaryLight: #ffba43;
+    --secondary: #ffba43;
+    --secondaryLight: #ffba43;
+    --headerColor: #1a1a1a;
+    --bodyTextColor: #4e4b66;
+    --bodyTextColorWhite: #fafbfc;
+    /* 13px - 16px */
+    --topperFontSize: clamp(0.8125rem, 1.6vw, 1rem);
+    /* 31px - 49px */
+    --headerFontSize: clamp(1.9375rem, 3.9vw, 3.0625rem);
+    --bodyFontSize: 1rem;
+    /* 60px - 100px top and bottom */
+    --sectionPadding: clamp(3.75rem, 7.82vw, 6.25rem) 1rem;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+}
+
+*, *:before, *:after {
+    /* prevents padding from affecting height and width */
+    box-sizing: border-box;
+}
+.cs-topper {
+    font-size: var(--topperFontSize);
+    line-height: 1.2em;
+    text-transform: uppercase;
+    text-align: inherit;
+    letter-spacing: .1em;
+    font-weight: 700;
+    color: var(--primary);
+    margin-bottom: (4/16rem);
+    display: block;
+}
+
+.cs-title {
+    font-size: var(--headerFontSize);
+    font-weight: 900;
+    line-height: 1.2em;
+    text-align: inherit;
+    max-width: (700/16rem);
+    margin: 0 0 (16/16rem) 0;
+    color: var(--headerColor);
+    position: relative;
+}
+
+.cs-text {
+    font-size: var(--bodyFontSize);
+    line-height: 1.5em;
+    text-align: inherit;
+    width: 100%;
+    max-width: (650/16rem);
+    margin: 0;
+    color: var(--bodyTextColor);
+}
+                            </textarea>
+                        </div>
+                        <div class="tab" data-codeid="core-styles-SCSS">
+                            <textarea class="CODE-TEXTAREA" style="display: none;" data-cmtype="css">
+:root {
+    /* Add these styles to your global stylesheet, which is used across all site pages. You only need to do this once. All elements in the library derive their variables and base styles from this central sheet, simplifying site-wide edits. For instance, if you want to modify how your h2&#039;s appear across the site, you just update it once in the global styles, and the changes apply everywhere. */
+    --primary: #ff6a3e;
+    --primaryLight: #ffba43;
+    --secondary: #ffba43;
+    --secondaryLight: #ffba43;
+    --headerColor: #1a1a1a;
+    --bodyTextColor: #4e4b66;
+    --bodyTextColorWhite: #fafbfc;
+    /* 13px - 16px */
+    --topperFontSize: clamp(0.8125rem, 1.6vw, 1rem);
+    /* 31px - 49px */
+    --headerFontSize: clamp(1.9375rem, 3.9vw, 3.0625rem);
+    --bodyFontSize: 1rem;
+    /* 60px - 100px top and bottom */
+    --sectionPadding: clamp(3.75rem, 7.82vw, 6.25rem) 1rem;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+}
+
+*, *:before, *:after {
+    /* prevents padding from affecting height and width */
+    box-sizing: border-box;
+}
+.cs-topper {
+    font-size: var(--topperFontSize);
+    line-height: 1.2em;
+    text-transform: uppercase;
+    text-align: inherit;
+    letter-spacing: .1em;
+    font-weight: 700;
+    color: var(--primary);
+    margin-bottom: calc(4 / 16 * 1rem);
+    display: block;
+}
+
+.cs-title {
+    font-size: var(--headerFontSize);
+    font-weight: 900;
+    line-height: 1.2em;
+    text-align: inherit;
+    max-width: calc(700 / 16 * 1rem);
+    margin: 0 0 calc(16 / 16 * 1rem) 0;
+    color: var(--headerColor);
+    position: relative;
+}
+
+.cs-text {
+    font-size: var(--bodyFontSize);
+    line-height: 1.5em;
+    text-align: inherit;
+    width: 100%;
+    max-width: calc(650 / 16 * 1rem);
+    margin: 0;
+    color: var(--bodyTextColor);
+}
+                            </textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+    
+            <!-- ============================================ -->
+            <!--                   Modals                     -->
+            <!-- ============================================ -->
+                    </main>
+
+        <div class="alert-massage d-none" id="user-notif">
+            <div class="alert-message-info">
+                <span class="ico ico-20 mr-16">
+                    <img src="https://codestitch.app/site/images/icons/ico-success.svg" alt="" class="notif-icon" data-type="success">
+                </span>
+                <span class="info-message mr-10" id="notif-text">Lorem Ipsum</span>
+            </div>
+            <div class="alert-message-action" id="notif-undo">
+                <a href="#" class="alert-action" msg-action="">
+                    <span class="info">Undo</span>
+                </a>
+            </div>
+        </div>
+
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+        <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+        <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+        <script defer src="https://codestitch.app/vendor/ajax-loader/ajax-loader.js"></script>
+        <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+        <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <script defer src="https://codestitch.app/site/js/app.js"></script>
+        <script defer src="https://codestitch.app/site/js/main.js"></script>
+        <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+        <script src="https://codestitch.app/site/js/custom.js"></script>
+
+            <script src="https://codestitch.app/site/codemirror/lib/codemirror.js"></script>
+    <script src="https://codestitch.app/site/codemirror/mode/xml/xml.js"></script>
+    <script src="https://codestitch.app/site/codemirror/mode/css/css.js"></script>
+    <script src="https://codestitch.app/site/codemirror/mode/javascript/javascript.js"></script>
+    <script>
+        function toggleClassOnNavigationCsTags() {
+            // Check if the screen width is less than 1200px
+            if (window.matchMedia("(max-width: 1200px)").matches) {
+                // Select the '.cs-tags-button' inside '#navigation'
+                const csTagsButton = document.querySelector('#navigation .cs-tags-button');
+    
+                // Add a click event listener to the '.cs-tags-button'
+                if (csTagsButton) {
+                    csTagsButton.addEventListener('click', () => {
+                        // When the button is clicked, find the '.cs-tags' element inside '#navigation'
+                        const csTagsElement = document.querySelector('#navigation .cs-tags');
+    
+                        // Toggle the 'cs-active' class on the '#navigation .cs-tags' element
+                        if (csTagsElement) {
+                            csTagsElement.classList.toggle('cs-active');
+                        }
+                    });
+                }
+            }
+        }
+
+        // Add click event listener to all cs-tag elements
+        document.querySelectorAll('.cs-tag').forEach(tag => {
+            tag.addEventListener('click', () => {
+                tag.classList.toggle('cs-active');
+            });
+        });
+
+        // Add click handler for cs-tag-search button
+        document.querySelector('[name=cs-tag-search]').addEventListener('click', (e) => {
+            e.preventDefault();
+            // Find all active tags and get their text content
+            const activeTags = Array.from(document.querySelectorAll('.cs-tag.cs-active'))
+                .map(tag => tag.textContent.trim())
+                .join(',');
+
+
+            // Get current route name
+            const currentRoute = 'dashboard.stitches.show';
+            console.log({currentRoute});
+            
+            // Check if we're in a section or catalog detail page
+            if (currentRoute.indexOf('dashboard') == 0) {
+                // Append tags_search to current URL
+                const url = new URL(window.location.href);
+                if (activeTags)
+                    url.searchParams.set('tags_search', activeTags);
+                else
+                    url.searchParams.delete('tags_search');
+
+                window.location.href = url.toString();
+            } else {
+                // Default to catalog index
+                window.location.href = `https://codestitch.app/app/dashboard/catalog?tags_search=${encodeURIComponent(activeTags)}`;
+            }
+        });
+
+        document.querySelector('[name=cs-tag-clear]').addEventListener('click', (e) => {
+            e.preventDefault();
+            const url = new URL(window.location.href);
+            url.searchParams.delete('tags_search');
+            window.location.href = url.toString();
+        });
+
+
+    
+        // Call the function to activate the event listener on the '.cs-tags-button' inside '#navigation'
+        toggleClassOnNavigationCsTags();
+    </script>
+    <script>
+        $('.toggleBtn > div').click(function(e) {
+            $('.toggleBtn > div').removeClass('active');
+            $(this).addClass('active');
+            let demo;
+            if ($(this).index() == 1) {
+                $('.toggleBtn > div.slideBg').removeClass('right');
+                demo = true;
+            }
+            else {
+                $('.toggleBtn > div.slideBg').addClass('right');
+                demo = false;
+            }
+
+            $.ajax({
+                url: '/app/dashboard/set-demo-mode',
+                type: 'post',
+                data: { demo },
+                dataType: 'json',
+                headers: {
+                    'X-CSRF-TOKEN': $('[name=csrf-token]').attr('content')
+                },
+                success: (response)=>{
+                    window.location.reload();
+                },
+                error: function(response) {
+                    response = JSON.parse(response.responseText);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'An error occurred',
+                    })
+                }
+            });
+        });
+    </script>
+
+    </body>
+</html>

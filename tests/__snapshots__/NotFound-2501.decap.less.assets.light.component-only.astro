@@ -1,0 +1,193 @@
+---
+/**
+ * NotFound-2501 — generated from CodeStitch stitch #2501.
+ * Source: https://codestitch.app/app/dashboard/stitches/2501
+ * Target: Intermediate Astro + Decap CMS @ 7f1d82ef
+ *
+ * Draft — needs attention before shipping:
+ *   - This component needs 2 more files (src/assets/images/not-found/real6-cdf41f6c.jpg, src/assets/images/not-found/rectangle-a98d1dc1.svg) — use Download ZIP, or the imports will not resolve.
+ */
+
+// Components
+import { Picture } from "astro:assets";
+
+// Images
+import real6 from "@assets/images/not-found/real6-cdf41f6c.jpg";
+import rectangle from "@assets/images/not-found/rectangle-a98d1dc1.svg";
+
+const rectangleBg = `url("${rectangle.src}")`;
+---
+
+<!-- ============================================ -->
+<!--                     404                      -->
+<!-- ============================================ -->
+
+<section id="not-found-2501">
+	<div class="cs-container">
+		<div class="cs-content">
+			<span class="cs-topper">404</span>
+			<h2 class="cs-title">Page Not Found</h2>
+			<p class="cs-text">The page you are looking for doesn't exist or has been moved.</p>
+			<div class="cs-button-box">
+				<a href="/about/" class="cs-button-solid">Return To Home</a>
+				<a href="/about/" class="cs-button-solid">View Properties</a>
+			</div>
+		</div>
+	</div>
+	<Picture
+		src={real6}
+		alt="real estate"
+		formats={["avif", "webp"]}
+		width="1920"
+		height="104"
+		pictureAttributes={{ class: "cs-background" }}
+	/>
+</section>
+
+<style lang="less" define:vars={{ rectangleBg }}>
+
+	/*-- -------------------------- -->
+	<---           404              -->
+	<--- -------------------------- -*/
+
+	/* Mobile */
+	@media only screen and (min-width: 0rem) {
+		#not-found-2501 {
+			height: 100dvh;
+			padding: (16/16rem);
+			overflow: hidden;
+			position: relative;
+
+			.cs-container {
+				width: 100%;
+				height: 100%;
+				padding: (16/16rem);
+				background-color: #f7f7f7;
+				overflow: hidden;
+				display: flex;
+				flex-direction: column;
+				justify-content: center;
+				align-items: center;
+				position: relative;
+				z-index: 1;
+
+				&:before {
+					content: "";
+					width: 100%;
+					height: 100%;
+					background-image: var(--rectangleBg);
+					background-position: center;
+					background-size: auto;
+					background-repeat: repeat;
+					opacity: 0.4;
+					display: block;
+					position: absolute;
+					top: 0;
+					left: 0;
+					z-index: -1;
+				}
+			}
+
+			.cs-content {
+				/* set text align to left if content needs to be left aligned */
+				text-align: center;
+				width: 100%;
+				max-width: (1280/16rem);
+				display: flex;
+				flex-direction: column;
+				/* centers content horizontally, set to flex-start to left align */
+				align-items: center;
+				position: relative;
+				z-index: 3;
+			}
+
+			.cs-topper {
+				font-style: italic;
+				font-size: (25/16rem);
+				text-transform: initial;
+				letter-spacing: 0;
+	            margin-bottom: (16/16rem);
+				color: var(--headerColor);
+			}
+
+	        .cs-title {
+	            font-size: clamp((39/16rem), 6vw, (61/16rem));
+	            margin-bottom: (32/16rem);
+	        }
+
+			.cs-text {
+				max-width: 30ch;
+				margin-bottom: (64/16rem);
+			}
+
+			.cs-button-box {
+				display: flex;
+				justify-content: center;
+				flex-wrap: wrap;
+				gap: clamp((20/16rem), 3vw, (36/16rem));
+			}
+
+			.cs-button-solid {
+				font-size: (16/16rem);
+				font-weight: 700;
+				/* 46px - 56px */
+				line-height: clamp(2.875em, 5.5vw, 3.5em);
+				text-align: center;
+				text-decoration: none;
+				min-width: (150/16rem);
+				margin: 0;
+				/* prevents padding from adding to the width */
+				box-sizing: border-box;
+				padding: 0 (24/16rem);
+				background-color: var(--secondary);
+				overflow: hidden;
+				color: #fff;
+				border: none;
+				border-radius: (4/16rem);
+				display: inline-block;
+				position: relative;
+				z-index: 1;
+				transition: color 0.3s;
+
+				&:before {
+					content: "";
+					width: 0;
+					height: 100%;
+					background: #000;
+					opacity: 1;
+					position: absolute;
+					top: 0;
+					left: 0;
+					z-index: -1;
+					transition: width 0.3s;
+				}
+
+				&:hover {
+					color: #fff;
+
+					&:before {
+						width: 100%;
+					}
+				}
+			}
+
+			.cs-background {
+				width: 100%;
+				height: 100%;
+				display: block;
+				position: absolute;
+				top: 0;
+				left: 0;
+
+				img {
+					width: 100%;
+					height: 100%;
+					object-fit: cover;
+					position: absolute;
+					top: 0;
+					left: 0;
+				}
+			}
+		}
+	}
+</style>

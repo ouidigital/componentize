@@ -1,0 +1,2 @@
+draft
+- The fr locale file holds the English copy — translate it before this goes live.

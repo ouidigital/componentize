@@ -1,0 +1,38 @@
+{
+	"name": "componentize-extension",
+	"private": true,
+	"version": "0.1.1",
+	"type": "module",
+	"description": "Chrome extension that converts CodeStitch snippets into kit-ready Astro components in one click.",
+	"scripts": {
+		"dev": "vite",
+		"build": "tsc --noEmit && vite build",
+		"typecheck": "tsc --noEmit",
+		"test": "vitest run",
+		"test:watch": "vitest",
+		"test:e2e": "playwright test",
+		"fixtures": "node scripts/capture-fixture.mjs",
+		"profiles": "node scripts/build-kit-profiles.mjs",
+		"icons": "node scripts/build-icons.mjs",
+		"test:acceptance": "node scripts/kit-acceptance.mjs",
+		"test:all": "npm run test && npm run build && npm run test:e2e && npm run test:acceptance"
+	},
+	"dependencies": {
+		"acorn": "^8.18.0",
+		"fflate": "^0.8.3",
+		"magic-string": "^1.2.2",
+		"postcss": "^8.5.26",
+		"postcss-less": "^6.0.0",
+		"postcss-scss": "^4.0.9"
+	},
+	"devDependencies": {
+		"@crxjs/vite-plugin": "2.7.1",
+		"@playwright/test": "^1.62.1",
+		"@types/chrome": "^0.2.7",
+		"happy-dom": "^20.11.6",
+		"linkedom": "^0.18.13",
+		"typescript": "^7.0.2",
+		"vite": "^8.2.2",
+		"vitest": "^4.1.11"
+	}
+}

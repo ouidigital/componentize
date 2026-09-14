@@ -1,0 +1,703 @@
+/*
+ * Componentize panel.
+ *
+ * Lives in a shadow root on codestitch.app, so `all: initial` is the clean
+ * slate and nothing here leaks out. The panel is a fluid-width block in their
+ * page flow, never a floating overlay: it must sit above the code viewer at
+ * whatever width CodeStitch gives it.
+ */
+
+:host {
+	all: initial;
+	display: block;
+	color-scheme: light dark;
+	/*
+	 * Responsive to the panel's own width rather than the viewport's — the
+	 * dashboard's content column is much narrower than the window.
+	 */
+	container-type: inline-size;
+}
+
+* {
+	box-sizing: border-box;
+}
+
+.panel {
+	/* --- type --- */
+	--cz-font: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI",
+		Roboto, "Helvetica Neue", Arial, sans-serif;
+	--cz-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
+		"Liberation Mono", monospace;
+
+	/* --- scale --- */
+	--cz-s1: 4px;
+	--cz-s2: 8px;
+	--cz-s3: 12px;
+	--cz-s4: 16px;
+	--cz-s5: 20px;
+	--cz-s6: 24px;
+	--cz-r-sm: 6px;
+	--cz-r-md: 8px;
+	--cz-r-lg: 12px;
+
+	/* --- surfaces --- */
+	--cz-bg: #ffffff;
+	--cz-sunken: #f9fafb;
+	--cz-input-bg: #ffffff;
+	--cz-hover-bg: #f9fafb;
+
+	/* --- ink --- */
+	--cz-fg: #111827;
+	--cz-muted: #6b7280;
+	--cz-faint: #9ca3af;
+
+	/* --- lines --- */
+	--cz-border: #e9ebef;
+	--cz-border-strong: #d9dde3;
+	--cz-border-hover: #b6bcc6;
+
+	/* --- accent: focus and selection only --- */
+	--cz-accent: #4f46e5;
+	--cz-accent-soft: #f1f0fe;
+	--cz-accent-border: #c3bff8;
+	--cz-accent-ring: rgb(79 70 229 / 18%);
+
+	/* --- primary action: ink, not colour --- */
+	--cz-primary-bg: #111827;
+	--cz-primary-hover: #030712;
+	--cz-primary-fg: #ffffff;
+
+	/* --- verdicts --- */
+	--cz-ready-bg: #ecfdf5;
+	--cz-ready-fg: #047857;
+	--cz-ready-border: #a7f3d0;
+	--cz-ready-dot: #10b981;
+	--cz-draft-bg: #fffbeb;
+	--cz-draft-soft: #fffdf5;
+	--cz-draft-fg: #b45309;
+	--cz-draft-border: #fde68a;
+	--cz-draft-dot: #f59e0b;
+	--cz-error-bg: #fef2f2;
+	--cz-error-fg: #b91c1c;
+	--cz-error-border: #fecaca;
+
+	/* --- depth --- */
+	--cz-shadow: 0 1px 2px rgb(16 24 40 / 4%), 0 4px 12px rgb(16 24 40 / 5%);
+	--cz-chevron: #6b7280;
+
+	background: var(--cz-bg);
+	color: var(--cz-fg);
+	font-family: var(--cz-font);
+	font-size: 14px;
+	line-height: 1.5;
+	border: 1px solid var(--cz-border);
+	border-radius: var(--cz-r-lg);
+	box-shadow: var(--cz-shadow);
+	margin: 0 0 var(--cz-s4);
+	/* Sections are full-bleed and divided by hairlines, so they must be clipped
+	   to the rounded corners. */
+	overflow: hidden;
+}
+
+@media (prefers-color-scheme: dark) {
+	.panel {
+		--cz-bg: #111318;
+		--cz-sunken: #15181f;
+		--cz-input-bg: #1a1e26;
+		--cz-hover-bg: #1f242d;
+
+		--cz-fg: #e7eaee;
+		--cz-muted: #9aa3b0;
+		--cz-faint: #737d8c;
+
+		--cz-border: #242932;
+		--cz-border-strong: #333a45;
+		--cz-border-hover: #4a5361;
+
+		--cz-accent: #8b93f8;
+		--cz-accent-soft: #1c1f35;
+		--cz-accent-border: #3b3f6b;
+		--cz-accent-ring: rgb(139 147 248 / 24%);
+
+		--cz-primary-bg: #f3f4f6;
+		--cz-primary-hover: #ffffff;
+		--cz-primary-fg: #111318;
+
+		--cz-ready-bg: #0c2b21;
+		--cz-ready-fg: #6ee7b7;
+		--cz-ready-border: #14503b;
+		--cz-ready-dot: #34d399;
+		--cz-draft-bg: #2a2008;
+		--cz-draft-soft: #1f1a0c;
+		--cz-draft-fg: #fbbf24;
+		--cz-draft-border: #4e3c10;
+		--cz-draft-dot: #f59e0b;
+		--cz-error-bg: #2c1315;
+		--cz-error-fg: #fca5a5;
+		--cz-error-border: #4d1f22;
+
+		--cz-shadow: 0 1px 2px rgb(0 0 0 / 30%), 0 4px 14px rgb(0 0 0 / 25%);
+		--cz-chevron: #9aa3b0;
+	}
+}
+
+/* ---------------------------------------------------------------- header -- */
+
+.header {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) auto;
+	align-items: center;
+	gap: var(--cz-s1) var(--cz-s3);
+	padding: var(--cz-s4) var(--cz-s5) var(--cz-s3);
+}
+
+.brand {
+	display: flex;
+	align-items: center;
+	gap: 9px;
+	min-width: 0;
+}
+
+.mark {
+	width: 20px;
+	height: 20px;
+	flex: none;
+	color: var(--cz-fg);
+}
+
+.title {
+	margin: 0;
+	font-size: 15px;
+	font-weight: 650;
+	letter-spacing: -0.012em;
+	color: var(--cz-fg);
+}
+
+.subtitle {
+	grid-column: 1 / -1;
+	margin: 0;
+	font-size: 12px;
+	line-height: 1.45;
+	color: var(--cz-muted);
+	overflow-wrap: anywhere;
+}
+
+.subtitle .sha {
+	font-family: var(--cz-mono);
+	font-size: 11px;
+	letter-spacing: 0.01em;
+}
+
+.subtitle .sep {
+	color: var(--cz-faint);
+}
+
+/* ----------------------------------------------------------------- badge -- */
+
+.badge {
+	display: inline-flex;
+	align-items: center;
+	gap: 5px;
+	padding: 4px 10px 4px 8px;
+	border: 1px solid;
+	border-radius: 999px;
+	font-size: 11px;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.07em;
+	white-space: nowrap;
+}
+
+.badge svg {
+	width: 13px;
+	height: 13px;
+	flex: none;
+}
+
+.badge--ready {
+	background: var(--cz-ready-bg);
+	color: var(--cz-ready-fg);
+	border-color: var(--cz-ready-border);
+}
+
+.badge--draft {
+	background: var(--cz-draft-bg);
+	color: var(--cz-draft-fg);
+	border-color: var(--cz-draft-border);
+}
+
+/* -------------------------------------------------------------- settings -- */
+
+.section {
+	padding: var(--cz-s4) var(--cz-s5);
+	border-top: 1px solid var(--cz-border);
+}
+
+.controls {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+	gap: 14px 16px;
+}
+
+/* A path needs more room than a label-sized column. */
+.field--wide {
+	grid-column: span 2;
+}
+
+.field {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	min-width: 0;
+}
+
+.field > label {
+	font-size: 12px;
+	font-weight: 600;
+	color: var(--cz-muted);
+}
+
+/* ------------------------------------------------------------- controls --- */
+
+select,
+input[type="text"] {
+	font-family: var(--cz-font);
+	font-size: 13px;
+	line-height: 1.4;
+	width: 100%;
+	min-width: 0;
+	padding: 8px 10px;
+	color: var(--cz-fg);
+	background: var(--cz-input-bg);
+	border: 1px solid var(--cz-border-strong);
+	border-radius: var(--cz-r-sm);
+	transition: border-color 0.15s ease, box-shadow 0.15s ease,
+		background-color 0.15s ease;
+}
+
+/* Names, folders and routes are all paths — mono makes them verifiable. */
+input[type="text"] {
+	font-family: var(--cz-mono);
+	font-size: 12.5px;
+}
+
+select {
+	appearance: none;
+	padding-right: 30px;
+	cursor: pointer;
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%236b7280' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 6.5 8 10.5 12 6.5'/%3E%3C/svg%3E");
+	background-repeat: no-repeat;
+	background-position: right 9px center;
+	background-size: 15px 15px;
+}
+
+@media (prefers-color-scheme: dark) {
+	select {
+		background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%239aa3b0' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 6.5 8 10.5 12 6.5'/%3E%3C/svg%3E");
+	}
+}
+
+select:hover:not(:disabled),
+input[type="text"]:hover:not(:disabled) {
+	border-color: var(--cz-border-hover);
+}
+
+select:focus-visible,
+input[type="text"]:focus-visible {
+	outline: none;
+	border-color: var(--cz-accent);
+	box-shadow: 0 0 0 3px var(--cz-accent-ring);
+}
+
+select:disabled,
+input:disabled {
+	opacity: 0.55;
+	cursor: not-allowed;
+}
+
+/* --------------------------------------------------------------- toggles -- */
+
+.toggles {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--cz-s2);
+	margin-top: 14px;
+}
+
+.toggle {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--cz-s2);
+	max-width: 100%;
+	padding: 7px 13px 7px 10px;
+	font-size: 13px;
+	line-height: 1.3;
+	color: var(--cz-fg);
+	background: var(--cz-input-bg);
+	border: 1px solid var(--cz-border-strong);
+	border-radius: 999px;
+	cursor: pointer;
+	user-select: none;
+	transition: border-color 0.15s ease, background-color 0.15s ease,
+		color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.toggle:hover:not([data-disabled="true"]) {
+	border-color: var(--cz-border-hover);
+	background: var(--cz-hover-bg);
+}
+
+.toggle:has(input:checked) {
+	background: var(--cz-accent-soft);
+	border-color: var(--cz-accent-border);
+}
+
+.toggle[data-disabled="true"] {
+	opacity: 0.5;
+	cursor: not-allowed;
+	color: var(--cz-muted);
+}
+
+/*
+ * The checkbox stays a real, focusable control — only its paint is replaced.
+ * The ring is drawn on the pill, with a plain outline as the fallback for
+ * anything that does not support :has().
+ */
+.toggle input[type="checkbox"] {
+	appearance: none;
+	flex: none;
+	width: 15px;
+	height: 15px;
+	margin: 0;
+	background: var(--cz-bg);
+	border: 1.5px solid var(--cz-border-hover);
+	border-radius: 4px;
+	cursor: inherit;
+	transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.toggle input[type="checkbox"]:checked {
+	background-color: var(--cz-accent);
+	border-color: var(--cz-accent);
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='white' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3.5 8.4 6.4 11.3 12.5 4.7'/%3E%3C/svg%3E");
+	background-size: 100% 100%;
+}
+
+.toggle input[type="checkbox"]:focus-visible {
+	outline: 2px solid var(--cz-accent);
+	outline-offset: 2px;
+}
+
+.toggle:has(input:focus-visible) {
+	border-color: var(--cz-accent);
+	box-shadow: 0 0 0 3px var(--cz-accent-ring);
+}
+
+.toggle:has(input:focus-visible) input[type="checkbox"] {
+	outline: none;
+}
+
+/* ----------------------------------------------------------------- links -- */
+
+.links {
+	padding: 14px var(--cz-s5) var(--cz-s4);
+	background: var(--cz-sunken);
+	border-top: 1px solid var(--cz-border);
+}
+
+.links > h3 {
+	display: flex;
+	align-items: center;
+	gap: var(--cz-s2);
+	margin: 0 0 10px;
+	font-size: 12px;
+	font-weight: 600;
+	color: var(--cz-muted);
+}
+
+.links > h3::before {
+	content: "";
+	flex: none;
+	width: 7px;
+	height: 7px;
+	border-radius: 50%;
+	background: var(--cz-ready-dot);
+}
+
+.links[data-state="needs-attention"] > h3 {
+	color: var(--cz-draft-fg);
+}
+
+.links[data-state="needs-attention"] > h3::before {
+	background: var(--cz-draft-dot);
+}
+
+.link-row {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+	align-items: center;
+	gap: 4px 20px;
+	padding: 7px 0;
+	/* Label and field sit far apart on a wide panel; the rule ties them. */
+	border-top: 1px solid var(--cz-border);
+}
+
+.link-row:first-of-type {
+	border-top: none;
+}
+
+.link-text {
+	min-width: 0;
+	font-size: 13px;
+	color: var(--cz-fg);
+	cursor: pointer;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+/* A guessed route is shown as a real value, so it must not read as typed. */
+.link-row input[data-suggested="true"] {
+	color: var(--cz-muted);
+}
+
+/* Empty means "no destination yet" — the one thing worth flagging per row. */
+.link-row input:placeholder-shown:not(:focus) {
+	background: var(--cz-draft-soft);
+	border-color: var(--cz-draft-border);
+}
+
+@container (max-width: 560px) {
+	.link-row {
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	.link-text {
+		white-space: normal;
+	}
+}
+
+/* --------------------------------------------------------------- actions -- */
+
+.actions {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--cz-s2);
+	padding: 14px var(--cz-s5);
+	border-top: 1px solid var(--cz-border);
+}
+
+button.action {
+	display: inline-flex;
+	align-items: center;
+	gap: 7px;
+	padding: 8px 14px;
+	font-family: var(--cz-font);
+	font-size: 13px;
+	font-weight: 600;
+	color: var(--cz-fg);
+	background: var(--cz-input-bg);
+	border: 1px solid var(--cz-border-strong);
+	border-radius: var(--cz-r-sm);
+	cursor: pointer;
+	transition: background-color 0.15s ease, border-color 0.15s ease,
+		color 0.15s ease, box-shadow 0.15s ease, transform 0.1s ease;
+}
+
+button.action svg {
+	width: 14px;
+	height: 14px;
+	flex: none;
+}
+
+button.action:hover:not(:disabled) {
+	border-color: var(--cz-border-hover);
+	background: var(--cz-hover-bg);
+}
+
+button.action:active:not(:disabled) {
+	transform: translateY(1px);
+}
+
+button.action:focus-visible {
+	outline: none;
+	border-color: var(--cz-accent);
+	box-shadow: 0 0 0 3px var(--cz-accent-ring);
+}
+
+button.action--primary {
+	color: var(--cz-primary-fg);
+	background: var(--cz-primary-bg);
+	border-color: var(--cz-primary-bg);
+}
+
+button.action--primary:hover:not(:disabled) {
+	background: var(--cz-primary-hover);
+	border-color: var(--cz-primary-hover);
+}
+
+button.action:disabled {
+	opacity: 0.45;
+	cursor: default;
+}
+
+/* The button doing the work stays legible; only its siblings dim. */
+button.action[data-busy="true"]:disabled {
+	opacity: 1;
+	cursor: progress;
+}
+
+.spinner {
+	animation: cz-spin 0.7s linear infinite;
+	transform-origin: 50% 50%;
+}
+
+@keyframes cz-spin {
+	to {
+		transform: rotate(360deg);
+	}
+}
+
+.status {
+	margin-left: auto;
+	font-size: 12px;
+	line-height: 1.4;
+	color: var(--cz-muted);
+	text-align: right;
+}
+
+/* -------------------------------------------------------------- feedback -- */
+
+.reasons,
+.notes,
+.error {
+	margin: 0 var(--cz-s5) var(--cz-s4);
+	padding: 11px 14px;
+	font-size: 13px;
+	line-height: 1.55;
+	border: 1px solid;
+	border-left-width: 3px;
+	border-radius: var(--cz-r-md);
+	/* Reasons are full sentences and can carry long paths. */
+	overflow-wrap: anywhere;
+}
+
+.reasons {
+	background: var(--cz-draft-bg);
+	color: var(--cz-draft-fg);
+	border-color: var(--cz-draft-border);
+	border-left-color: var(--cz-draft-dot);
+}
+
+.notes {
+	background: var(--cz-sunken);
+	color: var(--cz-muted);
+	border-color: var(--cz-border);
+	border-left-color: var(--cz-border-hover);
+}
+
+.error {
+	background: var(--cz-error-bg);
+	color: var(--cz-error-fg);
+	border-color: var(--cz-error-border);
+	border-left-color: var(--cz-error-fg);
+}
+
+.callout-head {
+	display: flex;
+	align-items: center;
+	gap: 7px;
+	font-weight: 500;
+}
+
+.callout-head strong {
+	font-weight: 650;
+}
+
+.callout-head svg {
+	width: 14px;
+	height: 14px;
+	flex: none;
+}
+
+.reasons > ul,
+.notes > ul {
+	margin: 7px 0 0;
+	padding-left: 20px;
+}
+
+.reasons li,
+.notes li {
+	margin-bottom: 5px;
+}
+
+.reasons li:last-child,
+.notes li:last-child {
+	margin-bottom: 0;
+}
+
+.reasons li::marker,
+.notes li::marker {
+	color: currentColor;
+	opacity: 0.45;
+}
+
+.error .callout-head {
+	align-items: flex-start;
+}
+
+.error .callout-head svg {
+	margin-top: 2px;
+}
+
+.files {
+	margin: 0 var(--cz-s5) var(--cz-s4);
+	font-family: var(--cz-mono);
+	font-size: 11.5px;
+	line-height: 1.5;
+	color: var(--cz-faint);
+	overflow-wrap: anywhere;
+}
+
+/* ---------------------------------------------------------------- footer -- */
+
+.footer {
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
+	gap: 5px;
+	padding: 10px var(--cz-s5);
+	font-size: 11px;
+	color: var(--cz-faint);
+	border-top: 1px solid var(--cz-border);
+}
+
+.footer a {
+	color: inherit;
+	text-decoration: none;
+	border-bottom: 1px solid transparent;
+	border-radius: 2px;
+	transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.footer a:hover {
+	color: var(--cz-accent);
+	border-bottom-color: currentColor;
+}
+
+.footer a:focus-visible {
+	outline: 2px solid var(--cz-accent);
+	outline-offset: 3px;
+}
+
+/* ---------------------------------------------------------------- motion -- */
+
+@media (prefers-reduced-motion: reduce) {
+	*,
+	*::before,
+	*::after {
+		transition: none !important;
+		animation: none !important;
+	}
+}

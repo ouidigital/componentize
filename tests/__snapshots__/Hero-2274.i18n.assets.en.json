@@ -1,0 +1,25 @@
+{
+	"title": "We're Building For Better Futures",
+	"text": "In our relentless pursuit of progress, we are dedicated to constructing a future where innovation, sustainability, and inclusivity converge seamlessly.",
+	"button": "Get Started Today",
+	"items": [
+		{
+			"h3": "Best House Renovation",
+			"itemText": "Transform your home with trendy flooring and finishes!"
+		},
+		{
+			"h3": "Quality Always Matters",
+			"itemText": "Quality renovations provide lasting beauty and functionality."
+		},
+		{
+			"h3": "Effective Teamwork",
+			"itemText": "Collaboration drives success through shared goals and communication."
+		},
+		{
+			"number": "3K+",
+			"h3": "Happy Customers",
+			"itemText": "With more than 7 years of expertise we served our clients.",
+			"fakeLink": "Let's Work Together"
+		}
+	]
+}

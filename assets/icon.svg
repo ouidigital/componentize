@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128" role="img" aria-label="Componentize">
+  <!--
+    The extension's tile. Brackets around stacked blocks: a snippet becoming a
+    component. Solid ink with the glyph knocked out, because a line-only mark
+    turns to mush at the 16px the toolbar actually renders.
+
+    The glyph is the same 16-unit drawing used inline in the panel header,
+    scaled 6x and centred, so the two never drift apart.
+  -->
+  <rect width="128" height="128" rx="28" fill="#111827"/>
+  <g transform="translate(16 16) scale(6)"
+     fill="none" stroke="#ffffff" stroke-width="1.7"
+     stroke-linecap="round" stroke-linejoin="round">
+    <path d="M6.2 2.6H4.4a1.8 1.8 0 0 0-1.8 1.8v7.2a1.8 1.8 0 0 0 1.8 1.8h1.8"/>
+    <path d="M9.8 2.6h1.8a1.8 1.8 0 0 1 1.8 1.8v7.2a1.8 1.8 0 0 1-1.8 1.8H9.8"/>
+    <rect x="6.6" y="5.3" width="2.8" height="1.7" rx="0.85" fill="#ffffff" stroke="none"/>
+    <rect x="6.6" y="9" width="2.8" height="1.7" rx="0.85" fill="#ffffff" stroke="none"/>
+  </g>
+</svg>

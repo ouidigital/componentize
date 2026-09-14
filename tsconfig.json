@@ -1,0 +1,30 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "types": ["chrome", "vite/client"],
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "verbatimModuleSyntax": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
+    "paths": {
+      "@core/*": ["./src/core/*"],
+      "@content/*": ["./src/content/*"],
+      "@ui/*": ["./src/ui/*"],
+      "@output/*": ["./src/output/*"],
+      "@tests/*": ["./tests/*"]
+    }
+  },
+  "include": ["src/**/*", "build/**/*", "tests/**/*", "vite.config.ts", "vitest.config.ts", "manifest.config.ts"],
+  "exclude": ["dist", "node_modules", "tests/e2e/**/*"]
+}
