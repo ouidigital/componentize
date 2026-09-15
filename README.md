@@ -197,3 +197,5 @@ send you to different places:
 | "CodeStitch did not show this stitch (403…)" | The site refused the stitch — sign in, or it needs a higher plan. Nothing is wrong with the extension. |
 | "Code fields are empty" | The viewer is there but locked. |
 | "CodeStitch changed its page layout" | An actual redesign; the selectors need updating. |
+
+<sub>Built by [Oui Digital](https://oui.digital).</sub>
