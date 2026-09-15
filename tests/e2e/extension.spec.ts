@@ -1,4 +1,4 @@
-import { test, expect, chromium, type BrowserContext } from "@playwright/test";
+import { test, expect, chromium, type BrowserContext, type Page } from "@playwright/test";
 import { unzipSync } from "fflate";
 import { readFileSync, mkdtempSync, existsSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -19,6 +19,7 @@ const FIXTURE_PAGES = join(process.cwd(), "tests", "fixtures", "pages");
 const STITCH = {
 	notFound: "2501",
 	faq: "1741",
+	hero: "2274",
 	nav: "757",
 } as const;
 
@@ -85,6 +86,23 @@ async function serveFixture(
 	});
 }
 
+/**
+ * Mimics the dashboard swapping stitches without a document load: the URL and
+ * the page content change together, as a client-side render would do.
+ */
+async function renderStitchClientSide(page: Page, stitchId: string): Promise<void> {
+	const html = readFileSync(join(FIXTURE_PAGES, `stitch-${stitchId}.html`), "utf8");
+	await page.evaluate(
+		({ url, html }) => {
+			history.pushState({}, "", url);
+			const next = new DOMParser().parseFromString(html, "text/html");
+			// Replacing the body also drops the mounted panel host.
+			document.body.replaceWith(next.body);
+		},
+		{ url: stitchUrl(stitchId), html },
+	);
+}
+
 /** The panel lives in a shadow root; Playwright pierces it automatically. */
 const PANEL = "#componentize-root >> .panel";
 
@@ -118,6 +136,44 @@ test.describe("Componentize extension", () => {
 			);
 		});
 		expect(isBeforeCodeTabs).toBe(true);
+	});
+
+	test("shows the hero priority toggle only for asset mode and resets it per stitch", async () => {
+		const page = await context.newPage();
+		await serveFixture(context, STITCH.hero, STITCH.notFound);
+		await page.goto(stitchUrl(STITCH.hero));
+
+		const priority = () =>
+			page.locator(`${PANEL} >> .toggle`, { hasText: "Prioritize first image" });
+		await expect(priority()).toBeVisible();
+		await expect(priority().locator("input")).toBeChecked();
+
+		await priority().locator("input").uncheck();
+		await expect(priority().locator("input")).not.toBeChecked();
+
+		const images = page.locator(`${PANEL} >> .field`, { hasText: "Images" }).locator("select");
+		await images.selectOption("raw");
+		await expect(priority()).toHaveCount(0);
+		await images.selectOption("assets");
+		await expect(priority()).toBeVisible();
+		await expect(priority().locator("input")).not.toBeChecked();
+
+		// Rebuilding the panel for another stitch must not carry the prior choice.
+		// The code must change with the URL: the hero default is read from the
+		// scraped markup, so a bare pushState would still parse the hero.
+		await renderStitchClientSide(page, STITCH.notFound);
+		await expect(page.locator(`${PANEL} >> .subtitle`)).toContainText("Stitch #2501", {
+			timeout: 15_000,
+		});
+		// Asset mode shows the toggle for every stitch; only heroes default it on.
+		await expect(priority()).toBeVisible();
+		await expect(priority().locator("input")).not.toBeChecked();
+
+		await renderStitchClientSide(page, STITCH.hero);
+		await expect(page.locator(`${PANEL} >> .subtitle`)).toContainText("Stitch #2274", {
+			timeout: 15_000,
+		});
+		await expect(priority().locator("input")).toBeChecked();
 	});
 
 	test("pre-fills the component name and lists the links to resolve", async () => {

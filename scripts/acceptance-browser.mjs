@@ -74,6 +74,10 @@ export async function checkRendered({
 	 * sections, and its dark rules may target any of them.
 	 */
 	rootIds = [],
+	/** Whether this generated case should render one eager/high-priority image. */
+	expectPriority = false,
+	/** Whether constrained Astro images should render non-empty responsive sources. */
+	expectResponsiveImages = false,
 	/** An empty page to navigate through; see roundTripThroughRouter. */
 	waypointPath = "/",
 	screenshotDir,
@@ -159,6 +163,35 @@ export async function checkRendered({
 			const box = await root.boundingBox();
 			if (!box || box.width < 100 || box.height < 40) {
 				problems.push(`component has no meaningful size (${JSON.stringify(box)})`);
+			}
+		}
+
+		if (expectPriority && (await root.count()) > 0) {
+			const images = root.locator("img");
+			const prioritized = root.locator('img[loading="eager"][fetchpriority="high"]');
+			if (await prioritized.count() !== 1) {
+				problems.push("the prioritized case did not render exactly one eager/high-priority image");
+			}
+			if (await images.count() > 1 && await root.locator('img[loading="lazy"]').count() === 0) {
+				problems.push("later images are not lazy-loaded");
+			}
+		}
+
+		if (expectResponsiveImages && (await root.count()) > 0) {
+			const sources = root.locator("picture > source");
+			const sourceSrcsets = await sources.evaluateAll((nodes) =>
+				nodes.map((node) => node.getAttribute("srcset")?.trim() ?? ""),
+			);
+			if (sourceSrcsets.length === 0 || sourceSrcsets.some((srcset) => srcset.length === 0)) {
+				problems.push("constrained images did not render non-empty source srcset attributes");
+			}
+
+			const images = root.locator("img[sizes]");
+			const sizes = await images.evaluateAll((nodes) =>
+				nodes.map((node) => node.getAttribute("sizes")?.trim() ?? ""),
+			);
+			if (sizes.length === 0 || sizes.some((value) => value.length === 0)) {
+				problems.push("constrained images did not render non-empty sizes attributes");
 			}
 		}
 

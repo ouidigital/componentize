@@ -12,7 +12,8 @@
  */
 import { mkdir, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
+import { parse } from "acorn";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const OUT_DIR = join(__dirname, "..", "src", "core", "kits", "profiles");
@@ -34,6 +35,106 @@ const KITS = {
 };
 
 const useLatest = process.argv.includes("--latest");
+
+const IMAGE_CONFIG_PATHS = ["astro.config.mjs", "astro.config.ts", "astro.config.js"];
+const IMAGE_LAYOUTS = new Set(["constrained", "full-width", "fixed", "none"]);
+
+/**
+ * Turns JavaScript or TypeScript config source into JavaScript for the small
+ * static AST inspection below. No config is executed: dynamic values remain
+ * dynamic and are rejected by parseImageLayoutConfig.
+ */
+function transpileConfig(source, _path) {
+	// Strip only TypeScript assertions commonly used around Astro config literals.
+	// Values remain in the AST, so dynamic layout values are still rejected.
+	return source
+		.replace(/\s+as\s+(?:const|[A-Za-z_$][\w$]*(?:\.[A-Za-z_$][\w$]*)*)/g, "")
+		.replace(/\s+satisfies\s+[A-Za-z_$][\w$]*(?:\.[A-Za-z_$][\w$]*)*/g, "");
+}
+
+function propertyName(property) {
+	if (property.type !== "Property" || property.computed) return undefined;
+	if (property.key.type === "Identifier") return property.key.name;
+	if (property.key.type === "Literal" && typeof property.key.value === "string") {
+		return property.key.value;
+	}
+	return undefined;
+}
+
+function lastProperty(object, name) {
+	return object.properties
+		.filter((property) => propertyName(property) === name)
+		.at(-1);
+}
+
+/**
+ * Reads image.layout from an Astro config without importing or evaluating it.
+ * A reachable config with no image/layout property deliberately returns null.
+ */
+export function parseImageLayoutConfig(source, path = "astro.config.mjs") {
+	let program;
+	try {
+		program = parse(transpileConfig(source, path), {
+			ecmaVersion: "latest",
+			sourceType: "module",
+		});
+	} catch (error) {
+		if (error instanceof Error && error.message.startsWith("Could not parse ")) throw error;
+		throw new Error("Could not parse " + path + ": " + error.message);
+	}
+
+	const exported = program.body.find((statement) => statement.type === "ExportDefaultDeclaration");
+	if (!exported) throw new Error("Could not find a static default config export in " + path + ".");
+
+	let config = exported.declaration;
+	if (config.type === "CallExpression") {
+		const callee = config.callee;
+		if (callee.type !== "Identifier" || callee.name !== "defineConfig" || config.arguments.length !== 1) {
+			throw new Error("The default config export in " + path + " is dynamic or unparseable.");
+		}
+		config = config.arguments[0];
+	}
+	if (!config || config.type !== "ObjectExpression") {
+		throw new Error("The default config export in " + path + " is dynamic or unparseable.");
+	}
+
+	const image = lastProperty(config, "image");
+	if (!image) return null;
+	if (image.type !== "Property" || image.value.type !== "ObjectExpression") {
+		throw new Error("The image config in " + path + " is dynamic or unparseable.");
+	}
+
+	const layout = lastProperty(image.value, "layout");
+	if (!layout) return null;
+	if (layout.type !== "Property" || layout.value.type !== "Literal" || typeof layout.value.value !== "string") {
+		throw new Error("image.layout in " + path + " must be a supported string literal.");
+	}
+	if (!IMAGE_LAYOUTS.has(layout.value.value)) {
+		throw new Error(
+			"image.layout in " + path + " must be one of " + [...IMAGE_LAYOUTS].join(", ") +
+			"; received " + JSON.stringify(layout.value.value) + ".",
+		);
+	}
+	return layout.value.value;
+}
+
+/** Finds the first reachable config in Astro's documented precedence order. */
+export async function discoverImageLayout(fetchFile) {
+	for (const path of IMAGE_CONFIG_PATHS) {
+		let source;
+		try {
+			source = await fetchFile(path);
+		} catch {
+			continue;
+		}
+		if (source === undefined || source === null) continue;
+		return parseImageLayoutConfig(source, path);
+	}
+	throw new Error(
+		"Could not reach any of " + IMAGE_CONFIG_PATHS.join(", ") +
+		"; image profile generation cannot continue.",
+	);
+}
 
 async function api(path) {
 	const res = await fetch(`https://api.github.com${path}`, {
@@ -181,6 +282,7 @@ function fingerprintScript(src) {
 async function buildProfile(key, kit) {
 	const sha = useLatest || kit.sha === "main" ? await resolveSha(kit.repo) : kit.sha;
 	console.log(`  ${kit.repo} @ ${sha.slice(0, 8)}`);
+	const imageLayout = await discoverImageLayout((path) => raw(kit.repo, sha, path));
 
 	const [rootLess, darkLess, pkgJson, tsconfig, navJsA, navJsB, cspicture, siteSettings, routeTranslations, clientData] =
 		await Promise.all([
@@ -304,6 +406,7 @@ async function buildProfile(key, kit) {
 		aliases,
 		locales,
 		defaultLocale: locales[0] ?? null,
+		imageLayout,
 		routes: [...new Set(pages)].sort(),
 		routeSegments: routeSegments.sort(),
 		icons: icons.sort(),
@@ -323,6 +426,7 @@ async function buildProfile(key, kit) {
 	};
 }
 
+async function main() {
 await mkdir(OUT_DIR, { recursive: true });
 console.log("Building kit profiles from pinned commits:");
 for (const [key, kit] of Object.entries(KITS)) {
@@ -331,7 +435,11 @@ for (const [key, kit] of Object.entries(KITS)) {
 	console.log(
 		`    → ${key}.json  astro=${profile.astroVersion} less=${profile.hasLess} sass=${profile.hasSass} ` +
 			`locales=[${profile.locales}] icons=${profile.icons.length} routes=${profile.routes.length} ` +
-			`cspicture-art-direction=${profile.cspicture.supportsArtDirection}`,
+			`image-layout=${profile.imageLayout} cspicture-art-direction=${profile.cspicture.supportsArtDirection}`,
 	);
 }
 console.log("Done. Ready claims apply to these SHAs only.");
+}
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+	await main();
+}

@@ -355,6 +355,8 @@ async function main() {
 						baseUrl: preview.url,
 						pagePath: `/${pageName}`,
 						interactive: testCase.interactive,
+						expectPriority: manifest.expectPriority,
+						expectResponsiveImages: manifest.expectResponsiveImages,
 						// The component's own dark rules, verified individually.
 						darkRules: darkRulesIn(source),
 						rootIds: rootIdsOf(source),

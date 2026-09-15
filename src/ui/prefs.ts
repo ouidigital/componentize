@@ -6,7 +6,11 @@ import type { ConvertOptions } from "@core/types";
  */
 export type Prefs = Omit<
 	ConvertOptions,
-	"componentName" | "linkMappings" | "extraLocales" | "keepKitNavScript"
+	| "componentName"
+	| "linkMappings"
+	| "extraLocales"
+	| "keepKitNavScript"
+	| "prioritizeFirstImage"
 >;
 
 export const DEFAULT_PREFS: Prefs = {

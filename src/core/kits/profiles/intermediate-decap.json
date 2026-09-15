@@ -17,6 +17,7 @@
 	],
 	"locales": [],
 	"defaultLocale": null,
+	"imageLayout": "constrained",
 	"routes": [
 		"/",
 		"/about",

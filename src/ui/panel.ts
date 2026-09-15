@@ -17,6 +17,7 @@ import {
 } from "@core/convert";
 import { profileFor } from "@core/kits/profile";
 import { InvalidNameError } from "@core/naming";
+import { parseStitchHtml } from "@core/html/parse";
 import { copyToClipboard, downloadAstro, downloadZip } from "@output/index";
 import { readinessFor, type Delivery } from "@core/readiness";
 import { DEFAULT_PREFS, loadPrefs, savePrefs, type Prefs } from "./prefs";
@@ -212,6 +213,8 @@ export class ComponentizePanel {
 	 * carrying it to the next one would silently double-bind another menu.
 	 */
 	private keepNavJs = false;
+	/** Per-stitch choice; unlike Prefs, it must not carry to another stitch. */
+	private prioritizeFirstImage: boolean;
 
 	constructor(deps: PanelDeps) {
 		this.stitch = deps.stitch;
@@ -219,6 +222,8 @@ export class ComponentizePanel {
 		this.componentName = defaultComponentName(deps.stitch);
 		this.assetsDir = defaultAssetsDirFor(deps.stitch);
 		this.links = inspectLinks(deps.stitch);
+		const { rootIds } = parseStitchHtml(deps.stitch.html);
+		this.prioritizeFirstImage = rootIds.some((id) => id.startsWith("hero-"));
 
 		this.host = document.createElement("div");
 		this.host.id = "componentize-root";
@@ -247,6 +252,8 @@ export class ComponentizePanel {
 			componentName: this.componentName,
 			assetsDir: this.assetsDir,
 			linkMappings: this.links,
+			prioritizeFirstImage:
+				this.prefs.imagesMode === "assets" && this.prioritizeFirstImage,
 		};
 	}
 
@@ -437,6 +444,21 @@ export class ComponentizePanel {
 				'"Privacy Policy" becomes /privacy-policy; edit any of them below',
 			),
 		);
+		if (this.prefs.imagesMode === "assets") {
+			toggles.append(
+				this.toggle(
+					"Prioritize first image",
+					this.prioritizeFirstImage,
+					(v) => {
+						this.prioritizeFirstImage = v;
+						this.invalidateResult();
+						this.render();
+					},
+					false,
+					"Panel-only hero suggestion; this choice is not saved and never affects raw CDN output",
+				),
+			);
+		}
 		settings.append(toggles);
 		panel.append(settings);
 

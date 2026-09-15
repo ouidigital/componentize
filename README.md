@@ -27,6 +27,10 @@ Pinned kits (regenerate with `npm run profiles`):
 A Ready verdict is a claim about those exact commits. If you have customised
 your kit, treat every result as a draft.
 
+The readiness invariant is strict: every `TODO` in generated output keeps it
+Draft. Informational comments, including the CSPicture priority `Note:`, never
+use that token.
+
 The verdict describes **what you actually take away**. A component with
 downloaded images or locale files is Ready as a ZIP but Draft when you copy or
 download the `.astro` alone, because on its own it imports files you do not
@@ -61,16 +65,36 @@ above the code viewer.
   identifier, so the component is imported under a derived binding
   (`Hero-1621.astro` → `import Hero1621`).
 - **Images** — downloads every CodeStitch CDN image referenced in the markup
-  *and* in the stylesheet, bundles them into the folder you choose,
-  and rewrites the markup to `<Picture>`/`<Image>`. SVGs become astro-icon
-  `<Icon>`s (astro:assets refuses to process SVG sources). CSS backgrounds are
-  rewritten to a `?url` import plus `define:vars`, the pattern the kits use.
-  The **Images folder** field defaults to `src/assets/images/<stitch>` — matching
-  how both kits group images by section — and accepts any folder under
-  `src/assets`, since that is what the `@assets` alias resolves. File names get a
-  short content hash so two different images that share a basename cannot
-  overwrite each other. Switch to "Keep CodeStitch CDN" to leave the original
-  markup alone.
+  *and* in the stylesheet, bundles them into the folder you choose, and rewrites
+  standalone raster images to `<Image>`, ordinary `<picture>` elements
+  to `<Picture>`, art-directed pictures to the kit's `<CSPicture>`, and SVGs
+  to astro-icon `<Icon>`s. Astro owns responsive `srcset`/`sizes`
+  generation for `<Image>` and `<Picture>`, so source-level responsive
+  attributes are removed with one Draft warning; normal single-URL
+  `<source srcset>` inputs are kept without warning. The **Images folder**
+  field defaults to `src/assets/images/<stitch>` — matching how both kits
+  group images by section — and accepts any folder under `src/assets`, since
+  that is what the `@assets` alias resolves. File names get a short content
+  hash so two different images that share a basename cannot overwrite each
+  other. Switch to "Keep CodeStitch CDN" to leave the original markup alone.
+
+  In asset mode, the panel offers **Prioritize first image**. It is a
+  non-persistent, per-stitch choice and starts on when any top-level section id
+  begins with `hero-`; the conversion core never infers hero status.
+  When enabled, only the first eligible CDN raster image in DOM order gets bare
+  Astro `priority`, and its conflicting lazy/loading attributes are omitted.
+  An art-directed image remains on `<CSPicture>` because the pinned kit
+  component hard-codes lazy loading; the output adds an informational plain
+  `Note:` comment and never promotes a later image.
+
+  Built-in image components also follow the pinned kit's Astro image config:
+  profiles with an explicit layout respect it, while a profile that omits
+  `image.layout` receives explicit `layout="constrained"`. Missing
+  non-decorative `alt` attributes become `alt=""` plus a nearby
+  accessibility diagnostic and one Draft warning. Explicitly empty or
+  `aria-hidden` images are treated as decorative. Raster CSS backgrounds use
+  Astro's format-neutral `getImage`; SVG and unsupported CSS formats retain
+  imported raw `.src` URLs through the existing `define:vars` contract.
 - **Links** — CodeStitch ships every link as `href=""`. Rather than ask you to
   fill in a dozen destinations that usually are not decided yet, each link gets a
   route read from its own label: "Privacy Policy" → `/privacy-policy`, "About" →

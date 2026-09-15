@@ -53,8 +53,13 @@ export function assembleComponent(options: AssembleOptions): string {
 
 	// CSS background images are handed to the stylesheet as custom properties,
 	// which is how the kits' own components do it.
-	const cssVarLines = ctx.cssVars.map(
-		(v) => `const ${v.varName} = \`url("\${${v.identifier}.src}")\`;`,
+	const cssVarLines = ctx.cssVars.flatMap((v) =>
+		v.optimize
+			? [
+					`const ${v.varName}Image = await getImage({ src: ${v.identifier} });`,
+					`const ${v.varName} = \`url("\${${v.varName}Image.src}")\`;`,
+				]
+			: [`const ${v.varName} = \`url("\${${v.identifier}.src}")\`;`],
 	);
 
 	for (const group of GROUP_ORDER) {

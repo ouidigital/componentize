@@ -182,6 +182,7 @@ export async function convert(
 		fetchAsset,
 		assetsDir,
 		cssUrls: options.imagesMode === "assets" ? cssResult.urls : [],
+		prioritizeFirstImage: options.prioritizeFirstImage === true,
 	});
 
 	if (options.imagesMode === "assets" && images.anyUnbundled) {

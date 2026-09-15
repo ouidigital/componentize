@@ -20,6 +20,8 @@ export interface KitProfile {
 	/** Locales configured in the pinned kit; required — cannot be removed. */
 	locales: string[];
 	defaultLocale: string | null;
+	/** Astro's configured default image layout, or null when the config omits it. */
+	imageLayout: "constrained" | "full-width" | "fixed" | "none" | null;
 	/** Page routes present in the pristine kit. */
 	routes: string[];
 	/** Localizable route segments from routeTranslations.ts. */

@@ -14,14 +14,14 @@ import { loadFixture } from "./helpers/loadFixture";
 
 const WORK = join(process.cwd(), ".acceptance", "generated");
 
-/** Deterministic stand-ins so tests need no network: a real 1x1 GIF and a real SVG. */
-const GIF_1X1 = "R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
+/** Deterministic stand-ins so tests need no network: a real 640x360 GIF and a real SVG. */
+const GIF_640X360 = "R0lGODlhgAJoAYAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
 const TINY_SVG = "PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNiAxNiI+PHBhdGggZD0iTTIgOGgxMiIvPjwvc3ZnPg==";
 
 const stubAsset: FetchAsset = async (url) => {
 	const isSvg = new URL(url).pathname.toLowerCase().endsWith(".svg");
 	return {
-		base64: isSvg ? TINY_SVG : GIF_1X1,
+		base64: isSvg ? TINY_SVG : GIF_640X360,
 		contentType: isSvg ? "image/svg+xml" : "image/gif",
 		originalUrl: url,
 	};
@@ -53,6 +53,9 @@ describe("generate components for kit acceptance", () => {
 					includeJs: true,
 					i18n: kit === "i18n",
 					imagesMode: "assets",
+					// Exercise the panel's intended hero choice in the pinned-kit
+					// build: the core default remains false everywhere else.
+					prioritizeFirstImage: testCase.fixture.includes("hero-"),
 					linkMappings: inspectLinks(stitch).map((l) => ({
 						...l,
 						route: SAFE_ROUTE,
@@ -84,6 +87,9 @@ describe("generate components for kit acceptance", () => {
 							componentIdentifier: result.componentIdentifier,
 							componentPath: result.files[0]!.path,
 							readiness: result.readiness.state,
+							expectPriority: testCase.fixture.includes("hero-"),
+							expectResponsiveImages:
+								kit === "i18n" && /<(?:Image|Picture)\b/.test(result.files[0]!.contents),
 							reasons: result.readiness.reasons,
 							files: result.files.map((f) => f.path),
 						},

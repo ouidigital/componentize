@@ -1,6 +1,6 @@
 import type { ConvertOptions, OutputFile, Readiness } from "../types";
 import type { KitProfile } from "./profile";
-import type { ImportSpec } from "../html/images";
+import type { CssVar, ImportSpec } from "../html/images";
 import type { WarningCollector } from "../readiness";
 
 /** Import groups, emitted in the order the kits' own components use. */
@@ -25,7 +25,7 @@ export interface GenerationContext {
 	usedComponents: Set<string>;
 	imageImports: ImportSpec[];
 	/** CSS custom properties to expose via define:vars. */
-	cssVars: Array<{ varName: string; identifier: string; url: string }>;
+	cssVars: CssVar[];
 	/** Translation messages for the default locale, when i18n ran. */
 	messages?: Record<string, unknown>;
 	messageCount: number;

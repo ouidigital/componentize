@@ -39,11 +39,11 @@ const t = useTranslations(locale);
 			<a href={getLocalizedRoute(locale, "/about/")} class="cs-button-solid">
 				{t("hero2274:button")}
 				<Icon
-					name="white-arrow-up-a98d1dc1"
 					class="cs-button-arrow"
 					width="20"
 					height="20"
 					aria-hidden="true"
+					name="white-arrow-up-a98d1dc1"
 				/>
 			</a>
 		</div>
@@ -52,10 +52,11 @@ const t = useTranslations(locale);
 			src={constructionMan2}
 			alt="construction worker"
 			formats={["avif", "webp"]}
+			aria-hidden="true"
 			width="581"
 			height="662"
 			pictureAttributes={{ class: "cs-picture" }}
-			aria-hidden="true"
+			layout="constrained"
 		/>
 	</div>
 	<div class="cs-image-group">
@@ -64,20 +65,22 @@ const t = useTranslations(locale);
 			src={construction2}
 			alt="construction site"
 			formats={["avif", "webp"]}
+			aria-hidden="true"
 			width="1290"
 			height="684"
 			pictureAttributes={{ class: "cs-background cs-background1" }}
-			aria-hidden="true"
+			layout="constrained"
 		/>
 		<!-- Right Image -->
 		<Picture
 			src={construction1}
 			alt="construction site"
 			formats={["avif", "webp"]}
+			aria-hidden="true"
 			width="630"
 			height="684"
 			pictureAttributes={{ class: "cs-background cs-background2" }}
-			aria-hidden="true"
+			layout="constrained"
 		/>
 	</div>
 </section>
@@ -88,11 +91,11 @@ const t = useTranslations(locale);
 			<li class="cs-item">
 				<a href={getLocalizedRoute(locale, "/about/")} class="cs-link">
 					<Icon
-						name="construction1-a98d1dc1"
 						class="cs-icon"
 						width="40"
 						height="40"
 						aria-hidden="true"
+						name="construction1-a98d1dc1"
 					/>
 					<h3 class="cs-h3">{t("hero2274:items.0.h3")}</h3>
 					<p class="cs-item-text">{t("hero2274:items.0.itemText")}</p>
@@ -101,11 +104,11 @@ const t = useTranslations(locale);
 			<li class="cs-item">
 				<a href={getLocalizedRoute(locale, "/about/")} class="cs-link">
 					<Icon
-						name="construction2-a98d1dc1"
 						class="cs-icon"
 						width="40"
 						height="40"
 						aria-hidden="true"
+						name="construction2-a98d1dc1"
 					/>
 					<h3 class="cs-h3">{t("hero2274:items.1.h3")}</h3>
 					<p class="cs-item-text">{t("hero2274:items.1.itemText")}</p>
@@ -114,11 +117,11 @@ const t = useTranslations(locale);
 			<li class="cs-item">
 				<a href={getLocalizedRoute(locale, "/about/")} class="cs-link">
 					<Icon
-						name="construction3-a98d1dc1"
 						class="cs-icon"
 						width="40"
 						height="40"
 						aria-hidden="true"
+						name="construction3-a98d1dc1"
 					/>
 					<h3 class="cs-h3">{t("hero2274:items.2.h3")}</h3>
 					<p class="cs-item-text">{t("hero2274:items.2.itemText")}</p>
@@ -127,11 +130,11 @@ const t = useTranslations(locale);
 			<li class="cs-item">
 				<a href={getLocalizedRoute(locale, "/about/")} class="cs-link">
 					<Icon
-						name="construction4-a98d1dc1"
 						class="cs-icon"
 						width="40"
 						height="40"
 						aria-hidden="true"
+						name="construction4-a98d1dc1"
 					/>
 					<span class="cs-number">{t("hero2274:items.3.number")}</span>
 					<h3 class="cs-h3">{t("hero2274:items.3.h3")}</h3>
@@ -139,21 +142,22 @@ const t = useTranslations(locale);
 					<span class="cs-fake-link">
 						{t("hero2274:items.3.fakeLink")}
 						<Icon
-							name="orange-arrow-up-a98d1dc1"
 							class="cs-arrow"
 							width="20"
 							height="20"
 							aria-hidden="true"
+							name="orange-arrow-up-a98d1dc1"
 						/>
 					</span>
 					<Picture
 						src={construction3}
 						alt="construction site"
 						formats={["avif", "webp"]}
+						aria-hidden="true"
 						width="630"
 						height="684"
 						pictureAttributes={{ class: "cs-background" }}
-						aria-hidden="true"
+						layout="constrained"
 					/>
 				</a>
 			</li>

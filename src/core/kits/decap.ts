@@ -17,6 +17,7 @@ export const decapKit: KitGenerator = {
 		const lines: ImportLine[] = [];
 
 		const astroAssets = ["Picture", "Image"].filter((c) => ctx.usedComponents.has(c));
+		if (ctx.cssVars.some((v) => v.optimize)) astroAssets.push("getImage");
 		if (astroAssets.length > 0) {
 			lines.push({
 				group: "Components",

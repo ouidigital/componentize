@@ -56,6 +56,8 @@ export interface ConvertOptions {
 	/** Full text extraction; only meaningful for the i18n kit. */
 	i18n: boolean;
 	imagesMode: ImagesMode;
+	/** Opt in to prioritising the first eligible CDN raster image. */
+	prioritizeFirstImage?: boolean;
 	/** Extra locales beyond the profile's required set. */
 	extraLocales?: string[];
 	/**
