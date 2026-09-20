@@ -9,7 +9,7 @@
  *
  * Usage: node scripts/kit-acceptance.mjs [--kit i18n|decap] [--keep]
  */
-import { execFile } from "node:child_process";
+import { execFile, execFileSync } from "node:child_process";
 import { promisify } from "node:util";
 import { mkdir, writeFile, readFile, rm, cp } from "node:fs/promises";
 import { existsSync } from "node:fs";
@@ -56,6 +56,24 @@ const KITS = {
 			 */
 			defaultRoute: '"/about/"',
 			translatedRoute: '"/fr/a-propos/"',
+		},
+	},
+	/**
+	 * The same kit after `npm run setup-project` removes i18n. The panel offers
+	 * that setup, so a component has to be built in it before anything may be
+	 * called Ready there — the kit swaps in single-locale versions of
+	 * getSiteContext and getRoute, and nothing but a build proves the generated
+	 * component still resolves against them.
+	 */
+	"advanced-v4-single": {
+		profile: "advanced-v4",
+		repo: "https://github.com/CodeStitchOfficial/Advanced-Astro-i18n.git",
+		pageDir: "src/pages",
+		setup: {
+			script: "scripts/remove-i18n.js",
+			/** The script asks before deleting anything. */
+			answer: "y\n",
+			label: "remove-i18n",
 		},
 	},
 	decap: {
@@ -136,6 +154,52 @@ async function run(cmd, cmdArgs, cwd, label) {
 	}
 }
 
+/** Runs one of the kit's own interactive scripts, answering its prompt. */
+function runScripted(cmd, args, cwd, input) {
+	try {
+		const output = execFileSync(cmd, args, {
+			cwd,
+			input,
+			encoding: "utf8",
+			maxBuffer: 32 * 1024 * 1024,
+			env: { ...process.env, CI: "1" },
+		});
+		return { ok: true, output };
+	} catch (err) {
+		return {
+			ok: false,
+			output: `${err.stdout ?? ""}${err.stderr ?? ""}${err.message}`,
+		};
+	}
+}
+
+/**
+ * Applies the project setup this target represents, using the kit's own
+ * script rather than a copy of what we think it does.
+ */
+async function applyKitSetup(kit, dir) {
+	if (!kit.setup) return;
+	// The checkout is per target, so the removal is done once and committed.
+	if (existsSync(join(dir, ".setup-applied"))) return;
+
+	console.log(`  running ${kit.setup.label} …`);
+	const res = runScripted(
+		process.execPath,
+		[join(dir, kit.setup.script)],
+		dir,
+		kit.setup.answer,
+	);
+	if (!res.ok) throw new Error(`${kit.setup.label} failed: ${res.output}`);
+
+	await writeFile(join(dir, ".setup-applied"), `${kit.setup.label}\n`, "utf8");
+	await run("git", ["add", "-A"], dir);
+	await run(
+		"git",
+		["-c", "user.email=a@b.c", "-c", "user.name=acceptance", "commit", "-qm", kit.setup.label],
+		dir,
+	);
+}
+
 async function ensureKit(kitId) {
 	const kit = KITS[kitId];
 	const profile = require(join(ROOT, "src/core/kits/profiles", `${kit.profile}.json`));
@@ -154,6 +218,7 @@ async function ensureKit(kitId) {
 	}
 
 	await applyKitWorkarounds(kitId, dir, profile);
+	await applyKitSetup(kit, dir);
 
 	if (!existsSync(join(dir, "node_modules"))) {
 		console.log("  npm install (once per kit) …");
@@ -307,6 +372,7 @@ async function main() {
 	}
 
 	const results = [];
+	const brokenBaselines = new Set();
 	const shotDir = join(WORK, "screenshots");
 	await mkdir(shotDir, { recursive: true });
 
@@ -320,11 +386,15 @@ async function main() {
 		const baseline = await run("npx", ["astro", "build"], dir, "baseline");
 		const baselineErrors = errorSignature(baseline.output.replace(/\[[0-9;]*m/g, ""));
 		if (!baseline.ok) {
+			brokenBaselines.add(kitId);
 			console.log(
 				`  NOTE  the pristine kit does not build at ${profile.sha.slice(0, 8)}:`,
 			);
 			for (const err of baselineErrors) console.log(`        ${err}`);
-			console.log("        components are judged on whether they add new errors.");
+			console.log(
+				"        nothing can be certified against it — components are still",
+			);
+			console.log("        run, to show whether they add errors of their own.");
 		}
 
 		for (const testCase of CASES) {
@@ -566,8 +636,10 @@ async function main() {
 				baselineBroken: !baseline.ok,
 				output: clean,
 			});
+			// A component cannot be certified against a kit that does not build.
+			// Saying "PASS" there would be the whole point of this harness lost.
 			const verdict =
-				problems.length === 0 ? (baseline.ok ? "PASS" : "PASS*") : "FAIL";
+				problems.length > 0 ? "FAIL" : baseline.ok ? "PASS" : "UNCERTIFIED";
 			console.log(
 				`  ${verdict}  ${label}  (${manifest.readiness})` +
 					(problems.length ? ` — ${problems.join("; ")}` : ""),
@@ -585,15 +657,23 @@ async function main() {
 	}
 
 	const failed = results.filter((r) => r.problems.length > 0);
-	console.log(
-		`\n${results.length - failed.length}/${results.length} components built in their pinned kit.`,
+	const uncertified = results.filter(
+		(r) => r.problems.length === 0 && r.baselineBroken,
 	);
-	if (results.some((r) => r.problems.length === 0 && r.baselineBroken)) {
+	const certified = results.length - failed.length - uncertified.length;
+	console.log(`\n${certified}/${results.length} components built in their pinned kit.`);
+
+	if (uncertified.length > 0) {
 		console.log(
-			"PASS* = the kit itself does not build at its pinned commit; the component added no new errors.",
+			`UNCERTIFIED = ${[...brokenBaselines].join(", ")} does not build at its pinned commit, so nothing can be`,
 		);
+		console.log(
+			"              verified against it. The component added no errors of its own, which is",
+		);
+		console.log("              not the same as being known to work.");
 	}
-	process.exit(failed.length > 0 ? 1 : 0);
+
+	process.exit(failed.length > 0 || uncertified.length > 0 ? 1 : 0);
 }
 
 main().catch((err) => {

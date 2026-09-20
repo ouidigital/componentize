@@ -25,6 +25,13 @@ const TEXT_ATTRIBUTES = ["alt", "aria-label", "title", "placeholder"] as const;
 /** Elements whose text is decoration, not copy. */
 const SKIP_TAGS = new Set(["script", "style", "svg", "path", "br", "hr"]);
 
+/**
+ * Elements whose whitespace is content. Their copy is stored exactly as
+ * written, because collapsing it would flatten the lines a reader is meant
+ * to see.
+ */
+const PREFORMATTED_TAGS = new Set(["pre", "textarea"]);
+
 /** Maps a CodeStitch class or tag onto a readable key name. */
 function keyNameFor(el: Element): string {
 	const classes = (el.getAttribute("class") ?? "").split(/\s+/).filter(Boolean);
@@ -153,9 +160,10 @@ export function applyI18nExtraction(options: I18nOptions): I18nResult {
 	const t = (key: string) => expr(reference(key));
 
 	/** Path segments accumulated from repeated-structure ancestors. */
-	const visit = (el: Element, prefix: string[]): void => {
+	const visit = (el: Element, prefix: string[], preformatted = false): void => {
 		const tag = el.tagName.toLowerCase();
 		if (SKIP_TAGS.has(tag)) return;
+		const keepWhitespace = preformatted || PREFORMATTED_TAGS.has(tag);
 
 		// Translatable attributes — but not on decorative images.
 		if (el.getAttribute("aria-hidden") !== "true") {
@@ -201,7 +209,8 @@ export function applyI18nExtraction(options: I18nOptions): I18nResult {
 						? [...childPrefix, name, String(i)]
 						: [...childPrefix, name];
 				const key = keys.take(segments);
-				setDeep(messages, key, normalizeText(node.textContent ?? ""));
+				const raw = node.textContent ?? "";
+				setDeep(messages, key, keepWhitespace ? raw : normalizeText(raw));
 				node.textContent = t(key);
 				count++;
 			});
@@ -209,7 +218,7 @@ export function applyI18nExtraction(options: I18nOptions): I18nResult {
 
 		if (hasElementChildren(el)) {
 			for (const child of Array.from(el.children)) {
-				visit(child, childPrefix);
+				visit(child, childPrefix, keepWhitespace);
 			}
 		}
 	};

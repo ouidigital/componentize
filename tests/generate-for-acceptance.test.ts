@@ -35,7 +35,17 @@ const CASES: Array<{ fixture: string; name: string }> = [
 	{ fixture: "stitch-nav-757", name: "Navigation-757" },
 ];
 
-const KITS: KitId[] = ["i18n", "advanced-v4", "decap"];
+/**
+ * Each acceptance target: a kit, and the project setup it is generated for.
+ * v4 appears twice because its setup script can remove i18n, and a component
+ * is only Ready for a setup somebody has actually built it in.
+ */
+const TARGETS: Array<{ id: string; kit: KitId; multilingual?: boolean }> = [
+	{ id: "i18n", kit: "i18n" },
+	{ id: "advanced-v4", kit: "advanced-v4" },
+	{ id: "advanced-v4-single", kit: "advanced-v4", multilingual: false },
+	{ id: "decap", kit: "decap" },
+];
 
 /**
  * A route every pinned kit really ships, and — on Advanced v4 — one whose
@@ -45,12 +55,14 @@ const KITS: KitId[] = ["i18n", "advanced-v4", "decap"];
 const SAFE_ROUTE = "/about";
 
 describe("generate components for kit acceptance", () => {
-	for (const kit of KITS) {
+	for (const target of TARGETS) {
+		const kit = target.kit;
 		for (const testCase of CASES) {
-			it(`${kit}/${testCase.name}`, async () => {
+			it(`${target.id}/${testCase.name}`, async () => {
 				const stitch = loadFixture(testCase.fixture);
 				const options: ConvertOptions = {
 					kit,
+					multilingual: target.multilingual,
 					cssFlavor: "less",
 					darkMode: true,
 					includeCoreStyles: false,
@@ -78,10 +90,21 @@ describe("generate components for kit acceptance", () => {
 				// Every fixture contains copy, so extraction silently producing
 				// nothing would leave the acceptance run with nothing to check.
 				if (options.i18n) {
-					expect(localeFile, `${kit}/${testCase.name} extracted no copy`).toBeDefined();
+					expect(
+						localeFile,
+						`${target.id}/${testCase.name} extracted no copy`,
+					).toBeDefined();
 				}
 
-				const dir = join(WORK, `${kit}-${testCase.name}`);
+				// The single-language setup must not ship a locale it removed.
+				if (target.multilingual === false) {
+					expect(
+						result.files.filter((f) => f.path.startsWith("src/locales/fr/")),
+						`${target.id}/${testCase.name} wrote a locale the project removed`,
+					).toHaveLength(0);
+				}
+
+				const dir = join(WORK, `${target.id}-${testCase.name}`);
 				rmSync(dir, { recursive: true, force: true });
 				mkdirSync(join(dir, "files"), { recursive: true });
 

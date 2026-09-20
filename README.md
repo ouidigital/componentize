@@ -24,6 +24,7 @@ Pinned kits (regenerate with `npm run profiles`):
 | Target | Kit | Astro | Locales |
 | --- | --- | --- | --- |
 | **Advanced Astro v4** | [Advanced-Astro-i18n](https://github.com/CodeStitchOfficial/Advanced-Astro-i18n) `4.0.0` | 7 | `en`/`fr`, removable |
+| ↳ same kit after `npm run remove-i18n` | its own acceptance target | 7 | one |
 | **Advanced Astro v3.0.2 (legacy)** | the same repo at its previous release | 6 | `en`/`fr` |
 | **Intermediate Astro + Decap** | [Intermediate-Astro-Decap-CMS](https://github.com/CodeStitchOfficial/Intermediate-Astro-Decap-CMS) | 7 | one |
 
@@ -154,7 +155,10 @@ above the code viewer.
   before a link. Generated components are broken into lines only where the
   stitch really had whitespace, and those breaks carry an explicit `{" "}` so
   the result reads the same under either setting. Where the stitch had no
-  whitespace, the markup stays on one line however long it runs.
+  whitespace, the markup stays on one line however long it runs. Only the five
+  characters HTML treats as whitespace collapse: a non-breaking space is one
+  somebody typed to stop a phrase wrapping, and `<pre>` keeps its line breaks
+  exactly, both in the markup and in the locale file.
 - **Text (Advanced kits)** — moves copy into locale files and reads it back the
   way the chosen kit does: `t("namespace:key")` on v3.0.2, and on v4 a property
   of the `content` object that `getSiteContext(Astro.url)` returns
@@ -204,13 +208,21 @@ npm run test:all      # all of the above
 `tests/__snapshots__/` holds real `.astro`, `.json` and readiness files — review
 them like code; a diff there is a change to what users receive.
 
-The acceptance run is the proof behind "Ready". For each fixture and kit it
+The acceptance run is the proof behind "Ready". For each fixture and target it
 clones the pinned kit, extracts the generated ZIP over it, writes a scratch page
 that **imports and renders** the component through the kit's own `BaseLayout`,
 and runs `astro build`. On v4 it also writes a second page under
 `src/pages/fr/` and marks that locale's copy, so the build has to show which
-locale it selected and which slug it resolved. It then serves the built site
-and drives the component
+locale it selected and which slug it resolved.
+
+Because the panel offers v4 with and without i18n, both are built. The
+single-language target is a separate checkout with the kit's **own**
+`remove-i18n` script run against it, rather than an imitation of what that
+script does. A kit whose pristine checkout does not build certifies nothing:
+its components are reported `UNCERTIFIED` and the run fails, because "added no
+new errors" is not the same as "known to work".
+
+It then serves the built site and drives the component
 in a real browser, checking that:
 
 - the component's own root element renders at a usable size;

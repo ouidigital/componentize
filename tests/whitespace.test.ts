@@ -204,6 +204,76 @@ describe("whitespace around inline content", () => {
 		expect(markup).toContain('</a>{" "}');
 	});
 
+	/**
+	 * A non-breaking space is a character somebody typed on purpose, to stop a
+	 * phrase wrapping. JavaScript's \s matches it, so a careless collapse turns
+	 * it into an ordinary space and the line breaks after all.
+	 */
+	it("leaves a non-breaking space alone", async () => {
+		for (const kit of KITS) {
+			const markup = await markupFor(
+				section('<p class="cs-text">Call\u00a0now on 555\u00a01234</p>'),
+				kit,
+			);
+			expect(markup, kit).toContain("Call\u00a0now");
+			expect(markup, kit).toContain("555\u00a01234");
+		}
+	});
+
+	it("keeps a non-breaking space through extraction", async () => {
+		const stitch: StitchData = {
+			id: "4242",
+			url: "https://codestitch.app/app/dashboard/stitches/4242",
+			html: section('<p class="cs-text">Call\u00a0now</p>'),
+			css: { LESS: "#demo { color: red; }" },
+			coreStyles: {},
+		};
+		const result = await convert(stitch, {
+			kit: "advanced-v4",
+			cssFlavor: "less",
+			darkMode: false,
+			includeCoreStyles: false,
+			includeJs: false,
+			i18n: true,
+			imagesMode: "raw",
+		});
+		const locale = result.files.find((f) => f.path.endsWith("/en/demo4242.json"))!;
+		expect(JSON.parse(locale.contents).text).toBe("Call\u00a0now");
+	});
+
+	/**
+	 * Inside <pre> the line breaks are the content. Re-indenting or collapsing
+	 * them changes what the reader sees, so the text is emitted exactly.
+	 */
+	it("preserves preformatted text, with and without extraction", async () => {
+		const pre = '<pre class="cs-pre">first line\n  indented line\nlast line</pre>';
+
+		const literal = await markupFor(section(pre), "decap");
+		expect(literal).toContain("first line\n  indented line\nlast line");
+
+		const stitch: StitchData = {
+			id: "4242",
+			url: "https://codestitch.app/app/dashboard/stitches/4242",
+			html: section(pre),
+			css: { LESS: "#demo { color: red; }" },
+			coreStyles: {},
+		};
+		const result = await convert(stitch, {
+			kit: "advanced-v4",
+			cssFlavor: "less",
+			darkMode: false,
+			includeCoreStyles: false,
+			includeJs: false,
+			i18n: true,
+			imagesMode: "raw",
+		});
+		const locale = result.files.find((f) => f.path.endsWith("/en/demo4242.json"))!;
+		// The copy carries its own line breaks into the locale file.
+		expect(JSON.parse(locale.contents).pre).toBe(
+			"first line\n  indented line\nlast line",
+		);
+	});
+
 	it("adds an explicit space only where the source had one", async () => {
 		// Indented the way CodeStitch writes it, so the paragraph is allowed to
 		// be broken over several lines in the first place.

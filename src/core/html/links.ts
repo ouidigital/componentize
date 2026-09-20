@@ -194,6 +194,54 @@ function normalizeRoute(route: string): string {
 	return `${withTrailing}${suffix}`;
 }
 
+/**
+ * Rewrites a destination that was written in a non-default locale.
+ *
+ * The kits' route helpers take the *default-locale* path and add the prefix
+ * themselves, so handing them `/fr/a-propos` yields `/fr/fr/a-propos`. Somebody
+ * copying a URL out of their own French site will write exactly that, so the
+ * prefix is recognised and mapped back through the kit's own translations.
+ *
+ * Returns the path to use, and what to say about it. A prefixed path the kit
+ * cannot translate keeps its original form and becomes a Draft: it is a real
+ * destination, but not one this tool can state correctly.
+ */
+function unprefixLocale(
+	path: string,
+	profile: KitProfile,
+): { path: string; note?: string; draft?: string } {
+	const segments = path.replace(/^\/|\/$/g, "").split("/");
+	const locale = segments[0];
+	if (!locale || !profile.locales.includes(locale)) return { path };
+
+	const rest = `/${segments.slice(1).join("/")}`.replace(/\/+$/, "") || "/";
+
+	if (locale === profile.defaultLocale) {
+		// Only meaningful where the kit prefixes its default locale too.
+		if (!profile.prefixDefaultLocale) return { path };
+		return {
+			path: rest === "/" ? "/" : `${rest}/`,
+			note: `${path} was written as ${rest}: ${profile.label} adds the locale prefix itself.`,
+		};
+	}
+
+	const translated = profile.localeRoutes[locale]?.find(
+		(route) => route.localizedPath === rest,
+	);
+	if (translated) {
+		const canonical = translated.defaultPath;
+		return {
+			path: canonical === "/" ? "/" : `${canonical}/`,
+			note: `${path} was written as ${canonical}: ${profile.label} translates the slug and adds the ${locale} prefix itself.`,
+		};
+	}
+
+	return {
+		path,
+		draft: `${path} is already written for the ${locale} locale, and ${profile.label} has no translation recorded for it — the kit's route helper would add a second ${locale} prefix. Point the link at the default-locale path instead.`,
+	};
+}
+
 /** A route in the form the profile records, without its trailing slash. */
 function comparableRoute(route: string): string {
 	const trimmed = route.replace(/\/+$/, "");
@@ -259,6 +307,8 @@ export function applyLinksPass(options: LinksPassOptions): void {
 	const missingFromKit = new Set<string>();
 	const placeholderExternals = new Set<string>();
 	const optional = new Map<string, string>();
+	const localePrefixed = new Set<string>();
+	const rewritten = new Set<string>();
 
 	for (const root of roots) {
 		for (const anchor of Array.from(root.querySelectorAll("a"))) {
@@ -323,8 +373,17 @@ export function applyLinksPass(options: LinksPassOptions): void {
 				continue;
 			}
 
-			const target = normalizeRoute(raw);
+			let target = normalizeRoute(raw);
 			if (!target) continue;
+
+			// A destination written in another locale has to be brought back to
+			// the path the kit's own helper expects before anything else reads it.
+			if (localize && profile.locales.length > 0) {
+				const resolved = unprefixLocale(target, profile);
+				target = resolved.path;
+				if (resolved.note) rewritten.add(resolved.note);
+				if (resolved.draft) localePrefixed.add(resolved.draft);
+			}
 
 			if (route) {
 				if (wasGuessed) guessed.push(`${mapping?.text ?? "link"} → ${target}`);
@@ -360,6 +419,13 @@ export function applyLinksPass(options: LinksPassOptions): void {
 			"social-link-placeholder",
 			`${urls.length} social ${urls.length === 1 ? "link points" : "links point"} at the network's home page (${urls.slice(0, 4).join(", ")}) because ${profile.label} has no entry for ${urls.length === 1 ? "it" : "them"} — put your own profile ${urls.length === 1 ? "URL" : "URLs"} in src/data/client.ts, or set ${urls.length === 1 ? "it" : "them"} here.`,
 		);
+	}
+
+	for (const note of rewritten) {
+		warnings.info("route-locale-prefixed", note);
+	}
+	for (const reason of localePrefixed) {
+		warnings.draft("route-locale-unmapped", reason);
 	}
 
 	// A destination can exist in the pristine kit and still be missing from a

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { convert } from "@core/convert";
 import type { ConvertOptions, StitchData } from "@core/types";
 import { profileFor } from "@core/kits/profile";
+import { freeNamespace } from "@core/naming";
 
 /**
  * Advanced v4 generation.
@@ -134,6 +135,18 @@ describe("advanced v4 — reading copy as data", () => {
 		expect(out.astro).not.toContain("content.");
 	});
 
+	it("keeps looking until the locale file name is free", () => {
+		// Stopping at the first fallback would leave the original name in
+		// place, which is the overwrite this check exists to prevent.
+		expect(freeNamespace("hero", "1621", ["contact"])).toBe("hero");
+		expect(freeNamespace("contact", "1621", ["contact"])).toBe("contact1621");
+		expect(freeNamespace("contact", "1621", ["contact", "contact1621"])).toBe(
+			"contact16212",
+		);
+		const reserved = ["contact", "contact1621", "contact16212", "contact16213"];
+		expect(reserved).not.toContain(freeNamespace("contact", "1621", reserved));
+	});
+
 	it("renames a locale file that would overwrite one the kit ships", async () => {
 		const profile = profileFor("advanced-v4");
 		expect(profile.namespaceFiles).toContain("contact");
@@ -198,6 +211,35 @@ describe("advanced v4 — resolving destinations", () => {
 			expect(out.markup).toContain(`href={${expected}}`);
 			expect(out.reasons.join(" ")).not.toContain("does not ship");
 		}
+	});
+
+	/**
+	 * The kit's helper takes the default-locale path and adds the prefix
+	 * itself, so handing it a French URL produces /fr/fr/a-propos/. Somebody
+	 * copying a link out of their own French site writes exactly that.
+	 */
+	it("maps a destination written in another locale back to the default one", async () => {
+		const out = await run(link("Anything"), {
+			linkMappings: [
+				{ id: "link-0", text: "Anything", originalHref: "", route: "/fr/a-propos" },
+			],
+		});
+		expect(out.markup).toContain('href={getLocalizedRoute(locale, "/about/")}');
+		expect(out.markup).not.toContain("/fr/a-propos");
+		expect(out.notes.join(" ")).toContain("adds the");
+		// It resolved cleanly, so the prefix is not a reason to withhold Ready.
+		expect(out.reasons.join(" ")).not.toContain("prefix");
+	});
+
+	it("keeps a usable path and marks Draft when it cannot map one", async () => {
+		const out = await run(link("Anything"), {
+			linkMappings: [
+				{ id: "link-0", text: "Anything", originalHref: "", route: "/fr/une-page-inventee" },
+			],
+		});
+		// The path is preserved rather than silently rewritten to something wrong.
+		expect(out.markup).toContain("/fr/une-page-inventee/");
+		expect(out.reasons.join(" ")).toContain("second fr prefix");
 	});
 
 	it("reports a destination the kit has no page for", async () => {

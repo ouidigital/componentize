@@ -107,6 +107,26 @@ export function namespaceFor(componentName: string): string {
 }
 
 /**
+ * A locale-file name for this component that the kit does not already use.
+ *
+ * The kit's own files sit in the same folder, so a component called Contact
+ * would overwrite contact.json. The stitch id is appended, and then a counter,
+ * until the name is free — stopping early and keeping the original is the one
+ * outcome that must not happen, because that is the overwrite itself.
+ */
+export function freeNamespace(
+	base: string,
+	stitchId: string,
+	reserved: readonly string[],
+): string {
+	if (!reserved.includes(base)) return base;
+	let candidate = `${base}${stitchId}`;
+	let n = 2;
+	while (reserved.includes(candidate)) candidate = `${base}${stitchId}${n++}`;
+	return candidate;
+}
+
+/**
  * One segment of a translation key, safe to read back as a property.
  *
  * Advanced v4 reads copy as `content.hero.title` rather than through a string

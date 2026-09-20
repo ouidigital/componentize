@@ -24,6 +24,7 @@ import {
 	assertValidAssetsDir,
 	assertValidComponentFileName,
 	deriveComponentName,
+	freeNamespace,
 	identifierFor,
 	namespaceFor,
 	slugFromSectionId,
@@ -153,21 +154,15 @@ export async function convert(
 	// A locale file is named after the component, and the kit's own files sit
 	// in the same folder — so a component called Contact would overwrite the
 	// kit's contact.json on extraction.
-	let namespace = namespaceFor(componentName);
-	if (kit.usesI18n(options) && profile.namespaceFiles.includes(namespace)) {
-		const disambiguated = `${namespace}${stitch.id}`;
-		if (profile.namespaceFiles.includes(disambiguated)) {
-			warnings.draft(
-				"namespace-collision",
-				`A locale file named ${namespace}.json would overwrite the one ${profile.label} ships — rename the component.`,
-			);
-		} else {
-			warnings.info(
-				"namespace-collision",
-				`${profile.label} already ships src/locales/*/${namespace}.json, so this component's copy went to ${disambiguated}.json instead.`,
-			);
-			namespace = disambiguated;
-		}
+	const baseNamespace = namespaceFor(componentName);
+	const namespace = kit.usesI18n(options)
+		? freeNamespace(baseNamespace, stitch.id, profile.namespaceFiles)
+		: baseNamespace;
+	if (namespace !== baseNamespace) {
+		warnings.info(
+			"namespace-collision",
+			`${profile.label} already ships src/locales/*/${baseNamespace}.json, so this component's copy went to ${namespace}.json instead.`,
+		);
 	}
 	const assetsDir = assertValidAssetsDir(
 		options.assetsDir ?? defaultAssetsDir(rootIds[0], isNav),

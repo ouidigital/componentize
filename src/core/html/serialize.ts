@@ -68,6 +68,12 @@ const VOID_ELEMENTS = new Set([
 	"param", "source", "track", "wbr",
 ]);
 
+/**
+ * Elements whose whitespace is part of their content. Re-indenting one of these
+ * changes what the reader sees, so their text is emitted byte for byte.
+ */
+const PREFORMATTED_ELEMENTS = new Set(["pre", "textarea"]);
+
 /** Elements whose children stay on one line with their text. */
 const INLINE_ELEMENTS = new Set([
 	"a", "abbr", "b", "br", "button", "cite", "code", "em", "i", "img", "kbd",
@@ -117,9 +123,19 @@ function serializeTextNode(text: string): string {
 		.join("");
 }
 
-/** The rendered text of a node, with runs of whitespace collapsed and trimmed. */
+/**
+ * The rendered text of a node, with runs of whitespace collapsed and trimmed.
+ *
+ * Only the five characters HTML treats as whitespace are collapsed. JavaScript's
+ * `\s` also matches a non-breaking space, which is the opposite of what one is
+ * for: it is typed precisely so that it does not collapse or wrap.
+ */
+const HTML_WHITESPACE = /[\t\n\f\r ]+/g;
+
 function textOf(node: Node): string {
-	return (node.textContent ?? "").replace(/\s+/g, " ").trim();
+	return (node.textContent ?? "")
+		.replace(HTML_WHITESPACE, " ")
+		.replace(/^[\t\n\f\r ]+|[\t\n\f\r ]+$/g, "");
 }
 
 /** True when this node renders nothing at all. */
@@ -292,6 +308,13 @@ function serializeNode(node: Node, depth: number, out: string[], forceInline = f
 	const isComponent = el.hasAttribute(COMPONENT_MARKER);
 	const tag = isComponent ? el.tagName : el.tagName.toLowerCase();
 	const attrs = serializeAttrs(el);
+
+	if (!isComponent && PREFORMATTED_ELEMENTS.has(tag)) {
+		const attrString = attrs.length ? ` ${attrs.join(" ")}` : "";
+		// No indentation and no collapsing: every line break inside is content.
+		out.push(`${pad}<${tag}${attrString}>${preformattedContent(el)}</${tag}>`);
+		return;
+	}
 	const isVoid = VOID_ELEMENTS.has(el.tagName.toLowerCase());
 	const childList = renderedChildren(el);
 	const children = childList.items;
@@ -331,6 +354,23 @@ function serializeNode(node: Node, depth: number, out: string[], forceInline = f
 	out.push(`${pad}<${tag}${attrStr}>`);
 	serializeGroups(groupChildren(children), depth + 1, out);
 	out.push(`${pad}</${tag}>`);
+}
+
+/** A preformatted element's content, with its whitespace left exactly as written. */
+function preformattedContent(el: Element): string {
+	let out = "";
+	for (const child of Array.from(el.childNodes)) {
+		if (child.nodeType === 3) {
+			out += serializeTextNode(child.textContent ?? "");
+		} else if (child.nodeType === 8) {
+			out += `<!-- ${(child as Comment).data.trim()} -->`;
+		} else if (child.nodeType === 1) {
+			const nested: string[] = [];
+			serializeNode(child, 0, nested, true);
+			out += nested.join("");
+		}
+	}
+	return out;
 }
 
 /**
