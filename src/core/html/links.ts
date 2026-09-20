@@ -195,32 +195,38 @@ function normalizeRoute(route: string): string {
 }
 
 /**
- * Rewrites a destination that was written in a non-default locale.
+ * Rewrites a destination that was written with a locale prefix.
  *
- * The kits' route helpers take the *default-locale* path and add the prefix
- * themselves, so handing them `/fr/a-propos` yields `/fr/fr/a-propos`. Somebody
- * copying a URL out of their own French site will write exactly that, so the
- * prefix is recognised and mapped back through the kit's own translations.
+ * The kits' route helpers take an *unprefixed* path and add the prefix
+ * themselves, so handing one `/fr/a-propos` yields `/fr/fr/a-propos`. Somebody
+ * copying a URL out of their own French site writes exactly that, so any
+ * configured locale prefix is stripped — always, because the helper always
+ * adds one back.
  *
- * Returns the path to use, and what to say about it. A prefixed path the kit
- * cannot translate keeps its original form and becomes a Draft: it is a real
- * destination, but not one this tool can state correctly.
+ * Where the kit records a translation, the localized slug is mapped to the
+ * default-locale path the helper expects, and the link resolves in every
+ * locale. Where it does not, the path still loses its prefix so the link works
+ * in the locale it was written for, and the result is a Draft: the
+ * default-locale equivalent is a guess nobody has confirmed.
+ *
+ * Takes a bare path. A query string or fragment must be split off first, or a
+ * recorded slug would never match one that carries `?ref=hero` on the end.
  */
 function unprefixLocale(
 	path: string,
 	profile: KitProfile,
 ): { path: string; note?: string; draft?: string } {
-	const segments = path.replace(/^\/|\/$/g, "").split("/");
+	const segments = path.replace(/^\/|\/$/g, "").split("/").filter(Boolean);
 	const locale = segments[0];
 	if (!locale || !profile.locales.includes(locale)) return { path };
 
-	const rest = `/${segments.slice(1).join("/")}`.replace(/\/+$/, "") || "/";
+	const bare = segments.slice(1).join("/");
+	const rest = bare === "" ? "/" : `/${bare}`;
+	const withSlash = rest === "/" ? "/" : `${rest}/`;
 
 	if (locale === profile.defaultLocale) {
-		// Only meaningful where the kit prefixes its default locale too.
-		if (!profile.prefixDefaultLocale) return { path };
 		return {
-			path: rest === "/" ? "/" : `${rest}/`,
+			path: withSlash,
 			note: `${path} was written as ${rest}: ${profile.label} adds the locale prefix itself.`,
 		};
 	}
@@ -237,8 +243,8 @@ function unprefixLocale(
 	}
 
 	return {
-		path,
-		draft: `${path} is already written for the ${locale} locale, and ${profile.label} has no translation recorded for it — the kit's route helper would add a second ${locale} prefix. Point the link at the default-locale path instead.`,
+		path: withSlash,
+		draft: `${path} was written for the ${locale} locale, and ${profile.label} records no translation for it — the prefix was dropped so the link works in ${locale}, but its default-locale path is a guess. Point the link at that path instead.`,
 	};
 }
 
@@ -377,10 +383,13 @@ export function applyLinksPass(options: LinksPassOptions): void {
 			if (!target) continue;
 
 			// A destination written in another locale has to be brought back to
-			// the path the kit's own helper expects before anything else reads it.
+			// the path the kit's own helper expects before anything else reads
+			// it. The query string comes off first: a recorded slug would never
+			// match one carrying ?ref=hero on the end.
 			if (localize && profile.locales.length > 0) {
-				const resolved = unprefixLocale(target, profile);
-				target = resolved.path;
+				const { path, suffix } = splitRoute(target);
+				const resolved = unprefixLocale(path, profile);
+				target = `${resolved.path}${suffix}`;
 				if (resolved.note) rewritten.add(resolved.note);
 				if (resolved.draft) localePrefixed.add(resolved.draft);
 			}

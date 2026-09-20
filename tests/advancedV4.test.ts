@@ -214,32 +214,60 @@ describe("advanced v4 — resolving destinations", () => {
 	});
 
 	/**
-	 * The kit's helper takes the default-locale path and adds the prefix
-	 * itself, so handing it a French URL produces /fr/fr/a-propos/. Somebody
-	 * copying a link out of their own French site writes exactly that.
+	 * The kit's helper takes an unprefixed path and adds the prefix itself, so
+	 * handing it a French URL produces /fr/fr/a-propos/. Somebody copying a
+	 * link out of their own French site writes exactly that, with whatever
+	 * query string or fragment was on the end of it.
 	 */
-	it("maps a destination written in another locale back to the default one", async () => {
-		const out = await run(link("Anything"), {
-			linkMappings: [
-				{ id: "link-0", text: "Anything", originalHref: "", route: "/fr/a-propos" },
-			],
-		});
-		expect(out.markup).toContain('href={getLocalizedRoute(locale, "/about/")}');
-		expect(out.markup).not.toContain("/fr/a-propos");
-		expect(out.notes.join(" ")).toContain("adds the");
-		// It resolved cleanly, so the prefix is not a reason to withhold Ready.
-		expect(out.reasons.join(" ")).not.toContain("prefix");
-	});
+	describe("a destination written with a locale prefix", () => {
+		const route = async (typed: string) => {
+			const out = await run(link("Anything"), {
+				linkMappings: [
+					{ id: "link-0", text: "Anything", originalHref: "", route: typed },
+				],
+			});
+			const call = /href=\{([^}]*)\}/.exec(out.markup)?.[1] ?? "";
+			return { call, out };
+		};
 
-	it("keeps a usable path and marks Draft when it cannot map one", async () => {
-		const out = await run(link("Anything"), {
-			linkMappings: [
-				{ id: "link-0", text: "Anything", originalHref: "", route: "/fr/une-page-inventee" },
+		// The prefix and the suffix have to be handled together: stripping one
+		// while the other is still attached is what made the slug unmatchable.
+		const cases: Array<[typed: string, expected: string]> = [
+			["/fr/a-propos", 'getLocalizedRoute(locale, "/about/")'],
+			["/fr/a-propos?ref=hero", 'getLocalizedRoute(locale, "/about/") + "?ref=hero"'],
+			["/fr/a-propos#team", 'getLocalizedRoute(locale, "/about/") + "#team"'],
+			[
+				"/fr/projets/projet-1?utm=x",
+				'getLocalizedRoute(locale, "/projects/project-1/") + "?utm=x"',
 			],
+			// The default locale is normally unprefixed, so this path does not
+			// exist; the prefix still has to come off, or the helper adds a second.
+			["/en/about", 'getLocalizedRoute(locale, "/about/")'],
+			["/en/about?ref=hero", 'getLocalizedRoute(locale, "/about/") + "?ref=hero"'],
+		];
+
+		for (const [typed, expected] of cases) {
+			it(`maps ${typed}`, async () => {
+				const { call, out } = await route(typed);
+				expect(call).toBe(expected);
+				expect(call).not.toContain("/fr/");
+				expect(call).not.toContain("/en/");
+				// Mapped cleanly, so the prefix is not a reason to withhold Ready.
+				expect(out.reasons.join(" ")).not.toContain("no translation");
+			});
+		}
+
+		it("keeps a usable unprefixed path when it cannot map one", async () => {
+			const { call, out } = await route("/fr/une-page-inventee?ref=hero");
+
+			// Dropping the prefix is what makes it usable: left on, the helper
+			// would add a second one and the link would go nowhere.
+			expect(call).toBe(
+				'getLocalizedRoute(locale, "/une-page-inventee/") + "?ref=hero"',
+			);
+			// The default-locale path is a guess, so it may not claim Ready.
+			expect(out.reasons.join(" ")).toContain("no translation");
 		});
-		// The path is preserved rather than silently rewritten to something wrong.
-		expect(out.markup).toContain("/fr/une-page-inventee/");
-		expect(out.reasons.join(" ")).toContain("second fr prefix");
 	});
 
 	it("reports a destination the kit has no page for", async () => {
