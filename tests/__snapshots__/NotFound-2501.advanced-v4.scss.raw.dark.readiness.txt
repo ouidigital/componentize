@@ -1,0 +1,3 @@
+draft
+- Advanced Astro v4 ships with LESS only — run "npm i -D sass" in the project before using this SCSS component.
+- The fr locale file holds the English copy — translate it before this goes live.

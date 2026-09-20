@@ -2,7 +2,7 @@
 /**
  * Navigation-757 — generated from CodeStitch stitch #757.
  * Source: https://codestitch.app/app/dashboard/stitches/757
- * Target: Advanced Astro i18n @ 5de7f5fe
+ * Target: Advanced Astro v3.0.2 (legacy) @ 5de7f5fe
  *
  * Draft — needs attention before shipping:
  *   - This component needs 3 more files (src/locales/en/navigation757.json, src/locales/fr/navigation757.json, src/icons/icons-logo-black-a98d1dc1.svg) — use Download ZIP, or the imports will not resolve.
@@ -27,21 +27,14 @@ const t = useTranslations(locale);
 <header id="cs-navigation">
 	<div class="cs-container">
 		<!-- Nav Logo -->
-		<a href={getLocalizedRoute(locale, "/about/")} class="cs-logo" aria-label={t("navigation757:logo.ariaLabel")}>
-			<Icon
-				width="210"
-				height="29"
-				aria-hidden="true"
-				name="icons-logo-black-a98d1dc1"
-			/>
-		</a>
+		<a href={getLocalizedRoute(locale, "/about/")} class="cs-logo" aria-label={t("navigation757:logo.ariaLabel")}><Icon width="210" height="29" aria-hidden="true" name="icons-logo-black-a98d1dc1" /></a>
 		<!-- Navigation List -->
 		<nav class="cs-nav" aria-label={t("navigation757:nav.ariaLabel")}>
 			<!-- Mobile Nav Toggle -->
 			<button class="cs-toggle" id="mobile-menu-toggle" aria-expanded="false" aria-controls="cs-ul-wrapper" aria-label={t("navigation757:toggle.ariaLabel")} aria-haspopup="menu">
 				<span class="cs-box" aria-hidden="true">
-					<span class="cs-line cs-line1"></span>
-					<span class="cs-line cs-line2"></span>
+					<span class="cs-line cs-line1"></span>{" "}
+					<span class="cs-line cs-line2"></span>{" "}
 					<span class="cs-line cs-line3"></span>
 				</span>
 			</button>

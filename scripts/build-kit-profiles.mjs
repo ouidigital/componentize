@@ -7,8 +7,8 @@
  * icons it may reference, the routes a link may resolve to, the nav script it
  * may suppress, and the CSPicture contract it may target.
  *
- * Usage: npm run profiles            (uses the pinned SHAs below)
- *        npm run profiles -- --latest  (re-pins to current main; prints new SHAs)
+ * Usage: npm run profiles
+ *        npm run profiles -- --latest advanced-v4 (refreshes one version contract)
  */
 import { mkdir, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
@@ -23,18 +23,37 @@ const KITS = {
 	"advanced-i18n": {
 		id: "i18n",
 		repo: "CodeStitchOfficial/Advanced-Astro-i18n",
-		sha: "main",
-		label: "Advanced Astro i18n",
+		sha: "5de7f5fe97344ed75239df1a8824c23e4d06df84",
+		major: 6,
+		label: "Advanced Astro v3.0.2 (legacy)",
+		generation: "legacy-i18n",
+	},
+	"advanced-v4": {
+		id: "advanced-v4",
+		repo: "CodeStitchOfficial/Advanced-Astro-i18n",
+		sha: "a2eb8fd031a959910844e3947cf6f7e0f96b8eb7",
+		major: 7,
+		label: "Advanced Astro v4",
+		generation: "advanced-v4",
 	},
 	"intermediate-decap": {
 		id: "decap",
 		repo: "CodeStitchOfficial/Intermediate-Astro-Decap-CMS",
-		sha: "main",
+		sha: "7f1d82ef93ae8641b9aca883480c2b4c865cc50b",
+		major: 7,
 		label: "Intermediate Astro + Decap CMS",
+		generation: "decap",
 	},
 };
 
-const useLatest = process.argv.includes("--latest");
+const refreshArg = process.argv.indexOf("--latest");
+const refreshTarget = refreshArg === -1 ? undefined : process.argv[refreshArg + 1];
+if (refreshArg !== -1 && (!refreshTarget || !KITS[refreshTarget])) {
+	throw new Error(`Use --latest <${Object.keys(KITS).join("|")}> to refresh exactly one target.`);
+}
+if (refreshArg !== -1 && process.argv.indexOf("--latest", refreshArg + 1) !== -1) {
+	throw new Error("Refresh one profile at a time so version contracts remain explicit.");
+}
 
 const IMAGE_CONFIG_PATHS = ["astro.config.mjs", "astro.config.ts", "astro.config.js"];
 const IMAGE_LAYOUTS = new Set(["constrained", "full-width", "fixed", "none"]);
@@ -172,6 +191,122 @@ async function listDir(repo, sha, path) {
 }
 
 /**
+ * The repository's full file list at a pinned commit.
+ *
+ * One recursive call answers every subtree question, which matters because the
+ * unauthenticated GitHub API allows only 60 requests an hour and a profile run
+ * asks about several directories per kit.
+ */
+const treeCache = new Map();
+async function listTree(repo, sha, path) {
+	const cacheKey = `${repo}@${sha}`;
+	if (!treeCache.has(cacheKey)) {
+		const data = await api(`/repos/${repo}/git/trees/${sha}?recursive=1`);
+		if (data.truncated) throw new Error(`GitHub truncated the file tree for ${repo}@${sha}.`);
+		treeCache.set(cacheKey, data.tree);
+	}
+	const prefix = `${path}/`;
+	return treeCache
+		.get(cacheKey)
+		.filter((entry) => entry.type === "blob" && entry.path.startsWith(prefix))
+		.map((entry) => ({ ...entry, relativePath: entry.path.slice(prefix.length) }));
+}
+
+/** Normalises a navData URL to a comparable, slash-free-suffix route. */
+function cleanRoute(value) {
+	const path = String(value ?? "/").split(/[?#]/, 1)[0] || "/";
+	const leading = path.startsWith("/") ? path : `/${path}`;
+	return leading === "/" ? "/" : leading.replace(/\/+$/, "");
+}
+
+/**
+ * v4's per-locale routes, read from navData.json.
+ *
+ * navData is the kit's single source of truth for translated slugs, and it
+ * nests: a project page is a child of the projects entry. Each entry is
+ * recorded against its default-locale path, which is the key a generated
+ * component looks a destination up by at runtime.
+ */
+export function collectNavRoutes(items, defaultLocale) {
+	const routes = {};
+	const visit = (entries) => {
+		for (const entry of entries ?? []) {
+			const defaultPath = cleanRoute(entry.urls?.[defaultLocale]);
+			if (entry.urls) {
+				for (const [locale, localized] of Object.entries(entry.urls)) {
+					(routes[locale] ??= []).push({ defaultPath, localizedPath: cleanRoute(localized) });
+				}
+			}
+			visit(entry.children);
+		}
+	};
+	visit(items);
+	return routes;
+}
+
+/** Every page route in a pinned kit, walked recursively from src/pages. */
+export function collectPageRoutes(entries, stripDefaultLocale) {
+	const routes = new Set();
+	for (const entry of entries) {
+		const rel = entry.relativePath;
+		if (!rel || !/\.(?:astro|md)$/.test(rel)) continue;
+
+		let segments = rel.replace(/\.(?:astro|md)$/, "").split("/");
+		// Astro never routes a file or folder whose name begins with "_".
+		if (segments.some((part) => part.startsWith("_"))) continue;
+
+		const dynamic = segments.findIndex((part) => part.startsWith("["));
+		if (dynamic !== -1) {
+			// A dynamic segment describes a shape, not a destination a link can
+			// target — except for a trailing rest parameter, which also matches
+			// zero segments, so blog/[...page].astro really does serve /blog/.
+			const last = segments.at(-1) ?? "";
+			if (dynamic !== segments.length - 1 || !last.startsWith("[...")) continue;
+			segments = segments.slice(0, -1);
+			if (segments.length === 0) continue;
+		}
+
+		if (segments.at(-1) === "index") segments = segments.slice(0, -1);
+		if (stripDefaultLocale && segments[0] === stripDefaultLocale) segments = segments.slice(1);
+		const route = `/${segments.filter(Boolean).join("/")}`;
+		routes.add(route === "/" ? "/" : route);
+	}
+	return [...routes].sort();
+}
+
+/**
+ * Routes that exist in the pristine kit but belong to a removable feature.
+ *
+ * Read from the kit's own removal scripts rather than from a list kept here:
+ * those scripts decide what a trimmed project loses, so parsing the page paths
+ * they delete is the only claim that stays true when the kit changes them.
+ */
+export function collectOptionalRoutes(scripts, routes, locales) {
+	const optional = {};
+	const pageArgs = /join\(\s*root\s*,\s*"src"\s*,\s*"pages"((?:\s*,\s*"[^"]+")+)\s*\)/g;
+
+	for (const [feature, source] of scripts) {
+		if (!source) continue;
+		for (const match of source.matchAll(pageArgs)) {
+			const segments = [...match[1].matchAll(/"([^"]+)"/g)].map((m) => m[1]);
+			const cleaned = segments.map((segment) => segment.replace(/\.(?:astro|md)$/, ""));
+			// A page deleted from a locale folder costs both the prefixed route
+			// and the default-locale one a link is actually written against.
+			const targets = [cleaned];
+			if (locales.includes(cleaned[0]) && cleaned.length > 1) targets.push(cleaned.slice(1));
+			for (const parts of targets) {
+				const target = `/${parts.join("/")}`;
+				for (const route of routes) {
+					// A deleted directory takes every route beneath it.
+					if (route === target || route.startsWith(`${target}/`)) optional[route] = feature;
+				}
+			}
+		}
+	}
+	return Object.fromEntries(Object.entries(optional).sort(([a], [b]) => a.localeCompare(b)));
+}
+
+/**
  * Extracts the declaration block of a top-level class rule from a LESS file.
  * Used to recognise (and only then strip) redeclarations of the global helpers.
  */
@@ -280,23 +415,53 @@ function fingerprintScript(src) {
 }
 
 async function buildProfile(key, kit) {
-	const sha = useLatest || kit.sha === "main" ? await resolveSha(kit.repo) : kit.sha;
+	const sha = refreshTarget === key ? await resolveSha(kit.repo) : kit.sha;
 	console.log(`  ${kit.repo} @ ${sha.slice(0, 8)}`);
-	const imageLayout = await discoverImageLayout((path) => raw(kit.repo, sha, path));
+	const fetchFile = (path) => raw(kit.repo, sha, path);
+	const imageLayout = await discoverImageLayout(fetchFile);
+	const packageSource = await fetchFile("package.json");
+	if (!packageSource) throw new Error(`${kit.repo}@${sha} has no package.json.`);
+	const packageData = JSON.parse(packageSource);
+	const astroVersion = (packageData.dependencies ?? {}).astro ?? (packageData.devDependencies ?? {}).astro;
+	const actualMajor = Number(/^\D*(\d+)/.exec(astroVersion ?? "")?.[1]);
+	if (actualMajor !== kit.major) {
+		throw new Error(`${key} supports Astro ${kit.major}; ${sha.slice(0, 8)} declares ${astroVersion ?? "no Astro dependency"}.`);
+	}
 
-	const [rootLess, darkLess, pkgJson, tsconfig, navJsA, navJsB, cspicture, siteSettings, routeTranslations, clientData] =
+	// Each generation keeps the file layout it actually shipped with. v4 moved
+	// its locale list into src/features/ and drives routes from navData.json;
+	// the legacy Advanced kit and the Intermediate kit are read exactly as
+	// before, so their profiles cannot drift while v4 support is added.
+	const advancedV4 = kit.generation === "advanced-v4";
+	const configPath = advancedV4 ? "astro.config.ts" : "astro.config.mjs";
+	const i18nSettingsPath = advancedV4
+		? "src/features/i18n/i18nConfig.ts"
+		: "src/config/siteSettings.ts";
+	const [rootLess, darkLess, tsconfig, navJsA, navJsB, cspicture, routeTranslations,
+		navDataSource, clientData, configSource, i18nSettings, removeDemo, removeDecap] =
 		await Promise.all([
 			raw(kit.repo, sha, "src/styles/root.less"),
 			raw(kit.repo, sha, "src/styles/dark.less"),
-			raw(kit.repo, sha, "package.json"),
 			raw(kit.repo, sha, "tsconfig.json"),
 			raw(kit.repo, sha, "src/js/nav.js"),
 			raw(kit.repo, sha, "src/assets/js/nav.js"),
 			raw(kit.repo, sha, "src/components/CSPicture/CSPicture.astro"),
-			raw(kit.repo, sha, "src/config/siteSettings.ts"),
 			raw(kit.repo, sha, "src/config/routeTranslations.ts"),
+			fetchFile("src/data/navData.json"),
 			raw(kit.repo, sha, "src/data/client.ts"),
+			fetchFile(configPath),
+			fetchFile(i18nSettingsPath),
+			advancedV4 ? fetchFile("scripts/remove-demo.js") : Promise.resolve(undefined),
+			advancedV4 ? fetchFile("scripts/remove-decap.js") : Promise.resolve(undefined),
 		]);
+	if (!configSource || !cspicture || !tsconfig || !rootLess) {
+		throw new Error(`${key} is missing a required config, image-component, style, or alias file.`);
+	}
+	if (advancedV4 && (!i18nSettings || !navDataSource || !removeDemo || !removeDecap)) {
+		throw new Error(
+			`${key} is missing the i18n config, navData.json, or the feature-removal scripts its profile is read from.`,
+		);
+	}
 
 	// What the kit already knows about the business, so links can point at real
 	// data instead of a slug invented from an icon's label.
@@ -355,7 +520,7 @@ async function buildProfile(key, kit) {
 	})();
 
 	const navJs = navJsA ?? navJsB;
-	const css = `${rootLess ?? ""}\n${darkLess ?? ""}`;
+	const css = advancedV4 ? (rootLess ?? "") : `${rootLess ?? ""}\n${darkLess ?? ""}`;
 
 	// Global helper classes: which declarations the kit already provides.
 	const globalRules = {};
@@ -370,12 +535,18 @@ async function buildProfile(key, kit) {
 		.map((e) => e.name.replace(/\.svg$/, ""));
 
 	// Routes a link mapping may resolve to in the pristine kit.
-	const pages = (await listDir(kit.repo, sha, "src/pages"))
-		.filter((e) => e.type === "file" && /\.(astro|md)$/.test(e.name) && !e.name.startsWith("_"))
-		.map((e) => (e.name.replace(/\.(astro|md)$/, "") === "index" ? "/" : `/${e.name.replace(/\.(astro|md)$/, "")}`));
-	const routeSegments = routeTranslations
-		? [...new Set([...routeTranslations.matchAll(/"([\w-]+)"\s*:\s*"/g)].map((m) => m[1]))]
-		: [];
+	// v4 walks src/pages recursively, because its translated pages live in
+	// per-locale folders and its project pages are nested.
+	const pages = advancedV4
+		? []
+		: (await listDir(kit.repo, sha, "src/pages"))
+				.filter((e) => e.type === "file" && /\.(astro|md)$/.test(e.name) && !e.name.startsWith("_"))
+				.map((e) => (e.name.replace(/\.(astro|md)$/, "") === "index" ? "/" : `/${e.name.replace(/\.(astro|md)$/, "")}`));
+	const routeSegments = advancedV4
+		? []
+		: routeTranslations
+			? [...new Set([...routeTranslations.matchAll(/"([\w-]+)"\s*:\s*"/g)].map((m) => m[1]))]
+			: [];
 
 	// CSPicture's real prop set — the two kits differ, so art direction must
 	// only target the kit that actually supports it.
@@ -383,16 +554,60 @@ async function buildProfile(key, kit) {
 		? [...(/interface Props\s*{([\s\S]*?)}/.exec(cspicture)?.[1] ?? "").matchAll(/(\w+)\s*[?:]/g)].map((m) => m[1])
 		: [];
 
-	const pkg = pkgJson ? JSON.parse(pkgJson) : {};
-	const deps = { ...(pkg.dependencies ?? {}), ...(pkg.devDependencies ?? {}) };
+	const deps = { ...(packageData.dependencies ?? {}), ...(packageData.devDependencies ?? {}) };
 
 	const aliases = tsconfig
 		? Object.keys(JSON.parse(tsconfig.replace(/\/\/.*$/gm, "")).compilerOptions?.paths ?? {})
 		: [];
 
-	const locales = siteSettings
-		? [...(/const locales\s*=\s*\[([^\]]*)\]/.exec(siteSettings)?.[1] ?? "").matchAll(/"([\w-]+)"/g)].map((m) => m[1])
+	// The Intermediate kit is monolingual and ships no locale list at all, which
+	// is a fact about it rather than a failure to read one.
+	const locales = i18nSettings
+		? [...(/(?:export )?const locales\s*=\s*\[([^\]]*)\]/.exec(i18nSettings)?.[1] ?? "").matchAll(/["']([\w-]+)["']/g)].map((m) => m[1])
 		: [];
+	if (advancedV4 && locales.length === 0) {
+		throw new Error(`${key} locale list could not be read from ${i18nSettingsPath}.`);
+	}
+	const defaultLocale = locales[0] ?? null;
+
+	// Namespaces the kit's own content loader already owns: a generated locale
+	// file that reuses one of these names would overwrite the kit's copy.
+	const namespaceFiles = defaultLocale
+		? (await listDir(kit.repo, sha, `src/locales/${defaultLocale}`))
+				.filter((e) => e.type === "file" && e.name.endsWith(".json"))
+				.map((e) => e.name.replace(/\.json$/, ""))
+		: [];
+	if (locales.length > 0 && namespaceFiles.length === 0) {
+		throw new Error(`${key} declares locales but no locale namespaces could be read.`);
+	}
+
+	const prefixDefaultLocale = /prefixDefaultLocale:\s*true/.test(configSource);
+	const navItems = navDataSource ? JSON.parse(navDataSource) : undefined;
+	const localeRoutes = advancedV4 ? collectNavRoutes(navItems, defaultLocale) : {};
+
+	let exactRoutes;
+	let optionalRoutes = {};
+	if (advancedV4) {
+		const pageTree = await listTree(kit.repo, sha, "src/pages");
+		exactRoutes = collectPageRoutes(pageTree, prefixDefaultLocale ? null : defaultLocale);
+		optionalRoutes = collectOptionalRoutes(
+			[["demo", removeDemo], ["CMS", removeDecap]],
+			exactRoutes,
+			locales,
+		);
+	} else {
+		exactRoutes = [...new Set(pages)].sort();
+	}
+
+	// Astro 7 defaults to "jsx" whitespace handling; Astro 6 always compressed.
+	// The effective value is recorded, not merely whether the kit spelled it out.
+	const compressHTML = /compressHTML:\s*true/.test(configSource)
+		? true
+		: /compressHTML:\s*(?:false|"jsx")/.test(configSource)
+			? (/compressHTML:\s*false/.test(configSource) ? false : "jsx")
+			: kit.major >= 7
+				? "jsx"
+				: true;
 
 	return {
 		key,
@@ -400,14 +615,22 @@ async function buildProfile(key, kit) {
 		label: kit.label,
 		repo: kit.repo,
 		sha,
+		kitVersion: packageData.version ?? null,
 		astroVersion: deps.astro ?? null,
+		configPath,
+		generation: kit.generation,
+		compressHTML,
+		prefixDefaultLocale,
 		hasLess: Boolean(deps.less),
 		hasSass: Boolean(deps.sass),
 		aliases,
 		locales,
-		defaultLocale: locales[0] ?? null,
+		defaultLocale,
+		namespaceFiles: [...new Set(namespaceFiles)].sort(),
+		localeRoutes,
+		optionalRoutes,
 		imageLayout,
-		routes: [...new Set(pages)].sort(),
+		routes: exactRoutes,
 		routeSegments: routeSegments.sort(),
 		icons: icons.sort(),
 		globalRules,

@@ -1,0 +1,305 @@
+{
+	"key": "advanced-v4",
+	"kitId": "advanced-v4",
+	"label": "Advanced Astro v4",
+	"repo": "CodeStitchOfficial/Advanced-Astro-i18n",
+	"sha": "a2eb8fd031a959910844e3947cf6f7e0f96b8eb7",
+	"kitVersion": "4.0.0",
+	"astroVersion": "^7.2.10",
+	"configPath": "astro.config.ts",
+	"generation": "advanced-v4",
+	"compressHTML": true,
+	"prefixDefaultLocale": false,
+	"hasLess": true,
+	"hasSass": false,
+	"aliases": [
+		"@layouts/*",
+		"@assets/*",
+		"@data/*",
+		"@styles/*",
+		"@components/*",
+		"@js/*",
+		"@locales/*"
+	],
+	"locales": [
+		"en",
+		"fr"
+	],
+	"defaultLocale": "en",
+	"namespaceFiles": [
+		"blog",
+		"common",
+		"contact",
+		"home",
+		"reviews"
+	],
+	"localeRoutes": {
+		"en": [
+			{
+				"defaultPath": "/",
+				"localizedPath": "/"
+			},
+			{
+				"defaultPath": "/about",
+				"localizedPath": "/about"
+			},
+			{
+				"defaultPath": "/projects",
+				"localizedPath": "/projects"
+			},
+			{
+				"defaultPath": "/projects/project-1",
+				"localizedPath": "/projects/project-1"
+			},
+			{
+				"defaultPath": "/projects/project-2",
+				"localizedPath": "/projects/project-2"
+			},
+			{
+				"defaultPath": "/blog",
+				"localizedPath": "/blog"
+			},
+			{
+				"defaultPath": "/reviews",
+				"localizedPath": "/reviews"
+			},
+			{
+				"defaultPath": "/contact",
+				"localizedPath": "/contact"
+			}
+		],
+		"fr": [
+			{
+				"defaultPath": "/",
+				"localizedPath": "/"
+			},
+			{
+				"defaultPath": "/about",
+				"localizedPath": "/a-propos"
+			},
+			{
+				"defaultPath": "/projects",
+				"localizedPath": "/projets"
+			},
+			{
+				"defaultPath": "/projects/project-1",
+				"localizedPath": "/projets/projet-1"
+			},
+			{
+				"defaultPath": "/projects/project-2",
+				"localizedPath": "/projets/projet-2"
+			},
+			{
+				"defaultPath": "/blog",
+				"localizedPath": "/blog"
+			},
+			{
+				"defaultPath": "/reviews",
+				"localizedPath": "/avis"
+			},
+			{
+				"defaultPath": "/contact",
+				"localizedPath": "/contact"
+			}
+		]
+	},
+	"optionalRoutes": {
+		"/about": "demo",
+		"/admin": "CMS",
+		"/blog": "CMS",
+		"/fr/a-propos": "demo",
+		"/fr/avis": "demo",
+		"/fr/blog": "CMS",
+		"/fr/projets/projet-1": "demo",
+		"/fr/projets/projet-2": "demo",
+		"/projects/project-1": "demo",
+		"/projects/project-2": "demo",
+		"/reviews": "demo"
+	},
+	"imageLayout": null,
+	"routes": [
+		"/",
+		"/404",
+		"/about",
+		"/admin",
+		"/blog",
+		"/contact",
+		"/fr",
+		"/fr/404",
+		"/fr/a-propos",
+		"/fr/avis",
+		"/fr/blog",
+		"/fr/contact",
+		"/fr/projets/projet-1",
+		"/fr/projets/projet-2",
+		"/projects/project-1",
+		"/projects/project-2",
+		"/reviews"
+	],
+	"routeSegments": [],
+	"icons": [
+		"arrow",
+		"logo-black",
+		"logo-white",
+		"mdi--caret",
+		"mdi--language",
+		"mdi--laptop",
+		"mdi--moon",
+		"mdi--sun",
+		"moon",
+		"profile",
+		"service1",
+		"service2",
+		"service3",
+		"stars",
+		"sun"
+	],
+	"globalRules": {
+		".cs-topper": {
+			"font-size": "var(--topperfontsize)",
+			"font-weight": "700",
+			"line-height": "1.2em",
+			"text-transform": "uppercase",
+			"letter-spacing": "0.1em",
+			"color": "var(--primarylight)",
+			"display": "block"
+		},
+		".cs-title": {
+			"font-size": "var(--headerfontsize)",
+			"font-weight": "900",
+			"line-height": "1.2em",
+			"margin": "0 auto (16/16rem)",
+			"color": "var(--headercolor)",
+			"position": "relative"
+		},
+		".cs-text": {
+			"font-size": "var(--bodyfontsize)",
+			"line-height": "1.5em",
+			"width": "100%",
+			"margin": "0 auto",
+			"color": "var(--bodytextcolor)"
+		},
+		".cs-button-solid": {
+			"font-size": "(16/16rem)",
+			"font-weight": "bold",
+			"line-height": "(50/16em)",
+			"text-align": "center",
+			"text-transform": "uppercase",
+			"text-decoration": "none",
+			"width": "auto",
+			"height": "(50/16rem)",
+			"padding": "0 (30/16rem)",
+			"color": "var(--light)",
+			"background-color": "var(--primary)",
+			"display": "inline-block",
+			"position": "relative",
+			"z-index": "1",
+			"transition": "color 0.3s",
+			"transition-delay": "0.1s"
+		}
+	},
+	"globalRootVars": [
+		"--accent",
+		"--bodyFontSize",
+		"--bodyTextColor",
+		"--bodyTextColorWhite",
+		"--dark",
+		"--grey",
+		"--headerColor",
+		"--headerFontSize",
+		"--light",
+		"--medium",
+		"--primary",
+		"--primaryDark",
+		"--primaryLight",
+		"--secondary",
+		"--secondaryLight",
+		"--sectionPadding",
+		"--topperFontSize"
+	],
+	"cspicture": {
+		"exists": true,
+		"props": [
+			"src",
+			"alt"
+		],
+		"supportsArtDirection": false
+	},
+	"businessData": {
+		"exists": true,
+		"exportName": "BUSINESS",
+		"importPath": "@data/client",
+		"socials": [
+			"facebook",
+			"instagram"
+		]
+	},
+	"navScript": {
+		"exists": true,
+		"hooks": [
+			"cs-navigation",
+			"cs-active",
+			"cs-open",
+			"cs-dropdown",
+			"cs-li-link",
+			"mobile-menu-toggle"
+		],
+		"fingerprint": [
+			"\" \"",
+			"\"(max-width: 63.9375rem)\"",
+			"\".cs-drop-li > .cs-li-link\"",
+			"\".cs-dropdown\"",
+			"\".cs-dropdown-button\"",
+			"\"Enter\"",
+			"\"Escape\"",
+			"\"aria-expanded\"",
+			"\"click\"",
+			"\"cs-active\"",
+			"\"false\"",
+			"\"focusout\"",
+			"\"keydown\"",
+			"\"true\"",
+			"'aria-expanded'",
+			"'astro:page-load'",
+			"'body'",
+			"'click'",
+			"'cs-active'",
+			"'cs-navigation'",
+			"'cs-open'",
+			"'mobile-menu-toggle'",
+			"CSbody",
+			"CSnavbarMenu",
+			"addEventListener",
+			"ariaExpanded",
+			"classList",
+			"contains",
+			"dropdownButton",
+			"dropdownElements",
+			"dropdownLinks",
+			"element",
+			"escapePressed",
+			"event",
+			"forEach",
+			"getAttribute",
+			"getElementById",
+			"href",
+			"isExpanded",
+			"key",
+			"link",
+			"location",
+			"matchMedia",
+			"matches",
+			"maxWidthMediaQuery",
+			"mobileMenuToggle",
+			"preventDefault",
+			"querySelector",
+			"querySelectorAll",
+			"relatedTarget",
+			"remove",
+			"setAttribute",
+			"stopPropagation",
+			"toggle",
+			"toggleMenu"
+		]
+	}
+}

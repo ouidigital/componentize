@@ -1,4 +1,4 @@
-import { describe, it } from "vitest";
+import { describe, expect, it } from "vitest";
 import { mkdirSync, writeFileSync, rmSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { convert, inspectLinks } from "@core/convert";
@@ -35,9 +35,13 @@ const CASES: Array<{ fixture: string; name: string }> = [
 	{ fixture: "stitch-nav-757", name: "Navigation-757" },
 ];
 
-const KITS: KitId[] = ["i18n", "decap"];
+const KITS: KitId[] = ["i18n", "advanced-v4", "decap"];
 
-/** Routes that exist in both pinned kits, so links resolve cleanly. */
+/**
+ * A route every pinned kit really ships, and — on Advanced v4 — one whose
+ * French slug differs from its English one, so the built site proves the
+ * navData lookup rather than just the locale prefix.
+ */
 const SAFE_ROUTE = "/about";
 
 describe("generate components for kit acceptance", () => {
@@ -51,7 +55,7 @@ describe("generate components for kit acceptance", () => {
 					darkMode: true,
 					includeCoreStyles: false,
 					includeJs: true,
-					i18n: kit === "i18n",
+					i18n: kit !== "decap",
 					imagesMode: "assets",
 					// Exercise the panel's intended hero choice in the pinned-kit
 					// build: the core default remains false everywhere else.
@@ -63,6 +67,19 @@ describe("generate components for kit acceptance", () => {
 				};
 
 				const result = await convert(stitch, options, stubAsset);
+
+				// What the acceptance harness needs in order to judge the built
+				// site rather than just the build.
+				const localeFile = result.files.find((f) =>
+					f.path.startsWith("src/locales/"),
+				);
+				const namespace = localeFile?.path.split("/").pop()?.replace(/\.json$/, "");
+
+				// Every fixture contains copy, so extraction silently producing
+				// nothing would leave the acceptance run with nothing to check.
+				if (options.i18n) {
+					expect(localeFile, `${kit}/${testCase.name} extracted no copy`).toBeDefined();
+				}
 
 				const dir = join(WORK, `${kit}-${testCase.name}`);
 				rmSync(dir, { recursive: true, force: true });
@@ -87,9 +104,11 @@ describe("generate components for kit acceptance", () => {
 							componentIdentifier: result.componentIdentifier,
 							componentPath: result.files[0]!.path,
 							readiness: result.readiness.state,
+							namespace: namespace ?? null,
+							extractedCopy: Boolean(localeFile),
 							expectPriority: testCase.fixture.includes("hero-"),
 							expectResponsiveImages:
-								kit === "i18n" && /<(?:Image|Picture)\b/.test(result.files[0]!.contents),
+								kit !== "decap" && /<(?:Image|Picture)\b/.test(result.files[0]!.contents),
 							reasons: result.readiness.reasons,
 							files: result.files.map((f) => f.path),
 						},

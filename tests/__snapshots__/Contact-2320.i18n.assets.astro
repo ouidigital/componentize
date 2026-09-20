@@ -2,7 +2,7 @@
 /**
  * Contact-2320 — generated from CodeStitch stitch #2320.
  * Source: https://codestitch.app/app/dashboard/stitches/2320
- * Target: Advanced Astro i18n @ 5de7f5fe
+ * Target: Advanced Astro v3.0.2 (legacy) @ 5de7f5fe
  *
  * Draft — needs attention before shipping:
  *   - The fr locale file holds the English copy — translate it before this goes live.
@@ -43,7 +43,7 @@ const t = useTranslations(locale);
 						name="name"
 						placeholder={t("contact2320:containers.0.labels.0.input.placeholder")}
 					/>
-				</label>
+				</label>{" "}
 				<label class="cs-label cs-email">
 					{t("contact2320:containers.0.labels.1.label")}
 					<input
@@ -53,7 +53,7 @@ const t = useTranslations(locale);
 						name="email"
 						placeholder={t("contact2320:containers.0.labels.1.input.placeholder")}
 					/>
-				</label>
+				</label>{" "}
 				<label class="cs-label cs-phone">
 					{t("contact2320:containers.0.labels.2.label")}
 					<input
@@ -63,20 +63,20 @@ const t = useTranslations(locale);
 						name="phone"
 						placeholder={t("contact2320:containers.0.labels.2.input.placeholder")}
 					/>
-				</label>
+				</label>{" "}
 				<label class="cs-label cs-services">
 					{t("contact2320:containers.0.labels.3.label")}
 					<select class="cs-input" name="Services">
 						<option value="" disabled selected="">{t("contact2320:containers.0.labels.3.option")}</option>
-						<option value="New Construction">{t("contact2320:containers.0.labels.3.option-2")}</option>
-						<option value="Remodels">{t("contact2320:containers.0.labels.3.option-3")}</option>
-						<option value="Cabinets">{t("contact2320:containers.0.labels.3.option-4")}</option>
+						<option value="New Construction">{t("contact2320:containers.0.labels.3.option2")}</option>
+						<option value="Remodels">{t("contact2320:containers.0.labels.3.option3")}</option>
+						<option value="Cabinets">{t("contact2320:containers.0.labels.3.option4")}</option>
 					</select>
-				</label>
+				</label>{" "}
 				<label class="cs-label">
 					{t("contact2320:containers.0.labels.4.label")}
 					<textarea class="cs-input cs-textarea" required name="Message" placeholder={t("contact2320:containers.0.labels.4.input.placeholder")}></textarea>
-				</label>
+				</label>{" "}
 				<button class="cs-button-solid cs-submit" type="submit">{t("contact2320:containers.0.button")}</button>
 			</form>
 		</div>
@@ -94,7 +94,7 @@ const t = useTranslations(locale);
 					name="yellow-pin-a98d1dc1"
 				/>
 				<div class="cs-flex">
-					<span class="cs-header">{t("contact2320:containers.0.header")}</span>
+					<span class="cs-header">{t("contact2320:containers.0.header")}</span>{" "}
 					<span class="cs-address">{t("contact2320:containers.0.address")}</span>
 				</div>
 			</div>

@@ -170,18 +170,54 @@ function isFragment(href: string): boolean {
 	return href.trim().startsWith("#") && href.trim().length > 1;
 }
 
-/** Normalises a user-entered route to the kit's trailing-slash convention. */
-function normalizeRoute(route: string): string {
+/**
+ * Splits a destination into the path and whatever follows it.
+ *
+ * A query string or fragment is part of the destination but not part of the
+ * route: `/contact?ref=hero` names the contact page, and the trailing slash
+ * this kit expects belongs after `contact`, not after `hero`.
+ */
+function splitRoute(route: string): { path: string; suffix: string } {
 	const trimmed = route.trim();
-	if (!trimmed || trimmed === "/") return "/";
-	const withLeading = trimmed.startsWith("/") ? trimmed : `/${trimmed}`;
-	return withLeading.endsWith("/") ? withLeading : `${withLeading}/`;
+	const marker = trimmed.search(/[?#]/);
+	return marker === -1
+		? { path: trimmed, suffix: "" }
+		: { path: trimmed.slice(0, marker), suffix: trimmed.slice(marker) };
 }
 
-/** True when the pristine kit actually has somewhere for this route to land. */
+/** Normalises a user-entered route to the kit's trailing-slash convention. */
+function normalizeRoute(route: string): string {
+	const { path, suffix } = splitRoute(route);
+	if (!path || path === "/") return `/${suffix}`;
+	const withLeading = path.startsWith("/") ? path : `/${path}`;
+	const withTrailing = withLeading.endsWith("/") ? withLeading : `${withLeading}/`;
+	return `${withTrailing}${suffix}`;
+}
+
+/** A route in the form the profile records, without its trailing slash. */
+function comparableRoute(route: string): string {
+	const trimmed = route.replace(/\/+$/, "");
+	return trimmed === "" ? "/" : trimmed;
+}
+
+/**
+ * True when the pristine kit actually has somewhere for this route to land.
+ *
+ * Advanced v4 is checked as a whole path, because its profile lists every page
+ * the kit ships. A first segment proves nothing there: `/projects` is a
+ * navigation parent with a dropdown and no page of its own, so a link to it
+ * would 404. The older kits keep the looser check they were profiled for,
+ * since their profiles only ever listed top-level pages.
+ */
 function routeExistsInKit(route: string, profile: KitProfile): boolean {
-	const clean = route.replace(/^\/|\/$/g, "");
+	const { path } = splitRoute(route);
+	const clean = path.replace(/^\/|\/$/g, "");
 	if (clean === "") return true;
+
+	if (profile.generation === "advanced-v4") {
+		return profile.routes.includes(comparableRoute(path));
+	}
+
 	const first = clean.split("/")[0]!;
 	return (
 		profile.routes.includes(`/${first}`) ||
@@ -196,8 +232,10 @@ export interface LinksPassOptions {
 	profile: KitProfile;
 	warnings: WarningCollector;
 	mappings: LinkMapping[];
-	/** True when links should be wrapped in getLocalizedRoute(). */
+	/** True when links should be wrapped in the kit's route helper. */
 	localize: boolean;
+	/** Writes a resolved route as the kit's own route expression. */
+	routeExpression: (route: string) => string;
 	/** Use routes derived from link text where the user supplied none. */
 	useSuggestions: boolean;
 	/** Called when a destination references the kit's business data. */
@@ -211,6 +249,7 @@ export function applyLinksPass(options: LinksPassOptions): void {
 		warnings,
 		mappings,
 		localize,
+		routeExpression,
 		useSuggestions,
 		onBusinessDataUsed,
 	} = options;
@@ -219,6 +258,7 @@ export function applyLinksPass(options: LinksPassOptions): void {
 	const guessed: string[] = [];
 	const missingFromKit = new Set<string>();
 	const placeholderExternals = new Set<string>();
+	const optional = new Map<string, string>();
 
 	for (const root of roots) {
 		for (const anchor of Array.from(root.querySelectorAll("a"))) {
@@ -230,7 +270,7 @@ export function applyLinksPass(options: LinksPassOptions): void {
 				if (/^(tel:|mailto:)/i.test(href.trim())) {
 					warnings.info(
 						"contact-link-hardcoded",
-						`Left ${href.trim()} as written — point it at your own contact details (${profile.kitId === "decap" ? "the kit keeps these in @data/client" : "your site config"}) when you wire the component up.`,
+						`Left ${href.trim()} as written — point it at your own contact details (${profile.businessData.exists ? `the kit keeps these in ${profile.businessData.importPath}` : "your site config"}) when you wire the component up.`,
 					);
 				}
 				continue;
@@ -288,13 +328,15 @@ export function applyLinksPass(options: LinksPassOptions): void {
 
 			if (route) {
 				if (wasGuessed) guessed.push(`${mapping?.text ?? "link"} → ${target}`);
-				if (!routeExistsInKit(target, profile)) missingFromKit.add(target);
+				if (routeExistsInKit(target, profile)) {
+					const feature = profile.optionalRoutes[comparableRoute(splitRoute(target).path)];
+					if (feature) optional.set(target, feature);
+				} else {
+					missingFromKit.add(target);
+				}
 			}
 
-			anchor.setAttribute(
-				"href",
-				localize ? expr(`getLocalizedRoute(locale, "${target}")`) : target,
-			);
+			anchor.setAttribute("href", localize ? expr(routeExpression(target)) : target);
 		}
 	}
 
@@ -318,6 +360,23 @@ export function applyLinksPass(options: LinksPassOptions): void {
 			"social-link-placeholder",
 			`${urls.length} social ${urls.length === 1 ? "link points" : "links point"} at the network's home page (${urls.slice(0, 4).join(", ")}) because ${profile.label} has no entry for ${urls.length === 1 ? "it" : "them"} — put your own profile ${urls.length === 1 ? "URL" : "URLs"} in src/data/client.ts, or set ${urls.length === 1 ? "it" : "them"} here.`,
 		);
+	}
+
+	// A destination can exist in the pristine kit and still be missing from a
+	// real project, because the kit's setup script can remove the feature that
+	// brought it. That is worth saying once, and it is not a Draft reason: the
+	// component builds, and only the person who ran the script knows.
+	if (optional.size > 0) {
+		const byFeature = new Map<string, string[]>();
+		for (const [route, feature] of optional) {
+			byFeature.set(feature, [...(byFeature.get(feature) ?? []), route]);
+		}
+		for (const [feature, routes] of byFeature) {
+			warnings.info(
+				"route-from-optional-feature",
+				`${routes.join(", ")} ${routes.length === 1 ? "is a page" : "are pages"} ${profile.label} ships with its ${feature} files — if this project was set up without ${feature === "demo" ? "the demo content" : "the CMS"}, repoint ${routes.length === 1 ? "that link" : "those links"}.`,
+			);
+		}
 	}
 
 	// One line for the lot: a navigation stitch can point at a dozen pages that

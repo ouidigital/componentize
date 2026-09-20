@@ -53,7 +53,7 @@ const CASES: Case[] = (() => {
 	const cases: Case[] = [];
 
 	// Full matrix on the simplest stitch, so a flag's effect is easy to read.
-	for (const kit of ["decap", "i18n"] as const) {
+	for (const kit of ["decap", "i18n", "advanced-v4"] as const) {
 		for (const cssFlavor of ["less", "scss", "css"] as const) {
 			for (const imagesMode of ["assets", "raw"] as const) {
 				for (const darkMode of [true, false]) {
@@ -65,7 +65,7 @@ const CASES: Case[] = (() => {
 							cssFlavor,
 							imagesMode,
 							darkMode,
-							i18n: kit === "i18n",
+							i18n: kit !== "decap",
 						},
 						resolveLinks: true,
 					});
@@ -85,11 +85,22 @@ const CASES: Case[] = (() => {
 		["Contact-2320.decap.raw", FIXTURE_DIRS.contact, { kit: "decap", imagesMode: "raw" }],
 		["Navigation-757.decap.assets", FIXTURE_DIRS.nav, { kit: "decap", imagesMode: "assets" }],
 		["Navigation-757.i18n.assets", FIXTURE_DIRS.nav, { kit: "i18n", i18n: true, imagesMode: "assets" }],
+		// Advanced v4: copy read as data, routes resolved through navData.
+		["Faq-1741.advanced-v4.assets", FIXTURE_DIRS.faq, { kit: "advanced-v4", i18n: true, imagesMode: "assets" }],
+		["Hero-2274.advanced-v4.assets", FIXTURE_DIRS.heroMultiSection, { kit: "advanced-v4", i18n: true, imagesMode: "assets" }],
+		["Contact-2320.advanced-v4.assets", FIXTURE_DIRS.contact, { kit: "advanced-v4", i18n: true, imagesMode: "assets" }],
+		["Navigation-757.advanced-v4.assets", FIXTURE_DIRS.nav, { kit: "advanced-v4", i18n: true, imagesMode: "assets" }],
 		// Options that deliberately produce Draft output.
 		["Faq-1741.decap.core-styles", FIXTURE_DIRS.faq, { kit: "decap", includeCoreStyles: true }],
 		["Faq-1741.decap.no-js", FIXTURE_DIRS.faq, { kit: "decap", includeJs: false }],
 		["Navigation-757.decap.keep-nav-js", FIXTURE_DIRS.nav, { kit: "decap", imagesMode: "raw", keepKitNavScript: true }],
 		["Faq-1741.i18n.no-extraction", FIXTURE_DIRS.faq, { kit: "i18n", i18n: false }],
+		// A v4 project set up without i18n: copy stays literal, routes still
+		// resolve, and nothing imports a module the removal script deleted.
+		["Faq-1741.advanced-v4.no-extraction", FIXTURE_DIRS.faq, { kit: "advanced-v4", i18n: false }],
+		// Extraction on, but a single-locale project: one locale file, no
+		// untranslated-locale Draft.
+		["Faq-1741.advanced-v4.single-locale", FIXTURE_DIRS.faq, { kit: "advanced-v4", i18n: true, multilingual: false }],
 	];
 	for (const [name, fixture, options] of featured) {
 		cases.push({ name, fixture, options, resolveLinks: true });
@@ -101,6 +112,15 @@ const CASES: Case[] = (() => {
 		name: "Navigation-757.decap.guessed-routes",
 		fixture: FIXTURE_DIRS.nav,
 		options: { kit: "decap", imagesMode: "raw" },
+		resolveLinks: false,
+	});
+
+	// The same, on v4: whole paths are checked against the pages the kit really
+	// ships, so a guess at a page it does not have is reported.
+	cases.push({
+		name: "Navigation-757.advanced-v4.guessed-routes",
+		fixture: FIXTURE_DIRS.nav,
+		options: { kit: "advanced-v4", i18n: true, imagesMode: "raw" },
 		resolveLinks: false,
 	});
 

@@ -1,0 +1,3 @@
+draft
+- 4 links point at pages Advanced Astro v4 does not ship: /services/, /about-us/, /faq/, /contact-us/ — create them, or repoint the links.
+- The fr locale file holds the English copy — translate it before this goes live.

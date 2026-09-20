@@ -15,9 +15,10 @@ import {
 	type Delivery,
 } from "./readiness";
 import { profileFor } from "./kits/profile";
+import { advancedV4Kit } from "./kits/advanced-v4";
 import { decapKit } from "./kits/decap";
 import { i18nKit } from "./kits/i18n";
-import type { GenerationContext, KitGenerator } from "./kits/kit";
+import type { GenerationContext, KitCapabilities, KitGenerator } from "./kits/kit";
 import {
 	assertSafeOutputPath,
 	assertValidAssetsDir,
@@ -28,6 +29,7 @@ import {
 	slugFromSectionId,
 } from "./naming";
 import { parseStitchHtml, stripBannerComments } from "./html/parse";
+import { captureSourceWhitespace } from "./html/whitespace";
 import { serializeRoots, COMPONENT_MARKER } from "./html/serialize";
 import { applyImagesPass } from "./html/images";
 import { applyLinksPass, collectLinkMappings, hasLocalLinks } from "./html/links";
@@ -36,7 +38,16 @@ import { indentCss, rewriteCssUrl, transformCss } from "./css/transform";
 import { looksLikeKitNavScript, wrapJs } from "./js/wrap";
 import { assembleComponent, stampReadiness } from "./assemble";
 
-const KITS: Record<string, KitGenerator> = { i18n: i18nKit, decap: decapKit };
+const KITS: Record<KitId, KitGenerator> = {
+	i18n: i18nKit,
+	"advanced-v4": advancedV4Kit,
+	decap: decapKit,
+};
+
+/** What the chosen kit can do at all, so the panel can disable what it cannot. */
+export function kitCapabilities(kit: KitId): KitCapabilities {
+	return KITS[kit].capabilities;
+}
 
 export class ConversionError extends Error {
 	override readonly name = "ConversionError";
@@ -130,10 +141,34 @@ export async function convert(
 	const { doc, roots, rootIds, isNav } = parseStitchHtml(stitch.html);
 	if (roots.length === 0) throw new ConversionError("This stitch has no markup.");
 
+	// Recorded before any pass edits text, because extraction replaces a node's
+	// copy with a lookup and takes the spaces around it with it. The serializer
+	// needs to know where the source really had whitespace.
+	captureSourceWhitespace(roots);
+
 	const componentName = options.componentName
 		? assertValidComponentFileName(options.componentName)
 		: deriveComponentName(rootIds[0] ?? "component", stitch.id, isNav);
-	const namespace = namespaceFor(componentName);
+
+	// A locale file is named after the component, and the kit's own files sit
+	// in the same folder — so a component called Contact would overwrite the
+	// kit's contact.json on extraction.
+	let namespace = namespaceFor(componentName);
+	if (kit.usesI18n(options) && profile.namespaceFiles.includes(namespace)) {
+		const disambiguated = `${namespace}${stitch.id}`;
+		if (profile.namespaceFiles.includes(disambiguated)) {
+			warnings.draft(
+				"namespace-collision",
+				`A locale file named ${namespace}.json would overwrite the one ${profile.label} ships — rename the component.`,
+			);
+		} else {
+			warnings.info(
+				"namespace-collision",
+				`${profile.label} already ships src/locales/*/${namespace}.json, so this component's copy went to ${disambiguated}.json instead.`,
+			);
+			namespace = disambiguated;
+		}
+	}
 	const assetsDir = assertValidAssetsDir(
 		options.assetsDir ?? defaultAssetsDir(rootIds[0], isNav),
 	);
@@ -193,7 +228,7 @@ export async function convert(
 	}
 
 	// --- 5. links ---
-	const localize = kit.usesI18n(options);
+	const localize = kit.localizesLinks(options);
 	let usesBusinessData = false;
 	applyLinksPass({
 		roots,
@@ -202,6 +237,7 @@ export async function convert(
 		warnings,
 		mappings: linkMappings,
 		localize,
+		routeExpression: (route) => kit.routeExpression(route),
 		useSuggestions: options.guessRoutes !== false,
 		onBusinessDataUsed: () => {
 			usesBusinessData = true;
@@ -212,7 +248,11 @@ export async function convert(
 	let messages: Record<string, unknown> | undefined;
 	let messageCount = 0;
 	if (kit.usesI18n(options)) {
-		const result = applyI18nExtraction({ roots, namespace, warnings });
+		const result = applyI18nExtraction({
+			roots,
+			warnings,
+			reference: (key) => kit.translationReference(namespace, key),
+		});
 		messages = result.messages;
 		messageCount = result.count;
 	}

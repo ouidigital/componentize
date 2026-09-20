@@ -1,0 +1,251 @@
+---
+/**
+ * NotFound-2501 — generated from CodeStitch stitch #2501.
+ * Source: https://codestitch.app/app/dashboard/stitches/2501
+ * Target: Advanced Astro v4 @ a2eb8fd0
+ *
+ * Draft — needs attention before shipping:
+ *   - This component needs 4 more files (src/locales/en/notFound2501.json, src/locales/fr/notFound2501.json, src/assets/images/not-found/real6-cdf41f6c.jpg, …) — use Download ZIP, or the imports will not resolve.
+ *   - The fr locale file holds the English copy — translate it before this goes live.
+ */
+
+// Utils
+import { getSiteContext } from "@js/getSiteContext";
+import { getRoute } from "@js/routes";
+
+// Components
+import { Picture } from "astro:assets";
+
+// Data
+import navData from "@data/navData.json";
+import type { NavItem } from "src/typescript/global";
+
+// Images
+import real6 from "@assets/images/not-found/real6-cdf41f6c.jpg";
+import rectangle from "@assets/images/not-found/rectangle-a98d1dc1.svg";
+
+const { locale, content } = await getSiteContext(Astro.url);
+
+// This kit translates a slug in navData.json and adds the locale prefix
+// in getRoute. Reading navData at runtime means a destination follows
+// the project's own routes rather than the ones this component shipped with.
+const navUrlsFor = (items: NavItem[], path: string): Record<string, string> | undefined => {
+	for (const item of items) {
+		const canonical = (item.urls?.["en"] ?? "").replace(/\/+$/, "") || "/";
+		if (canonical === path) return item.urls;
+		const nested = item.children?.length ? navUrlsFor(item.children, path) : undefined;
+		if (nested) return nested;
+	}
+	return undefined;
+};
+
+const routeFor = (path: string): string => {
+	const marker = path.search(/[?#]/);
+	const base = marker === -1 ? path : path.slice(0, marker);
+	const suffix = marker === -1 ? "" : path.slice(marker);
+	const urls = navUrlsFor(navData as NavItem[], base.replace(/\/+$/, "") || "/");
+	return getRoute(locale, urls?.[locale] ?? urls?.["en"] ?? base) + suffix;
+};
+
+const rectangleBg = `url("${rectangle.src}")`;
+---
+
+<!-- ============================================ -->
+<!--                     404                      -->
+<!-- ============================================ -->
+
+<section id="not-found-2501">
+	<div class="cs-container">
+		<div class="cs-content">
+			<span class="cs-topper">{content.notFound2501.topper}</span>
+			<h2 class="cs-title">{content.notFound2501.title}</h2>
+			<p class="cs-text">{content.notFound2501.text}</p>
+			<div class="cs-button-box">
+				<a href={routeFor("/about/")} class="cs-button-solid">{content.notFound2501.buttonSolids[0].button}</a>{" "}
+				<a href={routeFor("/about/")} class="cs-button-solid">{content.notFound2501.buttonSolids[1].button}</a>
+			</div>
+		</div>
+	</div>
+	<Picture
+		src={real6}
+		alt={content.notFound2501.picture.alt}
+		formats={["avif", "webp"]}
+		width="1920"
+		height="104"
+		pictureAttributes={{ class: "cs-background" }}
+		layout="constrained"
+	/>
+</section>
+
+<style lang="less" define:vars={{ rectangleBg }}>
+
+	/*-- -------------------------- -->
+	<---           404              -->
+	<--- -------------------------- -*/
+
+	/* Mobile */
+	@media only screen and (min-width: 0rem) {
+		#not-found-2501 {
+			height: 100dvh;
+			padding: (16/16rem);
+			overflow: hidden;
+			position: relative;
+
+			.cs-container {
+				width: 100%;
+				height: 100%;
+				padding: (16/16rem);
+				background-color: #f7f7f7;
+				overflow: hidden;
+				display: flex;
+				flex-direction: column;
+				justify-content: center;
+				align-items: center;
+				position: relative;
+				z-index: 1;
+
+				&:before {
+					content: "";
+					width: 100%;
+					height: 100%;
+					background-image: var(--rectangleBg);
+					background-position: center;
+					background-size: auto;
+					background-repeat: repeat;
+					opacity: 0.4;
+					display: block;
+					position: absolute;
+					top: 0;
+					left: 0;
+					z-index: -1;
+				}
+			}
+
+			.cs-content {
+				/* set text align to left if content needs to be left aligned */
+				text-align: center;
+				width: 100%;
+				max-width: (1280/16rem);
+				display: flex;
+				flex-direction: column;
+				/* centers content horizontally, set to flex-start to left align */
+				align-items: center;
+				position: relative;
+				z-index: 3;
+			}
+
+			.cs-topper {
+				font-style: italic;
+				font-size: (25/16rem);
+				text-transform: initial;
+				letter-spacing: 0;
+	            margin-bottom: (16/16rem);
+				color: var(--headerColor);
+			}
+
+	        .cs-title {
+	            font-size: clamp((39/16rem), 6vw, (61/16rem));
+	            margin-bottom: (32/16rem);
+	        }
+
+			.cs-text {
+				max-width: 30ch;
+				margin-bottom: (64/16rem);
+			}
+
+			.cs-button-box {
+				display: flex;
+				justify-content: center;
+				flex-wrap: wrap;
+				gap: clamp((20/16rem), 3vw, (36/16rem));
+			}
+
+			.cs-button-solid {
+				font-size: (16/16rem);
+				font-weight: 700;
+				/* 46px - 56px */
+				line-height: clamp(2.875em, 5.5vw, 3.5em);
+				text-align: center;
+				text-decoration: none;
+				min-width: (150/16rem);
+				margin: 0;
+				/* prevents padding from adding to the width */
+				box-sizing: border-box;
+				padding: 0 (24/16rem);
+				background-color: var(--secondary);
+				overflow: hidden;
+				color: #fff;
+				border: none;
+				border-radius: (4/16rem);
+				display: inline-block;
+				position: relative;
+				z-index: 1;
+				transition: color 0.3s;
+
+				&:before {
+					content: "";
+					width: 0;
+					height: 100%;
+					background: #000;
+					opacity: 1;
+					position: absolute;
+					top: 0;
+					left: 0;
+					z-index: -1;
+					transition: width 0.3s;
+				}
+
+				&:hover {
+					color: #fff;
+
+					&:before {
+						width: 100%;
+					}
+				}
+			}
+
+			.cs-background {
+				width: 100%;
+				height: 100%;
+				display: block;
+				position: absolute;
+				top: 0;
+				left: 0;
+
+				img {
+					width: 100%;
+					height: 100%;
+					object-fit: cover;
+					position: absolute;
+					top: 0;
+					left: 0;
+				}
+			}
+		}
+	}
+
+	/* Dark Mode */
+	@media only screen and (min-width: 0rem) {
+		body.dark-mode {
+			#not-found-2501 {
+				.cs-container {
+					background-color: var(--dark);
+
+					&:before {
+						opacity: 0.1;
+					}
+				}
+
+				.cs-topper,
+				.cs-title,
+				.cs-text {
+					color: var(--bodyTextColorWhite);
+				}
+
+				.cs-text {
+					opacity: 0.8;
+				}
+			}
+		}
+	}
+</style>

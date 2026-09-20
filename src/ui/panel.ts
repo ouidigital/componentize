@@ -14,6 +14,7 @@ import {
 	defaultComponentName,
 	inspectJs,
 	inspectLinks,
+	kitCapabilities,
 } from "@core/convert";
 import { profileFor } from "@core/kits/profile";
 import { InvalidNameError } from "@core/naming";
@@ -35,8 +36,13 @@ export interface PanelDeps {
 	>;
 }
 
+/**
+ * Both Advanced versions are offered by name: they are different kits with
+ * different APIs, and a component built for one does not compile in the other.
+ */
 const KIT_LABELS: Array<{ value: KitId; label: string }> = [
-	{ value: "i18n", label: "Advanced Astro i18n" },
+	{ value: "advanced-v4", label: "Advanced Astro v4" },
+	{ value: "i18n", label: "Advanced Astro v3.0.2 (legacy)" },
 	{ value: "decap", label: "Intermediate Astro + Decap" },
 ];
 
@@ -339,7 +345,7 @@ export class ComponentizePanel {
 		this.nextId = 0;
 
 		const profile = profileFor(this.prefs.kit);
-		const isI18nKit = this.prefs.kit === "i18n";
+		const capabilities = kitCapabilities(this.prefs.kit);
 		const { hasJs, duplicatesKitNav } = inspectJs(this.stitch, this.prefs.kit);
 
 		// --- header ---
@@ -374,13 +380,14 @@ export class ComponentizePanel {
 		// --- selects ---
 		const controls = el("div", { class: "controls" });
 		controls.append(
-			this.selectField("Kit", this.prefs.kit, KIT_LABELS, (value) =>
+			this.selectField("Kit", this.prefs.kit, KIT_LABELS, (value) => {
+				const kit = value as KitId;
 				this.update({
-					kit: value as KitId,
-					// Text extraction only exists on the i18n kit.
-					i18n: value === "i18n" ? this.prefs.i18n : false,
-				}),
-			),
+					kit,
+					// Text extraction only exists where the kit keeps locale files.
+					i18n: kitCapabilities(kit).textExtraction ? this.prefs.i18n : false,
+				});
+			}),
 			this.selectField("Styles", this.prefs.cssFlavor, FLAVORS, (value) =>
 				this.update({ cssFlavor: value as CssFlavor }),
 			),
@@ -427,10 +434,21 @@ export class ComponentizePanel {
 			),
 			this.toggle(
 				"Extract text for translation",
-				this.prefs.i18n && isI18nKit,
+				this.prefs.i18n && capabilities.textExtraction,
 				(v) => this.update({ i18n: v }),
-				!isI18nKit,
-				isI18nKit ? undefined : "Only the i18n kit uses translation files",
+				!capabilities.textExtraction,
+				capabilities.textExtraction
+					? "Copy moves into locale files; untick to leave it in the markup"
+					: `${profile.label} keeps copy in the markup, not in locale files`,
+			),
+			this.toggle(
+				"Multiple languages",
+				this.prefs.multilingual !== false && capabilities.optionalI18n,
+				(v) => this.update({ multilingual: v }),
+				!capabilities.optionalI18n,
+				capabilities.optionalI18n
+					? `Match the project: untick if it was set up without i18n, and only ${profile.defaultLocale ?? "the default locale"} is written`
+					: `${profile.label} has no single-language setup`,
 			),
 			this.jsToggle(hasJs, duplicatesKitNav, profile.label),
 			this.toggle("Include Core Styles", this.prefs.includeCoreStyles, (v) =>

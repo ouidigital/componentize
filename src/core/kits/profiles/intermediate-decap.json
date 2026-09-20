@@ -4,7 +4,12 @@
 	"label": "Intermediate Astro + Decap CMS",
 	"repo": "CodeStitchOfficial/Intermediate-Astro-Decap-CMS",
 	"sha": "7f1d82ef93ae8641b9aca883480c2b4c865cc50b",
+	"kitVersion": "4.0.0",
 	"astroVersion": "^7.0.9",
+	"configPath": "astro.config.mjs",
+	"generation": "decap",
+	"compressHTML": "jsx",
+	"prefixDefaultLocale": false,
 	"hasLess": true,
 	"hasSass": false,
 	"aliases": [
@@ -17,6 +22,9 @@
 	],
 	"locales": [],
 	"defaultLocale": null,
+	"namespaceFiles": [],
+	"localeRoutes": {},
+	"optionalRoutes": {},
 	"imageLayout": "constrained",
 	"routes": [
 		"/",

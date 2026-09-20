@@ -1,0 +1,16 @@
+{
+	"topper": "404",
+	"title": "Page Not Found",
+	"text": "The page you are looking for doesn't exist or has been moved.",
+	"buttonSolids": [
+		{
+			"button": "Return To Home"
+		},
+		{
+			"button": "View Properties"
+		}
+	],
+	"picture": {
+		"alt": "real estate"
+	}
+}

@@ -1,5 +1,5 @@
 import type { WarningCollector } from "../readiness";
-import { camelCase } from "../naming";
+import { camelCase, propertySegment } from "../naming";
 import { normalizeText } from "./parse";
 import { expr } from "./serialize";
 
@@ -61,16 +61,50 @@ function repeatedGroupKey(el: Element): string | undefined {
 	return stem.endsWith("s") ? stem : `${stem}s`;
 }
 
+/**
+ * Hands out translation keys that can all coexist in one JSON tree.
+ *
+ * Uniqueness is not enough: a key may also not sit inside another one. An
+ * element with both an alt attribute and its own text would otherwise claim
+ * `card.alt` and then `card`, and writing the second would delete the first.
+ */
 class KeyAllocator {
 	private readonly used = new Set<string>();
 
 	take(path: string[]): string {
-		const base = path.join(".");
-		let candidate = base;
+		const segments = path.map(propertySegment);
+		let candidate = segments.join(".");
 		let n = 2;
-		while (this.used.has(candidate)) candidate = `${base}-${n++}`;
+		while (this.conflicts(candidate)) {
+			candidate = KeyAllocator.suffixed(segments, n++).join(".");
+		}
 		this.used.add(candidate);
 		return candidate;
+	}
+
+	/** True when this key would collide with, or nest inside, one already given out. */
+	private conflicts(candidate: string): boolean {
+		if (this.used.has(candidate)) return true;
+		for (const existing of this.used) {
+			if (existing.startsWith(`${candidate}.`)) return true;
+			if (candidate.startsWith(`${existing}.`)) return true;
+		}
+		return false;
+	}
+
+	/**
+	 * The same key with a number appended. The suffix lands on the last named
+	 * segment, never on an array index, where it would change which item is meant.
+	 */
+	private static suffixed(segments: string[], n: number): string[] {
+		const out = [...segments];
+		for (let i = out.length - 1; i >= 0; i--) {
+			if (!/^\d+$/.test(out[i]!)) {
+				out[i] = `${out[i]}${n}`;
+				return out;
+			}
+		}
+		return [...out, String(n)];
 	}
 }
 
@@ -102,17 +136,21 @@ function hasElementChildren(el: Element): boolean {
 
 export interface I18nOptions {
 	roots: Element[];
-	namespace: string;
 	warnings: WarningCollector;
+	/**
+	 * How the target kit reads a key back: v3 looks it up with `t("ns:key")`,
+	 * v4 reads it as a property of the `content` object.
+	 */
+	reference: (key: string) => string;
 }
 
 export function applyI18nExtraction(options: I18nOptions): I18nResult {
-	const { roots, namespace, warnings } = options;
+	const { roots, warnings, reference } = options;
 	const messages: Record<string, unknown> = {};
 	const keys = new KeyAllocator();
 	let count = 0;
 
-	const t = (key: string) => expr(`t("${namespace}:${key}")`);
+	const t = (key: string) => expr(reference(key));
 
 	/** Path segments accumulated from repeated-structure ancestors. */
 	const visit = (el: Element, prefix: string[]): void => {

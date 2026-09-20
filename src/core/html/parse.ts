@@ -65,5 +65,7 @@ export function stripBannerComments(doc: Document): void {
 
 /** Collapses whitespace the way HTML rendering does. */
 export function normalizeText(text: string): string {
-	return text.replace(/\s+/g, " ").trim();
+	return text
+		.replace(/[\t\n\f\r ]+/g, " ")
+		.replace(/^[\t\n\f\r ]+|[\t\n\f\r ]+$/g, "");
 }

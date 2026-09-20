@@ -2,7 +2,7 @@
 /**
  * NotFound-2501 — generated from CodeStitch stitch #2501.
  * Source: https://codestitch.app/app/dashboard/stitches/2501
- * Target: Advanced Astro i18n @ 5de7f5fe
+ * Target: Advanced Astro v3.0.2 (legacy) @ 5de7f5fe
  *
  * Draft — needs attention before shipping:
  *   - The fr locale file holds the English copy — translate it before this goes live.
@@ -36,7 +36,7 @@ const rectangleBg = `url("${rectangle.src}")`;
 			<h2 class="cs-title">{t("notFound2501:title")}</h2>
 			<p class="cs-text">{t("notFound2501:text")}</p>
 			<div class="cs-button-box">
-				<a href={getLocalizedRoute(locale, "/about/")} class="cs-button-solid">{t("notFound2501:buttonSolids.0.button")}</a>
+				<a href={getLocalizedRoute(locale, "/about/")} class="cs-button-solid">{t("notFound2501:buttonSolids.0.button")}</a>{" "}
 				<a href={getLocalizedRoute(locale, "/about/")} class="cs-button-solid">{t("notFound2501:buttonSolids.1.button")}</a>
 			</div>
 		</div>

@@ -1,0 +1,58 @@
+{
+	"topper": "Frequently Asked Questions",
+	"title": "A Healthy Mind in a Healthy Body",
+	"button": "Ask Another Questions",
+	"faqItems": [
+		{
+			"buttonText": "How do I place an order?",
+			"itemText": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sit convallis nunc neque, bibendum pulvinar vitae commodo velit. Proin diam tortor sed malesuada nunc, habitant. Dignissim ipsum porta enim, magna urna, quam."
+		},
+		{
+			"buttonText": "What payment methods do you accept?",
+			"itemText": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sit convallis nunc neque, bibendum pulvinar vitae commodo velit. Proin diam tortor sed malesuada nunc, habitant. Dignissim ipsum porta enim, magna urna, quam."
+		},
+		{
+			"buttonText": "How can I track my order?",
+			"itemText": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sit convallis nunc neque, bibendum pulvinar vitae commodo velit. Proin diam tortor sed malesuada nunc, habitant. Dignissim ipsum porta enim, magna urna, quam."
+		},
+		{
+			"buttonText": "What is your return policy?",
+			"itemText": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sit convallis nunc neque, bibendum pulvinar vitae commodo velit. Proin diam tortor sed malesuada nunc, habitant. Dignissim ipsum porta enim, magna urna, quam."
+		},
+		{
+			"buttonText": "Do you offer international shipping?",
+			"itemText": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sit convallis nunc neque, bibendum pulvinar vitae commodo velit. Proin diam tortor sed malesuada nunc, habitant. Dignissim ipsum porta enim, magna urna, quam."
+		},
+		{
+			"buttonText": "How can I contact customer support?",
+			"itemText": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sit convallis nunc neque, bibendum pulvinar vitae commodo velit. Proin diam tortor sed malesuada nunc, habitant. Dignissim ipsum porta enim, magna urna, quam."
+		}
+	],
+	"pictures": [
+		{
+			"img": {
+				"alt": "gallery"
+			}
+		},
+		{
+			"img": {
+				"alt": "gallery"
+			}
+		},
+		{
+			"img": {
+				"alt": "gallery"
+			}
+		},
+		{
+			"img": {
+				"alt": "gallery"
+			}
+		},
+		{
+			"img": {
+				"alt": "gallery"
+			}
+		}
+	]
+}

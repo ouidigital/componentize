@@ -1,10 +1,15 @@
 {
 	"key": "advanced-i18n",
 	"kitId": "i18n",
-	"label": "Advanced Astro i18n",
+	"label": "Advanced Astro v3.0.2 (legacy)",
 	"repo": "CodeStitchOfficial/Advanced-Astro-i18n",
 	"sha": "5de7f5fe97344ed75239df1a8824c23e4d06df84",
+	"kitVersion": "3.0.2",
 	"astroVersion": "^6.3.3",
+	"configPath": "astro.config.mjs",
+	"generation": "legacy-i18n",
+	"compressHTML": true,
+	"prefixDefaultLocale": false,
 	"hasLess": true,
 	"hasSass": false,
 	"aliases": [
@@ -22,6 +27,15 @@
 		"fr"
 	],
 	"defaultLocale": "en",
+	"namespaceFiles": [
+		"blog",
+		"common",
+		"contact",
+		"home",
+		"reviews"
+	],
+	"localeRoutes": {},
+	"optionalRoutes": {},
 	"imageLayout": null,
 	"routes": [
 		"/",

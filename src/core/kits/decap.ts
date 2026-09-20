@@ -1,5 +1,6 @@
 import type { ConvertOptions, OutputFile } from "../types";
 import type { GenerationContext, ImportLine, KitGenerator } from "./kit";
+import { sharedImports } from "./kit";
 
 /**
  * Intermediate-Astro-Decap-CMS: sections are self-contained with their copy
@@ -9,40 +10,28 @@ import type { GenerationContext, ImportLine, KitGenerator } from "./kit";
 export const decapKit: KitGenerator = {
 	id: "decap",
 
+	capabilities: { textExtraction: false, localizedLinks: false, optionalI18n: false },
+
 	usesI18n(_options: ConvertOptions): boolean {
 		return false;
 	},
 
-	imports(ctx: GenerationContext): ImportLine[] {
-		const lines: ImportLine[] = [];
+	localizesLinks(_options: ConvertOptions): boolean {
+		return false;
+	},
 
-		const astroAssets = ["Picture", "Image"].filter((c) => ctx.usedComponents.has(c));
-		if (ctx.cssVars.some((v) => v.optimize)) astroAssets.push("getImage");
-		if (astroAssets.length > 0) {
-			lines.push({
-				group: "Components",
-				statement: `import { ${astroAssets.join(", ")} } from "astro:assets";`,
-			});
-		}
-		if (ctx.usedComponents.has("Icon")) {
-			lines.push({
-				group: "Components",
-				statement: 'import { Icon } from "astro-icon/components";',
-			});
-		}
-		if (ctx.usedComponents.has("__businessData") && ctx.profile.businessData.exists) {
-			lines.push({
-				group: "Data",
-				statement: `import { ${ctx.profile.businessData.exportName} } from "${ctx.profile.businessData.importPath}";`,
-			});
-		}
-		if (ctx.usedComponents.has("CSPicture")) {
-			lines.push({
-				group: "Components",
-				statement: 'import CSPicture from "@components/CSPicture/CSPicture.astro";',
-			});
-		}
-		return lines;
+	/** Unreachable: this kit never extracts text, so no key is ever read back. */
+	translationReference(_namespace: string, key: string): string {
+		return key;
+	},
+
+	/** Unreachable: localizesLinks() is false, so routes stay plain strings. */
+	routeExpression(route: string): string {
+		return `"${route}"`;
+	},
+
+	imports(ctx: GenerationContext): ImportLine[] {
+		return sharedImports(ctx);
 	},
 
 	preamble(): string[] {

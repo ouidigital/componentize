@@ -13,13 +13,19 @@ export type Prefs = Omit<
 	| "prioritizeFirstImage"
 >;
 
+/**
+ * A new installation targets the current Advanced kit. A saved selection is
+ * merged over these, so anyone already generating for v3.0.2 or the
+ * Intermediate kit keeps the target they chose.
+ */
 export const DEFAULT_PREFS: Prefs = {
-	kit: "i18n",
+	kit: "advanced-v4",
 	cssFlavor: "less",
 	darkMode: true,
 	includeCoreStyles: false,
 	includeJs: true,
 	i18n: true,
+	multilingual: true,
 	imagesMode: "assets",
 	guessRoutes: true,
 };

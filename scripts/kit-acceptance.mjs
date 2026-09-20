@@ -36,12 +36,54 @@ const KITS = {
 		/** Where a scratch page goes, and how it imports the component. */
 		pageDir: "src/pages",
 	},
+	"advanced-v4": {
+		profile: "advanced-v4",
+		repo: "https://github.com/CodeStitchOfficial/Advanced-Astro-i18n.git",
+		pageDir: "src/pages",
+		/**
+		 * A second locale to render the same component in. It is what turns the
+		 * translated-route and translated-copy claims into something observed:
+		 * the French page has to show French copy and link to French slugs.
+		 */
+		secondLocale: {
+			code: "fr",
+			pageDir: "src/pages/fr",
+			/**
+			 * The same destination in both locales. The English one is the gate:
+			 * whether the built default-locale page links there is decided by
+			 * the page itself, not by how the component spelled the call — so a
+			 * component that stopped translating cannot switch this check off.
+			 */
+			defaultRoute: '"/about/"',
+			translatedRoute: '"/fr/a-propos/"',
+		},
+	},
 	decap: {
 		profile: "intermediate-decap",
 		repo: "https://github.com/CodeStitchOfficial/Intermediate-Astro-Decap-CMS.git",
 		pageDir: "src/pages",
 	},
 };
+
+/**
+ * Marks every string in a locale file so the built page can be told apart.
+ *
+ * The generator fills a non-default locale with the English copy on purpose, so
+ * rendering French would otherwise look identical to rendering English and
+ * prove nothing about which locale was selected.
+ */
+const LOCALE_MARK = "ZZ-FR ";
+
+function markTranslations(value) {
+	if (typeof value === "string") return `${LOCALE_MARK}${value}`;
+	if (Array.isArray(value)) return value.map(markTranslations);
+	if (value && typeof value === "object") {
+		return Object.fromEntries(
+			Object.entries(value).map(([key, item]) => [key, markTranslations(item)]),
+		);
+	}
+	return value;
+}
 
 /**
  * Fixtures to run. `interactive` describes the stitch's own behaviour, which is
@@ -111,7 +153,7 @@ async function ensureKit(kitId) {
 		if (!res.ok) throw new Error(`checkout failed: ${res.output}`);
 	}
 
-	await applyKitWorkarounds(kitId, dir);
+	await applyKitWorkarounds(kitId, dir, profile);
 
 	if (!existsSync(join(dir, "node_modules"))) {
 		console.log("  npm install (once per kit) …");
@@ -125,13 +167,18 @@ async function ensureKit(kitId) {
 /**
  * Known defects in a pinned kit that stop it building on its own.
  *
- * Advanced-Astro-i18n passes SVGs to <Picture> in its own Services.astro, which
- * Astro 6 refuses to process unless the project opts in. Without this the kit
- * cannot build at all, and no component could be verified against it. The patch
- * is applied to the scratch checkout only, and recorded in the README.
+ * Advanced-Astro-i18n v3.0.2 passes SVGs to <Picture> in its own Services.astro,
+ * which Astro 6 refuses to process unless the project opts in. Without this the
+ * kit cannot build at all, and no component could be verified against it. The
+ * patch is applied to the scratch checkout only, and recorded in the README.
+ *
+ * It is tied to that one commit deliberately: v4 builds clean, and a workaround
+ * left switched on for a kit that does not need it would hide a real defect.
  */
-async function applyKitWorkarounds(kitId, dir) {
-	if (kitId !== "i18n") return;
+const SVG_WORKAROUND_SHA = "5de7f5fe97344ed75239df1a8824c23e4d06df84";
+
+async function applyKitWorkarounds(kitId, dir, profile) {
+	if (profile.sha !== SVG_WORKAROUND_SHA) return;
 	const configPath = join(dir, "astro.config.mjs");
 	const config = await readFile(configPath, "utf8");
 	if (config.includes("dangerouslyProcessSVG")) return;
@@ -159,6 +206,48 @@ function rootIdsOf(astroSource) {
 	return [...markup.matchAll(/<(?:section|header)[^>]*\sid="([^"]+)"/g)].map(
 		(match) => match[1],
 	);
+}
+
+/**
+ * The component's own rendered markup, cut out of the finished page.
+ *
+ * Everything the component is judged on has to be read from here rather than
+ * from the whole page. BaseLayout renders the kit's header and footer around
+ * it, and those already link to every translated route in navData — so a
+ * page-wide search reports the kit's own navigation as if the component had
+ * produced it, and passes even when the component resolves nothing.
+ *
+ * The last matching element is taken because the kit's header shares the
+ * `cs-navigation` id with a navigation stitch, and the component is rendered
+ * after it.
+ */
+function extractRootHtml(html, rootIds) {
+	let out = "";
+	for (const id of rootIds) {
+		const marker = `id="${id}"`;
+		const at = html.lastIndexOf(marker);
+		if (at === -1) continue;
+		const open = html.lastIndexOf("<", at);
+		const tagName = /^<([a-zA-Z][\w-]*)/.exec(html.slice(open, at))?.[1];
+		if (!tagName) continue;
+
+		const tags = new RegExp(`<${tagName}\\b|</${tagName}>`, "gi");
+		tags.lastIndex = open;
+		let depth = 0;
+		let match;
+		while ((match = tags.exec(html)) !== null) {
+			if (match[0].startsWith("</")) {
+				depth--;
+				if (depth === 0) {
+					out += html.slice(open, match.index + match[0].length);
+					break;
+				}
+			} else {
+				depth++;
+			}
+		}
+	}
+	return out;
 }
 
 /** Returns the checkout to its pinned state, dropping anything we added. */
@@ -296,6 +385,44 @@ async function main() {
 				"utf8",
 			);
 
+			// The same component rendered in a second locale, with its copy marked
+			// so the built page can prove which locale it actually used.
+			const secondLocale = KITS[kitId].secondLocale;
+			let localePagePath;
+			if (secondLocale) {
+				const localeFile = join(
+					dir,
+					"src/locales",
+					secondLocale.code,
+					`${manifest.namespace}.json`,
+				);
+				if (existsSync(localeFile)) {
+					const copy = JSON.parse(await readFile(localeFile, "utf8"));
+					await writeFile(
+						localeFile,
+						`${JSON.stringify(markTranslations(copy), null, "\t")}\n`,
+						"utf8",
+					);
+				}
+				await mkdir(join(dir, secondLocale.pageDir), { recursive: true });
+				localePagePath = join(dir, secondLocale.pageDir, `${pageName}.astro`);
+				await writeFile(
+					localePagePath,
+					[
+						"---",
+						`import BaseLayout from "@layouts/BaseLayout.astro";`,
+						`import ${binding} from "${importPath}";`,
+						"---",
+						"",
+						`<BaseLayout title="Acceptance" description="Acceptance check for ${manifest.componentName}">`,
+						`\t<${binding} />`,
+						"</BaseLayout>",
+						"",
+					].join("\n"),
+					"utf8",
+				);
+			}
+
 			const build = await run("npx", ["astro", "build"], dir, label);
 			const clean = build.output.replace(/\[[0-9;]*m/g, "");
 
@@ -324,6 +451,66 @@ async function main() {
 					problems.push("the rendered page contains no component markup");
 				}
 			}
+			// The second locale, judged on what it rendered rather than on the
+			// fact that it compiled.
+			if (build.ok && secondLocale) {
+				const localeRendered = join(
+					dir,
+					"dist",
+					secondLocale.code,
+					pageName,
+					"index.html",
+				);
+				if (!existsSync(localeRendered)) {
+					problems.push(
+						`the ${secondLocale.code} page was not rendered, so the component was never built for it`,
+					);
+				} else {
+					const rootIds = rootIdsOf(source);
+					const localeHtml = extractRootHtml(
+						require("node:fs").readFileSync(localeRendered, "utf8"),
+						rootIds,
+					);
+					const englishHtml = renderedPath
+						? extractRootHtml(
+								require("node:fs").readFileSync(renderedPath, "utf8"),
+								rootIds,
+							)
+						: "";
+
+					if (!localeHtml || !englishHtml) {
+						problems.push(
+							"the component's own markup could not be found in the rendered pages",
+						);
+					}
+
+					if (manifest.extractedCopy) {
+						if (!localeHtml.includes(LOCALE_MARK)) {
+							problems.push(
+								`the ${secondLocale.code} page did not use the ${secondLocale.code} copy`,
+							);
+						}
+						if (englishHtml.includes(LOCALE_MARK)) {
+							problems.push(
+								`the default-locale page used the ${secondLocale.code} copy`,
+							);
+						}
+					}
+
+					// A translated slug, not merely a locale prefix: /about and
+					// /fr/a-propos are different words, and only reading the
+					// project's navData at runtime produces the second.
+					if (
+						englishHtml.includes(secondLocale.defaultRoute) &&
+						!localeHtml.includes(secondLocale.translatedRoute)
+					) {
+						problems.push(
+							`the ${secondLocale.code} page links to ${secondLocale.defaultRoute} rather than ${secondLocale.translatedRoute}`,
+						);
+					}
+				}
+			}
+
 			const newErrors = errorSignature(clean).filter(
 				(e) => !baselineErrors.includes(e),
 			);

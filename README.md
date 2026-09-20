@@ -21,8 +21,20 @@ into the component's JSDoc:
 
 Pinned kits (regenerate with `npm run profiles`):
 
-- [Advanced-Astro-i18n](https://github.com/CodeStitchOfficial/Advanced-Astro-i18n) — Astro 6, LESS, `en`/`fr`
-- [Intermediate-Astro-Decap-CMS](https://github.com/CodeStitchOfficial/Intermediate-Astro-Decap-CMS) — Astro 7, LESS
+| Target | Kit | Astro | Locales |
+| --- | --- | --- | --- |
+| **Advanced Astro v4** | [Advanced-Astro-i18n](https://github.com/CodeStitchOfficial/Advanced-Astro-i18n) `4.0.0` | 7 | `en`/`fr`, removable |
+| **Advanced Astro v3.0.2 (legacy)** | the same repo at its previous release | 6 | `en`/`fr` |
+| **Intermediate Astro + Decap** | [Intermediate-Astro-Decap-CMS](https://github.com/CodeStitchOfficial/Intermediate-Astro-Decap-CMS) | 7 | one |
+
+The two Advanced versions are separate targets, not one kit with a flag. v4
+rewrote how a component reads copy and how it builds a URL, so a component
+generated for one does not compile in the other. New installations target v4;
+a saved selection is left alone.
+
+`npm run profiles` rebuilds all three from their pinned commits, and
+`npm run profiles -- --latest <target>` re-pins exactly one of them. Refreshing
+one target can never move another, which is what keeps the legacy claim honest.
 
 A Ready verdict is a claim about those exact commits. If you have customised
 your kit, treat every result as a draft.
@@ -112,9 +124,47 @@ above the code viewer.
 
   The destination field takes all three forms: a route (`/about`), an absolute
   URL (`https://…`), or an expression in braces (`{BUSINESS.socials.twitter}`).
-- **Text (i18n kit)** — replaces copy with `t("namespace:key")` lookups and
-  writes a locale file for *every* locale the kit configures. Non-default
-  locales start as English and are flagged as untranslated.
+  A query string or fragment is kept as written: `/contact?ref=hero` becomes
+  `/contact/?ref=hero`, not `/contact?ref=hero/`.
+
+  On **v4** a destination is resolved at runtime against the project's own
+  `src/data/navData.json`, then prefixed by `getRoute`. That split is v4's:
+  `getRoute` adds `/fr` but does not translate `about` into `a-propos`, and the
+  translation lives in navData. Reading it at runtime means the link follows
+  *your* routes rather than the ones the pinned kit shipped with. Whole paths
+  are checked against the pages v4 actually ships, so a link to `/projects` is
+  reported — it is a navigation parent with a dropdown and no page of its own.
+  Destinations that exist only while a removable feature is installed
+  (`/about` is demo content, `/blog` is the CMS) are pointed out without
+  withholding Ready, since only you know how the project was set up.
+
+- **Whitespace** — a line break is not free. Astro 7 removes whitespace that
+  contains a newline, and `compressHTML: true` collapses it to a single space,
+  so re-indenting markup can silently add a space before a comma or delete one
+  before a link. Generated components are broken into lines only where the
+  stitch really had whitespace, and those breaks carry an explicit `{" "}` so
+  the result reads the same under either setting. Where the stitch had no
+  whitespace, the markup stays on one line however long it runs.
+- **Text (Advanced kits)** — moves copy into locale files and reads it back the
+  way the chosen kit does: `t("namespace:key")` on v3.0.2, and on v4 a property
+  of the `content` object that `getSiteContext(Astro.url)` returns
+  (`content.hero1621.items[0].title`). Because v4 reads a key as JavaScript
+  rather than looking up a string, keys are always valid identifiers and no key
+  may nest inside another — an element with both an `alt` and its own text gets
+  two keys, not one overwriting the other. A locale file is named after the
+  component; if that name is one the kit already ships (`common`, `home`,
+  `contact`, `blog`, `reviews`), the stitch id is appended rather than
+  overwriting the kit's copy. Non-default locales start as English and are
+  flagged as untranslated.
+
+- **Languages (v4)** — v4's `npm run setup-project` can strip i18n out
+  entirely, so the panel asks whether the project kept it. Untick **Multiple
+  languages** and only the default locale's file is written. Either way the
+  component imports `@js/getSiteContext` and `@js/routes`, which the removal
+  script replaces rather than deletes — so one generated component suits both
+  setups, and nothing imports a module that a trimmed project no longer has.
+  Text extraction is a separate choice: turn it off and the copy stays in the
+  markup.
 - **JavaScript** — wraps the stitch's script in `astro:page-load` so it re-runs
   after client-side navigation, and gives `document`/`window` listeners an
   `AbortController` that is aborted on each run so they cannot pile up. Timers
@@ -147,7 +197,10 @@ them like code; a diff there is a change to what users receive.
 The acceptance run is the proof behind "Ready". For each fixture and kit it
 clones the pinned kit, extracts the generated ZIP over it, writes a scratch page
 that **imports and renders** the component through the kit's own `BaseLayout`,
-and runs `astro build`. It then serves the built site and drives the component
+and runs `astro build`. On v4 it also writes a second page under
+`src/pages/fr/` and marks that locale's copy, so the build has to show which
+locale it selected and which slug it resolved. It then serves the built site
+and drives the component
 in a real browser, checking that:
 
 - the component's own root element renders at a usable size;
@@ -170,17 +223,23 @@ several earlier versions of this harness passed while testing nothing at all:
 | Dark rules matched by selector, not computed style | Both kits' `dark.less` restyles every heading site-wide, so "something changed in dark mode" passes even with the component's dark block deleted. |
 | Navigation detours via an empty waypoint page | The kit's home page registers its own `astro:page-load` handlers, which survive later swaps and re-bind the component under test — making a dead component look alive. |
 | A `window` marker proves the swap | Clicking a link to the current URL can be a no-op, leaving the original listeners in place. |
+| The locale checks read the component's own markup | `BaseLayout` wraps it in the kit's header and footer, which already link to every translated route — so a page-wide search reported the kit's navigation as if the component had produced it, and passed with the routing removed. |
+| The translated-route check is gated on the built English page | Gating it on the generated source let a component that stopped translating switch the check off. |
 
 Pass `--no-browser` to run only the build half.
 
-### Known issue in the pinned i18n kit
+### Known issue in the legacy Advanced kit
 
-`Advanced-Astro-i18n` does not build at its pinned commit: its own
+`Advanced-Astro-i18n` does not build at its **v3.0.2** commit: its own
 `Services.astro` passes SVGs to `<Picture>`, which Astro 6 rejects unless the
 project sets `image.dangerouslyProcessSVG`. The acceptance harness applies that
 setting to its scratch checkout so components can be verified against the kit;
 the extension never emits it. If you hit this in your own project, either set
 the flag or swap those `<Picture>` calls for astro-icon.
+
+The workaround is tied to that one commit, not to the kit: v4 builds clean, and
+a workaround left switched on for a kit that does not need it would hide a real
+defect the day one appears.
 
 ## Layout
 

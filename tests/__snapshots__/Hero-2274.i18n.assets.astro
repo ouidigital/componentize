@@ -2,7 +2,7 @@
 /**
  * Hero-2274 — generated from CodeStitch stitch #2274.
  * Source: https://codestitch.app/app/dashboard/stitches/2274
- * Target: Advanced Astro i18n @ 5de7f5fe
+ * Target: Advanced Astro v3.0.2 (legacy) @ 5de7f5fe
  *
  * Draft — needs attention before shipping:
  *   - The fr locale file holds the English copy — translate it before this goes live.
@@ -36,7 +36,7 @@ const t = useTranslations(locale);
 			<h1 class="cs-title">{t("hero2274:title")}</h1>
 			<p class="cs-text">{t("hero2274:text")}</p>
 			<a href={getLocalizedRoute(locale, "/about/")} class="cs-button-solid">
-				{t("hero2274:button")}
+				{t("hero2274:button")}{" "}
 				<Icon
 					class="cs-button-arrow"
 					width="20"
@@ -69,7 +69,7 @@ const t = useTranslations(locale);
 			height="684"
 			pictureAttributes={{ class: "cs-background cs-background1" }}
 			layout="constrained"
-		/>
+		/>{" "}
 		<!-- Right Image -->
 		<Picture
 			src={construction1}
@@ -134,12 +134,12 @@ const t = useTranslations(locale);
 						height="40"
 						aria-hidden="true"
 						name="construction4-a98d1dc1"
-					/>
+					/>{" "}
 					<span class="cs-number">{t("hero2274:items.3.number")}</span>
 					<h3 class="cs-h3">{t("hero2274:items.3.h3")}</h3>
 					<p class="cs-item-text">{t("hero2274:items.3.itemText")}</p>
 					<span class="cs-fake-link">
-						{t("hero2274:items.3.fakeLink")}
+						{t("hero2274:items.3.fakeLink")}{" "}
 						<Icon
 							class="cs-arrow"
 							width="20"
@@ -147,7 +147,7 @@ const t = useTranslations(locale);
 							aria-hidden="true"
 							name="orange-arrow-up-a98d1dc1"
 						/>
-					</span>
+					</span>{" "}
 					<Picture
 						src={construction3}
 						alt="construction site"

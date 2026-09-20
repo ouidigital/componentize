@@ -6,7 +6,17 @@
  * expressions look like — turns them into `{expr}` / `attr={expr}` on the way
  * out. That keeps every pass a plain DOM operation and keeps the escaping rules
  * in exactly one place.
+ *
+ * It is also the only module that decides where a line may break, which is a
+ * correctness question rather than a cosmetic one. Astro 7 removes whitespace
+ * that contains a newline (`compressHTML: "jsx"`), while `compressHTML: true`
+ * collapses it to a single space. So a break inserted where the source had no
+ * whitespace invents a space in one mode, and a break where the source did have
+ * one loses it in the other. Breaks therefore happen only at real source
+ * whitespace, and carry an explicit `{" "}` so both modes render the same.
  */
+
+import { hasSourceEdgeWhitespace } from "./whitespace";
 
 const OPEN = "⟦expr:";
 const CLOSE = "⟧";
@@ -23,6 +33,9 @@ export function isExpr(value: string): boolean {
 export function exprCode(value: string): string {
 	return value.slice(OPEN.length, -CLOSE.length);
 }
+
+/** An explicit space, preserved under every `compressHTML` setting. */
+const SPACE_EXPRESSION = '{" "}';
 
 /** Splits text that mixes literal runs with sentinels. */
 function splitSentinels(text: string): Array<{ literal: boolean; value: string }> {
@@ -68,6 +81,9 @@ const INLINE_ELEMENTS = new Set([
  */
 export const COMPONENT_MARKER = "data-cz-component";
 
+/** Longest single line the inline form is allowed to produce. */
+const MAX_INLINE_WIDTH = 110;
+
 function escapeText(text: string): string {
 	return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
@@ -101,36 +117,164 @@ function serializeTextNode(text: string): string {
 		.join("");
 }
 
-/** True when an element's children can all sit on one line. */
-function isInlineContent(el: Element): boolean {
-	if (el.hasAttribute(COMPONENT_MARKER)) return false;
-	return Array.from(el.childNodes).every((node) => {
-		if (node.nodeType === 3) return true; // text
-		if (node.nodeType === 8) return false; // comment
-		if (node.nodeType !== 1) return true;
-		const child = node as Element;
-		return (
-			INLINE_ELEMENTS.has(child.tagName.toLowerCase()) &&
-			!child.hasAttribute(COMPONENT_MARKER) &&
-			isInlineContent(child)
-		);
-	});
+/** The rendered text of a node, with runs of whitespace collapsed and trimmed. */
+function textOf(node: Node): string {
+	return (node.textContent ?? "").replace(/\s+/g, " ").trim();
 }
 
-function hasMeaningfulContent(el: Element): boolean {
-	return Array.from(el.childNodes).some((node) => {
-		if (node.nodeType === 3) return (node.textContent ?? "").trim().length > 0;
-		return node.nodeType === 1 || node.nodeType === 8;
-	});
+/** True when this node renders nothing at all. */
+function isRendered(node: Node): boolean {
+	if (node.nodeType === 3) return textOf(node).length > 0;
+	if (node.nodeType === 8) return ((node as Comment).data ?? "").trim().length > 0;
+	return node.nodeType === 1;
 }
 
-function serializeNode(node: Node, depth: number, out: string[]): void {
-	const pad = "\t".repeat(depth);
+/**
+ * True when whitespace next to this node is visible to a reader.
+ *
+ * Between two block elements it is not, so their formatting stays free. Text,
+ * inline elements and the image components that stand in for them all sit in
+ * the text flow, where a space either appears or does not.
+ */
+function isSpacingSensitive(node: Node): boolean {
+	if (node.nodeType === 3) return true;
+	if (node.nodeType !== 1) return false;
+	const el = node as Element;
+	return (
+		el.hasAttribute(COMPONENT_MARKER) ||
+		INLINE_ELEMENTS.has(el.tagName.toLowerCase())
+	);
+}
+
+/**
+ * True when whitespace between two nodes would actually be seen.
+ *
+ * Both sides have to sit in the text flow. A space between two block elements
+ * renders as nothing, and one next to a comment renders as nothing either —
+ * only a run of text and the inline things beside it can show a gap.
+ */
+function spacingVisibleBetween(a: Node, b: Node): boolean {
+	return isSpacingSensitive(a) && isSpacingSensitive(b);
+}
+
+interface Child {
+	node: Node;
+	/** True when source whitespace stood between this node and the one before. */
+	separated: boolean;
+}
+
+interface ChildList {
+	items: Child[];
+	/** True when the source had whitespace just inside the opening tag. */
+	leading: boolean;
+	/** True when the source had whitespace just inside the closing tag. */
+	trailing: boolean;
+}
+
+/**
+ * The children that render, each tagged with whether the source separated it
+ * from its predecessor.
+ *
+ * The whitespace is read from the snapshot taken at parse time, because text
+ * extraction replaces a node's text with a translation lookup and drops the
+ * spaces that were around it.
+ */
+function renderedChildren(el: Element): ChildList {
+	const items: Child[] = [];
+	let pending = false;
+	let leading = false;
+
+	for (const node of Array.from(el.childNodes)) {
+		if (node.nodeType === 3 && !isRendered(node)) {
+			// A whitespace-only node renders nothing but does separate its neighbours.
+			pending = true;
+			continue;
+		}
+		if (!isRendered(node)) continue;
+
+		if (node.nodeType === 8) {
+			// A comment renders nothing, so whitespace carries straight across it:
+			// `pending` is recorded but deliberately not cleared.
+			if (items.length === 0) leading = pending;
+			items.push({ node, separated: items.length > 0 && pending });
+			continue;
+		}
+
+		const separated = pending || hasSourceEdgeWhitespace(node, "leading");
+		if (items.length === 0) leading = separated;
+		items.push({ node, separated: items.length > 0 && separated });
+		pending = hasSourceEdgeWhitespace(node, "trailing");
+	}
+
+	return { items, leading, trailing: pending };
+}
+
+/**
+ * True when this element's content may be spread over several lines.
+ *
+ * Indenting content onto its own line puts whitespace just inside the tags.
+ * Where the source had none — `<a class="cs-button-solid">Read more</a>` — that
+ * would add a space inside the link, so the element stays on one line however
+ * long it runs.
+ */
+function canBreakInside(list: ChildList): boolean {
+	const first = list.items[0]?.node;
+	const last = list.items[list.items.length - 1]?.node;
+	if (!first || !last) return true;
+	return (
+		(!isSpacingSensitive(first) || list.leading) &&
+		(!isSpacingSensitive(last) || list.trailing)
+	);
+}
+
+/**
+ * Children grouped into runs that must share a line.
+ *
+ * A run holds nodes the source wrote with nothing between them, so breaking
+ * the line would add a space that the design never had.
+ */
+function groupChildren(children: Child[]): Child[][] {
+	const groups: Child[][] = [];
+	for (const child of children) {
+		const current = groups[groups.length - 1];
+		const previous = current?.[current.length - 1];
+		if (current && previous && !child.separated && spacingVisibleBetween(previous.node, child.node)) {
+			current.push(child);
+		} else {
+			groups.push([child]);
+		}
+	}
+	return groups;
+}
+
+/**
+ * True when a visible space belongs after the group at `index`.
+ *
+ * The space is attached to the last group that actually renders something, and
+ * the search for its partner skips comments: in `<picture/> <!-- next --> `
+ * `<picture/>` the gap belongs between the two pictures, not after the comment.
+ */
+function needsSpaceAfter(groups: Child[][], index: number): boolean {
+	const previous = groups[index]?.[groups[index]!.length - 1]?.node;
+	if (!previous || !isSpacingSensitive(previous)) return false;
+
+	let separated = false;
+	for (const group of groups.slice(index + 1)) {
+		for (const child of group) {
+			separated ||= child.separated;
+			if (child.node.nodeType === 8) continue;
+			return separated && spacingVisibleBetween(previous, child.node);
+		}
+	}
+	return false;
+}
+
+function serializeNode(node: Node, depth: number, out: string[], forceInline = false): void {
+	const pad = forceInline ? "" : "\t".repeat(depth);
 
 	// Text
 	if (node.nodeType === 3) {
-		const raw = node.textContent ?? "";
-		const text = raw.replace(/\s+/g, " ").trim();
+		const text = textOf(node);
 		if (text) out.push(`${pad}${serializeTextNode(text)}`);
 		return;
 	}
@@ -149,69 +293,97 @@ function serializeNode(node: Node, depth: number, out: string[]): void {
 	const tag = isComponent ? el.tagName : el.tagName.toLowerCase();
 	const attrs = serializeAttrs(el);
 	const isVoid = VOID_ELEMENTS.has(el.tagName.toLowerCase());
+	const childList = renderedChildren(el);
+	const children = childList.items;
 
 	// Components and self-closing tags: one attribute per line when there are
 	// several, matching how the kits format <Picture …/>.
-	if (isComponent || isVoid) {
-		const selfClosing = isComponent || isVoid;
-		if (attrs.length > 2) {
+	if ((isComponent || isVoid) && children.length === 0) {
+		if (attrs.length > 2 && !forceInline) {
 			out.push(`${pad}<${tag}`);
 			for (const attr of attrs) out.push(`${pad}\t${attr}`);
-			out.push(`${pad}${selfClosing ? "/>" : ">"}`);
+			out.push(`${pad}/>`);
 		} else {
 			const attrStr = attrs.length ? ` ${attrs.join(" ")}` : "";
-			out.push(`${pad}<${tag}${attrStr}${selfClosing ? " />" : ">"}`);
-		}
-		if (isComponent && !isVoid && hasMeaningfulContent(el)) {
-			// Components with children are rare here; emit them expanded.
-			out.pop();
-			const attrStr = attrs.length ? ` ${attrs.join(" ")}` : "";
-			out.push(`${pad}<${tag}${attrStr}>`);
-			for (const child of Array.from(el.childNodes)) {
-				serializeNode(child, depth + 1, out);
-			}
-			out.push(`${pad}</${tag}>`);
+			out.push(`${pad}<${tag}${attrStr} />`);
 		}
 		return;
 	}
 
 	const attrStr = attrs.length ? ` ${attrs.join(" ")}` : "";
 
-	if (!hasMeaningfulContent(el)) {
+	if (children.length === 0) {
 		out.push(`${pad}<${tag}${attrStr}></${tag}>`);
 		return;
 	}
 
-	if (isInlineContent(el)) {
-		const inner: string[] = [];
-		for (const child of Array.from(el.childNodes)) {
-			if (child.nodeType === 3) {
-				const text = (child.textContent ?? "").replace(/\s+/g, " ");
-				if (text.trim()) {
-					inner.push(
-						inner.length === 0 ? serializeTextNode(text.trimStart()) : serializeTextNode(text),
-					);
-				} else if (inner.length > 0) {
-					inner.push(" ");
-				}
-			} else if (child.nodeType === 1) {
-				const nested: string[] = [];
-				serializeNode(child, 0, nested);
-				inner.push(nested.map((l) => l.trim()).join(""));
-			}
-		}
-		const joined = inner.join("").replace(/\s+/g, " ").trim();
-		if (joined.length + pad.length + tag.length * 2 < 110) {
-			out.push(`${pad}<${tag}${attrStr}>${joined}</${tag}>`);
+	// One line, when everything fits — or when breaking would change what the
+	// markup renders, in which case a long line is the lesser problem.
+	const inlineForm = inlineChildren(children);
+	if (inlineForm !== undefined) {
+		const width = pad.length + tag.length * 2 + inlineForm.length;
+		if (forceInline || !canBreakInside(childList) || width < MAX_INLINE_WIDTH) {
+			out.push(`${pad}<${tag}${attrStr}>${inlineForm}</${tag}>`);
 			return;
 		}
 	}
 
 	out.push(`${pad}<${tag}${attrStr}>`);
-	for (const child of Array.from(el.childNodes)) {
-		serializeNode(child, depth + 1, out);
-	}
+	serializeGroups(groupChildren(children), depth + 1, out);
 	out.push(`${pad}</${tag}>`);
+}
+
+/**
+ * The children rendered on a single line, or undefined when one of them
+ * cannot be (a comment, or a block element with its own structure).
+ */
+function inlineChildren(children: Child[]): string | undefined {
+	const parts: string[] = [];
+
+	for (const [index, child] of children.entries()) {
+		if (child.node.nodeType === 8) return undefined;
+		if (child.node.nodeType === 1 && !isSpacingSensitive(child.node)) return undefined;
+
+		if (index > 0) {
+			const previous = children[index - 1]!;
+			// A literal space survives both whitespace modes on one line.
+			parts.push(child.separated && spacingVisibleBetween(previous.node, child.node) ? " " : "");
+		}
+
+		const lines: string[] = [];
+		serializeNode(child.node, 0, lines, true);
+		parts.push(lines.join(""));
+	}
+
+	return parts.join("");
+}
+
+/** Emits each group on its own line, with explicit spaces between them. */
+function serializeGroups(groups: Child[][], depth: number, out: string[]): void {
+	const pad = "\t".repeat(depth);
+
+	for (const [index, group] of groups.entries()) {
+		const space = needsSpaceAfter(groups, index) ? SPACE_EXPRESSION : "";
+
+		if (group.length === 1) {
+			const lines: string[] = [];
+			serializeNode(group[0]!.node, depth, lines);
+			if (space && lines.length > 0) lines[lines.length - 1] += space;
+			out.push(...lines);
+			continue;
+		}
+
+		// Nothing separated these in the source, so they share one line even
+		// when that line runs long: a break here would invent a space.
+		const joined = group
+			.map((child) => {
+				const lines: string[] = [];
+				serializeNode(child.node, 0, lines, true);
+				return lines.join("");
+			})
+			.join("");
+		out.push(`${pad}${joined}${space}`);
+	}
 }
 
 /** Serialises the stitch's root elements as tab-indented Astro markup. */

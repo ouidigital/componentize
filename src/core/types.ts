@@ -10,7 +10,7 @@ export type CssVariant =
 	| "SCSS"
 	| "SCSS Dark";
 
-export type KitId = "i18n" | "decap";
+export type KitId = "i18n" | "advanced-v4" | "decap";
 
 export type ImagesMode = "assets" | "raw";
 
@@ -55,6 +55,8 @@ export interface ConvertOptions {
 	includeJs: boolean;
 	/** Full text extraction; only meaningful for the i18n kit. */
 	i18n: boolean;
+	/** Advanced v4 route locale mode. Routing remains active when text extraction is off. */
+	multilingual?: boolean;
 	imagesMode: ImagesMode;
 	/** Opt in to prioritising the first eligible CDN raster image. */
 	prioritizeFirstImage?: boolean;

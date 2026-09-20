@@ -101,9 +101,33 @@ export function deriveComponentName(
 	return assertValidComponentFileName(name);
 }
 
-/** i18n namespace for t("ns:key") lookups — camelCase of the component. */
+/** i18n namespace for a component's locale file — camelCase of its name. */
 export function namespaceFor(componentName: string): string {
 	return camelCase(componentName);
+}
+
+/**
+ * One segment of a translation key, safe to read back as a property.
+ *
+ * Advanced v4 reads copy as `content.hero.title` rather than through a string
+ * lookup, so a key taken from a class like `cs-404-title` has to survive being
+ * written as JavaScript. Numeric segments are array indices and are left alone.
+ */
+export function propertySegment(segment: string): string {
+	if (/^\d+$/.test(segment)) return segment;
+	const clean = segment.replace(/[^A-Za-z0-9_$]/g, "");
+	if (!clean) return "item";
+	return /^[A-Za-z_$]/.test(clean) ? clean : `_${clean}`;
+}
+
+/**
+ * A dotted translation key as a property access, e.g.
+ * ("content.hero", "items.0.title") -> content.hero.items[0].title
+ */
+export function propertyAccess(root: string, key: string): string {
+	return key
+		.split(".")
+		.reduce((acc, seg) => (/^\d+$/.test(seg) ? `${acc}[${seg}]` : `${acc}.${seg}`), root);
 }
 
 /**

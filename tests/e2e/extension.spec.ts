@@ -512,6 +512,100 @@ test.describe("Componentize extension", () => {
 		);
 	});
 
+	test("targets the current Advanced kit by default, and names the version", async () => {
+		const page = await context.newPage();
+		await serveFixture(context, STITCH.faq);
+		await page.goto(stitchUrl(STITCH.faq));
+
+		await expect(page.locator(`${PANEL} >> .field select`).first()).toHaveValue(
+			"advanced-v4",
+		);
+		// The subtitle has to say which kit a verdict is about, by version.
+		await expect(page.locator(`${PANEL} >> .subtitle`)).toContainText(
+			"Advanced Astro v4",
+		);
+		await expect(page.locator(`${PANEL} >> .subtitle`)).toContainText("a2eb8fd0");
+
+		// Both Advanced versions are offered, each named.
+		const options = page.locator(`${PANEL} >> .field select`).first().locator("option");
+		await expect(options).toHaveText([
+			"Advanced Astro v4",
+			"Advanced Astro v3.0.2 (legacy)",
+			"Intermediate Astro + Decap",
+		]);
+	});
+
+	test("keeps a saved target rather than moving it to the new default", async () => {
+		const page = await context.newPage();
+		await serveFixture(context, STITCH.notFound);
+		await page.goto(stitchUrl(STITCH.notFound));
+
+		// Someone already generating for the older Advanced kit.
+		await page.locator(`${PANEL} >> .field select`).first().selectOption("i18n");
+		await page.waitForTimeout(600); // debounce window
+
+		const second = await context.newPage();
+		await second.goto(stitchUrl(STITCH.notFound));
+
+		await expect(second.locator(`${PANEL} >> .field select`).first()).toHaveValue(
+			"i18n",
+		);
+		await expect(second.locator(`${PANEL} >> .subtitle`)).toContainText(
+			"Advanced Astro v3.0.2 (legacy)",
+		);
+	});
+
+	test("the multilingual setting applies to v4 only, and decides the locale files", async () => {
+		const page = await context.newPage();
+		await serveFixture(context, STITCH.faq);
+		await page.goto(stitchUrl(STITCH.faq));
+
+		const multilingual = page.locator(`${PANEL} >> .toggle`, {
+			hasText: "Multiple languages",
+		});
+		await expect(multilingual.locator("input")).toBeEnabled();
+		await expect(multilingual.locator("input")).toBeChecked();
+
+		// The older Advanced kit has no single-language setup to describe.
+		await page.locator(`${PANEL} >> .field select`).first().selectOption("i18n");
+		await expect(multilingual.locator("input")).toBeDisabled();
+
+		await page.locator(`${PANEL} >> .field select`).first().selectOption("advanced-v4");
+		await multilingual.locator("input").uncheck();
+
+		const downloadPromise = page.waitForEvent("download");
+		await page.locator(`${PANEL} >> button`, { hasText: "Download ZIP" }).click();
+		const download = await downloadPromise;
+		const entries = unzipSync(new Uint8Array(readFileSync((await download.path())!)));
+		const locales = Object.keys(entries).filter((n) => n.startsWith("src/locales/"));
+
+		// Only the default locale, and nothing left to translate. The stitch's
+		// own links are still unresolved, so the verdict stays Draft for that
+		// reason alone.
+		expect(locales).toEqual(["src/locales/en/faq1741.json"]);
+		await expect(page.locator(`${PANEL} >> .reasons`)).not.toContainText("translate");
+	});
+
+	test("a v4 component reads its copy from content and resolves its links", async () => {
+		await context.grantPermissions(["clipboard-read", "clipboard-write"], {
+			origin: "https://codestitch.app",
+		});
+		const page = await context.newPage();
+		await serveFixture(context, STITCH.faq);
+		await page.goto(stitchUrl(STITCH.faq));
+
+		await page.locator(`${PANEL} >> .link-row input`).first().fill("/about");
+		await page.locator(`${PANEL} >> button`, { hasText: "Copy .astro" }).click();
+		await expect(page.locator(`${PANEL} >> .status`)).toContainText("copied");
+
+		const clipboard = await page.evaluate(() => navigator.clipboard.readText());
+		expect(clipboard).toContain('import { getSiteContext } from "@js/getSiteContext"');
+		expect(clipboard).toContain("content.faq1741.");
+		expect(clipboard).toContain('href={routeFor("/about/")}');
+		// The helpers v4 replaced must not appear.
+		expect(clipboard).not.toContain("@js/translationUtils");
+	});
+
 	test("remembers preferences across page loads", async () => {
 		const page = await context.newPage();
 		await serveFixture(context, STITCH.notFound);

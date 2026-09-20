@@ -31,10 +31,33 @@ export interface GenerationContext {
 	messageCount: number;
 }
 
+/** What a kit is able to do at all, before the user's options narrow it. */
+export interface KitCapabilities {
+	/** The kit keeps copy in locale files, so text can be extracted. */
+	textExtraction: boolean;
+	/** The kit resolves links through a locale-aware route helper. */
+	localizedLinks: boolean;
+	/**
+	 * The kit ships a setup script that can strip i18n out entirely, so a
+	 * project built on it may legitimately have a single locale.
+	 */
+	optionalI18n: boolean;
+}
+
 export interface KitGenerator {
 	readonly id: string;
-	/** True when text should be routed through t() for this kit + options. */
+	readonly capabilities: KitCapabilities;
+	/** True when copy should be routed through the kit's translation layer. */
 	usesI18n(options: ConvertOptions): boolean;
+	/** True when links use the target kit's locale-aware route helper. */
+	localizesLinks(options: ConvertOptions): boolean;
+	/**
+	 * How the component reads one extracted string back. Only called when
+	 * usesI18n() is true, so kits without a translation layer return the key.
+	 */
+	translationReference(namespace: string, key: string): string;
+	/** The expression a resolved link's destination is written as. */
+	routeExpression(route: string): string;
 	/** Import lines the component needs, beyond image imports. */
 	imports(ctx: GenerationContext): ImportLine[];
 	/** Statements after the imports, e.g. the locale/t() preamble. */
@@ -74,3 +97,50 @@ export function readinessDocLines(readiness: Readiness): string[] {
 
 /** Where the verdict block starts, so it can be replaced without a full re-render. */
 export const READINESS_DOC_START = /^ \* (Ready: |Draft — )/m;
+
+/**
+ * The imports every kit shares: Astro's own image components, astro-icon, the
+ * kit's business data and its CSPicture wrapper. Which ones appear is decided
+ * by what the markup passes actually produced, never by the kit.
+ */
+export function sharedImports(ctx: GenerationContext): ImportLine[] {
+	const lines: ImportLine[] = [];
+
+	const astroAssets = ["Picture", "Image"].filter((c) => ctx.usedComponents.has(c));
+	if (ctx.cssVars.some((v) => v.optimize)) astroAssets.push("getImage");
+	if (astroAssets.length > 0) {
+		lines.push({
+			group: "Components",
+			statement: `import { ${astroAssets.join(", ")} } from "astro:assets";`,
+		});
+	}
+	if (ctx.usedComponents.has("Icon")) {
+		lines.push({
+			group: "Components",
+			statement: 'import { Icon } from "astro-icon/components";',
+		});
+	}
+	if (ctx.usedComponents.has("CSPicture")) {
+		lines.push({
+			group: "Components",
+			statement: 'import CSPicture from "@components/CSPicture/CSPicture.astro";',
+		});
+	}
+	if (ctx.usedComponents.has("__businessData") && ctx.profile.businessData.exists) {
+		lines.push({
+			group: "Data",
+			statement: `import { ${ctx.profile.businessData.exportName} } from "${ctx.profile.businessData.importPath}";`,
+		});
+	}
+	return lines;
+}
+
+/** True when the markup contains a link the kit's route helper must resolve. */
+export function usesRouteHelper(ctx: GenerationContext): boolean {
+	return ctx.usedComponents.has("__localizedRoute");
+}
+
+/** True when the component reads any extracted copy back out. */
+export function usesTranslatedCopy(ctx: GenerationContext): boolean {
+	return ctx.messageCount > 0;
+}
