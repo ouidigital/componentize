@@ -2,7 +2,7 @@
 /**
  * Faq-1741 — generated from CodeStitch stitch #1741.
  * Source: https://codestitch.app/app/dashboard/stitches/1741
- * Target: Advanced Astro v4 @ a2eb8fd0
+ * Target: Advanced Astro v4 @ 6012674f
  *
  * Draft — needs attention before shipping:
  *   - The fr locale file holds the English copy — translate it before this goes live.
@@ -10,14 +10,10 @@
 
 // Utils
 import { getSiteContext } from "@js/getSiteContext";
-import { getRoute } from "@js/routes";
+import { getLocalizedRoute } from "@js/routes";
 
 // Components
 import { Picture } from "astro:assets";
-
-// Data
-import navData from "@data/navData.json";
-import type { NavItem } from "src/typescript/global";
 
 // Images
 import gymFaq1 from "@assets/images/faq/gym-faq-1-cdf41f6c.jpg";
@@ -27,27 +23,6 @@ import gymFaq4 from "@assets/images/faq/gym-faq-4-cdf41f6c.jpg";
 import gymFaq5 from "@assets/images/faq/gym-faq-5-cdf41f6c.jpg";
 
 const { locale, content } = await getSiteContext(Astro.url);
-
-// This kit translates a slug in navData.json and adds the locale prefix
-// in getRoute. Reading navData at runtime means a destination follows
-// the project's own routes rather than the ones this component shipped with.
-const navUrlsFor = (items: NavItem[], path: string): Record<string, string> | undefined => {
-	for (const item of items) {
-		const canonical = (item.urls?.["en"] ?? "").replace(/\/+$/, "") || "/";
-		if (canonical === path) return item.urls;
-		const nested = item.children?.length ? navUrlsFor(item.children, path) : undefined;
-		if (nested) return nested;
-	}
-	return undefined;
-};
-
-const routeFor = (path: string): string => {
-	const marker = path.search(/[?#]/);
-	const base = marker === -1 ? path : path.slice(0, marker);
-	const suffix = marker === -1 ? "" : path.slice(marker);
-	const urls = navUrlsFor(navData as NavItem[], base.replace(/\/+$/, "") || "/");
-	return getRoute(locale, urls?.[locale] ?? urls?.["en"] ?? base) + suffix;
-};
 ---
 
 <!-- ============================================ -->
@@ -59,7 +34,7 @@ const routeFor = (path: string): string => {
 		<div class="cs-content">
 			<span class="cs-topper">{content.faq1741.topper}</span>
 			<h2 class="cs-title">{content.faq1741.title}</h2>
-			<a href={routeFor("/about/")} class="cs-button-solid">{content.faq1741.button}</a>
+			<a href={getLocalizedRoute(locale, "/about/")} class="cs-button-solid">{content.faq1741.button}</a>
 		</div>
 		<div class="cs-flex-group">
 			<ul class="cs-faq-group">

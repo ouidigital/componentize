@@ -2,7 +2,7 @@
 /**
  * Hero-2274 — generated from CodeStitch stitch #2274.
  * Source: https://codestitch.app/app/dashboard/stitches/2274
- * Target: Advanced Astro v4 @ a2eb8fd0
+ * Target: Advanced Astro v4 @ 6012674f
  *
  * Draft — needs attention before shipping:
  *   - This component needs 12 more files (src/locales/en/hero2274.json, src/locales/fr/hero2274.json, src/assets/images/hero/construction-man2-cdf41f6c.png, …) — use Download ZIP, or the imports will not resolve.
@@ -11,15 +11,11 @@
 
 // Utils
 import { getSiteContext } from "@js/getSiteContext";
-import { getRoute } from "@js/routes";
+import { getLocalizedRoute } from "@js/routes";
 
 // Components
 import { Picture } from "astro:assets";
 import { Icon } from "astro-icon/components";
-
-// Data
-import navData from "@data/navData.json";
-import type { NavItem } from "src/typescript/global";
 
 // Images
 import constructionMan2 from "@assets/images/hero/construction-man2-cdf41f6c.png";
@@ -28,27 +24,6 @@ import construction1 from "@assets/images/hero/construction1-cdf41f6c.jpg";
 import construction3 from "@assets/images/hero/construction3-cdf41f6c.jpg";
 
 const { locale, content } = await getSiteContext(Astro.url);
-
-// This kit translates a slug in navData.json and adds the locale prefix
-// in getRoute. Reading navData at runtime means a destination follows
-// the project's own routes rather than the ones this component shipped with.
-const navUrlsFor = (items: NavItem[], path: string): Record<string, string> | undefined => {
-	for (const item of items) {
-		const canonical = (item.urls?.["en"] ?? "").replace(/\/+$/, "") || "/";
-		if (canonical === path) return item.urls;
-		const nested = item.children?.length ? navUrlsFor(item.children, path) : undefined;
-		if (nested) return nested;
-	}
-	return undefined;
-};
-
-const routeFor = (path: string): string => {
-	const marker = path.search(/[?#]/);
-	const base = marker === -1 ? path : path.slice(0, marker);
-	const suffix = marker === -1 ? "" : path.slice(marker);
-	const urls = navUrlsFor(navData as NavItem[], base.replace(/\/+$/, "") || "/");
-	return getRoute(locale, urls?.[locale] ?? urls?.["en"] ?? base) + suffix;
-};
 ---
 
 <!-- ============================================ -->
@@ -60,7 +35,7 @@ const routeFor = (path: string): string => {
 		<div class="cs-content">
 			<h1 class="cs-title">{content.hero2274.title}</h1>
 			<p class="cs-text">{content.hero2274.text}</p>
-			<a href={routeFor("/about/")} class="cs-button-solid">
+			<a href={getLocalizedRoute(locale, "/about/")} class="cs-button-solid">
 				{content.hero2274.button}{" "}
 				<Icon
 					class="cs-button-arrow"
@@ -113,7 +88,7 @@ const routeFor = (path: string): string => {
 	<div class="cs-container">
 		<ul class="cs-card-group">
 			<li class="cs-item">
-				<a href={routeFor("/about/")} class="cs-link">
+				<a href={getLocalizedRoute(locale, "/about/")} class="cs-link">
 					<Icon
 						class="cs-icon"
 						width="40"
@@ -126,7 +101,7 @@ const routeFor = (path: string): string => {
 				</a>
 			</li>
 			<li class="cs-item">
-				<a href={routeFor("/about/")} class="cs-link">
+				<a href={getLocalizedRoute(locale, "/about/")} class="cs-link">
 					<Icon
 						class="cs-icon"
 						width="40"
@@ -139,7 +114,7 @@ const routeFor = (path: string): string => {
 				</a>
 			</li>
 			<li class="cs-item">
-				<a href={routeFor("/about/")} class="cs-link">
+				<a href={getLocalizedRoute(locale, "/about/")} class="cs-link">
 					<Icon
 						class="cs-icon"
 						width="40"
@@ -152,7 +127,7 @@ const routeFor = (path: string): string => {
 				</a>
 			</li>
 			<li class="cs-item">
-				<a href={routeFor("/about/")} class="cs-link">
+				<a href={getLocalizedRoute(locale, "/about/")} class="cs-link">
 					<Icon
 						class="cs-icon"
 						width="40"

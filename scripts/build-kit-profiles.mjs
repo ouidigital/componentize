@@ -31,7 +31,7 @@ const KITS = {
 	"advanced-v4": {
 		id: "advanced-v4",
 		repo: "CodeStitchOfficial/Advanced-Astro-i18n",
-		sha: "a2eb8fd031a959910844e3947cf6f7e0f96b8eb7",
+		sha: "6012674f5324de9a0a5892156393fd00be128ad4",
 		major: 7,
 		label: "Advanced Astro v4",
 		generation: "advanced-v4",
@@ -231,8 +231,11 @@ export function collectNavRoutes(items, defaultLocale) {
 	const routes = {};
 	const visit = (entries) => {
 		for (const entry of entries ?? []) {
-			const defaultPath = cleanRoute(entry.urls?.[defaultLocale]);
-			if (entry.urls) {
+			// A dropdown parent carries a label and children but no URL of its
+			// own, and indexing it would invent a destination that has no page.
+			const defaultUrl = entry.urls?.[defaultLocale];
+			if (defaultUrl) {
+				const defaultPath = cleanRoute(defaultUrl);
 				for (const [locale, localized] of Object.entries(entry.urls)) {
 					(routes[locale] ??= []).push({ defaultPath, localizedPath: cleanRoute(localized) });
 				}

@@ -10,8 +10,13 @@ import { propertyAccess } from "../naming";
  * Two things changed from v3 and both reach every generated component. Copy is
  * read as data — `getSiteContext(Astro.url)` hands back a `content` object
  * keyed by locale-file name — rather than looked up through `t()`. And routing
- * split in two: `getRoute` only adds the locale prefix, while the translated
- * slug for a page lives in the project's own `navData.json`.
+ * moved to `@js/routes`, where `getLocalizedRoute` translates a slug against
+ * the project's own `navData.json` before adding the locale prefix.
+ *
+ * The name is the one v3 used, but this is not that function: v3 exported it
+ * from `@js/translationUtils` and translated a path one segment at a time from
+ * a separate config. Here it takes a whole default-locale path, which is why a
+ * nested page like `/projects/project-1` resolves at all.
  *
  * Both helpers survive `npm run remove-i18n`, which swaps in single-locale
  * versions with the same names, so one generated shape serves a multilingual
@@ -27,8 +32,8 @@ export const advancedV4Kit: KitGenerator = {
 	},
 
 	localizesLinks(_options: ConvertOptions): boolean {
-		// Routing always goes through getRoute: it is how this kit writes a
-		// link even when the project keeps a single locale.
+		// Routing always goes through the kit's helper: it is how this kit
+		// writes a link even when the project keeps a single locale.
 		return true;
 	},
 
@@ -36,8 +41,17 @@ export const advancedV4Kit: KitGenerator = {
 		return propertyAccess(`content.${namespace}`, key);
 	},
 
+	/**
+	 * A query string or fragment is kept outside the call. The kit's helper
+	 * normalises whatever it is given to a trailing slash, which would turn
+	 * `/contact?ref=hero` into `/contact?ref=hero/`.
+	 */
 	routeExpression(route: string): string {
-		return `routeFor("${route}")`;
+		const marker = route.search(/[?#]/);
+		const path = marker === -1 ? route : route.slice(0, marker);
+		const suffix = marker === -1 ? "" : route.slice(marker);
+		const call = `getLocalizedRoute(locale, "${path}")`;
+		return suffix ? `${call} + "${suffix}"` : call;
 	},
 
 	imports(ctx: GenerationContext): ImportLine[] {
@@ -53,15 +67,7 @@ export const advancedV4Kit: KitGenerator = {
 		if (routes) {
 			lines.push({
 				group: "Utils",
-				statement: 'import { getRoute } from "@js/routes";',
-			});
-			lines.push({
-				group: "Data",
-				statement: 'import navData from "@data/navData.json";',
-			});
-			lines.push({
-				group: "Data",
-				statement: 'import type { NavItem } from "src/typescript/global";',
+				statement: 'import { getLocalizedRoute } from "@js/routes";',
 			});
 		}
 
@@ -76,36 +82,7 @@ export const advancedV4Kit: KitGenerator = {
 		const bindings = [routes ? "locale" : undefined, copy ? "content" : undefined]
 			.filter(Boolean)
 			.join(", ");
-		const lines = [`const { ${bindings} } = await getSiteContext(Astro.url);`];
-
-		if (routes) {
-			const defaultLocale = ctx.profile.defaultLocale ?? "en";
-			lines.push(
-				"",
-				"// This kit translates a slug in navData.json and adds the locale prefix",
-				"// in getRoute. Reading navData at runtime means a destination follows",
-				"// the project's own routes rather than the ones this component shipped with.",
-				"const navUrlsFor = (items: NavItem[], path: string): Record<string, string> | undefined => {",
-				"\tfor (const item of items) {",
-				`\t\tconst canonical = (item.urls?.["${defaultLocale}"] ?? "").replace(/\\/+$/, "") || "/";`,
-				"\t\tif (canonical === path) return item.urls;",
-				"\t\tconst nested = item.children?.length ? navUrlsFor(item.children, path) : undefined;",
-				"\t\tif (nested) return nested;",
-				"\t}",
-				"\treturn undefined;",
-				"};",
-				"",
-				"const routeFor = (path: string): string => {",
-				"\tconst marker = path.search(/[?#]/);",
-				"\tconst base = marker === -1 ? path : path.slice(0, marker);",
-				"\tconst suffix = marker === -1 ? \"\" : path.slice(marker);",
-				"\tconst urls = navUrlsFor(navData as NavItem[], base.replace(/\\/+$/, \"\") || \"/\");",
-				`\treturn getRoute(locale, urls?.[locale] ?? urls?.["${defaultLocale}"] ?? base) + suffix;`,
-				"};",
-			);
-		}
-
-		return lines;
+		return [`const { ${bindings} } = await getSiteContext(Astro.url);`];
 	},
 
 	extraFiles(ctx: GenerationContext): OutputFile[] {

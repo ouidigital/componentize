@@ -2,7 +2,7 @@
 /**
  * NotFound-2501 — generated from CodeStitch stitch #2501.
  * Source: https://codestitch.app/app/dashboard/stitches/2501
- * Target: Advanced Astro v4 @ a2eb8fd0
+ * Target: Advanced Astro v4 @ 6012674f
  *
  * Draft — needs attention before shipping:
  *   - This component needs 2 more files (src/locales/en/notFound2501.json, src/locales/fr/notFound2501.json) — use Download ZIP, or the imports will not resolve.
@@ -11,34 +11,9 @@
 
 // Utils
 import { getSiteContext } from "@js/getSiteContext";
-import { getRoute } from "@js/routes";
-
-// Data
-import navData from "@data/navData.json";
-import type { NavItem } from "src/typescript/global";
+import { getLocalizedRoute } from "@js/routes";
 
 const { locale, content } = await getSiteContext(Astro.url);
-
-// This kit translates a slug in navData.json and adds the locale prefix
-// in getRoute. Reading navData at runtime means a destination follows
-// the project's own routes rather than the ones this component shipped with.
-const navUrlsFor = (items: NavItem[], path: string): Record<string, string> | undefined => {
-	for (const item of items) {
-		const canonical = (item.urls?.["en"] ?? "").replace(/\/+$/, "") || "/";
-		if (canonical === path) return item.urls;
-		const nested = item.children?.length ? navUrlsFor(item.children, path) : undefined;
-		if (nested) return nested;
-	}
-	return undefined;
-};
-
-const routeFor = (path: string): string => {
-	const marker = path.search(/[?#]/);
-	const base = marker === -1 ? path : path.slice(0, marker);
-	const suffix = marker === -1 ? "" : path.slice(marker);
-	const urls = navUrlsFor(navData as NavItem[], base.replace(/\/+$/, "") || "/");
-	return getRoute(locale, urls?.[locale] ?? urls?.["en"] ?? base) + suffix;
-};
 ---
 
 <!-- ============================================ -->
@@ -52,8 +27,8 @@ const routeFor = (path: string): string => {
 			<h2 class="cs-title">{content.notFound2501.title}</h2>
 			<p class="cs-text">{content.notFound2501.text}</p>
 			<div class="cs-button-box">
-				<a href={routeFor("/about/")} class="cs-button-solid">{content.notFound2501.buttonSolids[0].button}</a>{" "}
-				<a href={routeFor("/about/")} class="cs-button-solid">{content.notFound2501.buttonSolids[1].button}</a>
+				<a href={getLocalizedRoute(locale, "/about/")} class="cs-button-solid">{content.notFound2501.buttonSolids[0].button}</a>{" "}
+				<a href={getLocalizedRoute(locale, "/about/")} class="cs-button-solid">{content.notFound2501.buttonSolids[1].button}</a>
 			</div>
 		</div>
 	</div>

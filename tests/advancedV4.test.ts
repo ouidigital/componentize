@@ -171,7 +171,7 @@ describe("advanced v4 — resolving destinations", () => {
 			["About", "/about/"],
 		] as const) {
 			const out = await run(link(text));
-			expect(out.markup).toContain(`href={routeFor("${route}")}`);
+			expect(out.markup).toContain(`href={getLocalizedRoute(locale, "${route}")}`);
 		}
 
 		const nested = await run(link("Anything", ""), {
@@ -179,19 +179,23 @@ describe("advanced v4 — resolving destinations", () => {
 				{ id: "link-0", text: "Anything", originalHref: "", route: "/projects/project-1" },
 			],
 		});
-		expect(nested.markup).toContain('href={routeFor("/projects/project-1/")}');
+		expect(nested.markup).toContain(
+			'href={getLocalizedRoute(locale, "/projects/project-1/")}',
+		);
 		expect(nested.reasons.join(" ")).not.toContain("does not ship");
 	});
 
-	it("keeps a query string and a fragment out of the trailing slash", async () => {
+	it("keeps a query string and a fragment outside the route call", async () => {
+		// The kit's helper normalises whatever it is handed to a trailing
+		// slash, so passing it the whole thing would yield /contact?ref=hero/.
 		for (const [typed, expected] of [
-			["/contact?ref=hero", "/contact/?ref=hero"],
-			["/about#team", "/about/#team"],
+			["/contact?ref=hero", 'getLocalizedRoute(locale, "/contact/") + "?ref=hero"'],
+			["/about#team", 'getLocalizedRoute(locale, "/about/") + "#team"'],
 		] as const) {
 			const out = await run(link("Anything"), {
 				linkMappings: [{ id: "link-0", text: "Anything", originalHref: "", route: typed }],
 			});
-			expect(out.markup).toContain(`href={routeFor("${expected}")}`);
+			expect(out.markup).toContain(`href={${expected}}`);
 			expect(out.reasons.join(" ")).not.toContain("does not ship");
 		}
 	});
@@ -226,7 +230,7 @@ describe("advanced v4 — resolving destinations", () => {
 		expect(out.markup).toContain('href="https://example.com/x"');
 		expect(out.markup).toContain('href="tel:5551234"');
 		expect(out.markup).toContain('href="mailto:a@b.co"');
-		expect(out.markup).not.toContain("routeFor(\"https");
+		expect(out.markup).not.toContain('getLocalizedRoute(locale, "https');
 
 		const expression = await run(`<section id="demo"><a href="">Facebook</a></section>`);
 		expect(expression.markup).toContain("href={BUSINESS.socials.facebook}");
@@ -234,11 +238,14 @@ describe("advanced v4 — resolving destinations", () => {
 
 	it("emits the route helper only when the markup has a local link", async () => {
 		const without = await run('<section id="demo"><h2 class="cs-title">Hi</h2></section>');
-		expect(without.astro).not.toContain("routeFor");
-		expect(without.astro).not.toContain("navData");
+		expect(without.astro).not.toContain("getLocalizedRoute");
+		expect(without.astro).not.toContain("@js/routes");
 
 		const with_ = await run(link("About"));
-		expect(with_.astro).toContain('import { getRoute } from "@js/routes";');
-		expect(with_.astro).toContain('import navData from "@data/navData.json";');
+		expect(with_.astro).toContain('import { getLocalizedRoute } from "@js/routes";');
+		// The kit resolves the slug itself, so the component carries no lookup
+		// of its own and needs no navData import.
+		expect(with_.astro).not.toContain("navData");
+		expect(with_.astro).not.toContain("NavItem");
 	});
 });

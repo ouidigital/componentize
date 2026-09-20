@@ -3,7 +3,7 @@
 	"kitId": "advanced-v4",
 	"label": "Advanced Astro v4",
 	"repo": "CodeStitchOfficial/Advanced-Astro-i18n",
-	"sha": "a2eb8fd031a959910844e3947cf6f7e0f96b8eb7",
+	"sha": "6012674f5324de9a0a5892156393fd00be128ad4",
 	"kitVersion": "4.0.0",
 	"astroVersion": "^7.2.10",
 	"configPath": "astro.config.ts",
@@ -44,10 +44,6 @@
 				"localizedPath": "/about"
 			},
 			{
-				"defaultPath": "/projects",
-				"localizedPath": "/projects"
-			},
-			{
 				"defaultPath": "/projects/project-1",
 				"localizedPath": "/projects/project-1"
 			},
@@ -76,10 +72,6 @@
 			{
 				"defaultPath": "/about",
 				"localizedPath": "/a-propos"
-			},
-			{
-				"defaultPath": "/projects",
-				"localizedPath": "/projets"
 			},
 			{
 				"defaultPath": "/projects/project-1",

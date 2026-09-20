@@ -32,6 +32,10 @@ rewrote how a component reads copy and how it builds a URL, so a component
 generated for one does not compile in the other. New installations target v4;
 a saved selection is left alone.
 
+Note that the kit's own version number is not a safe thing to pin to: v4's
+routing API was replaced inside the `4.0.0` release without a version bump.
+Profiles therefore pin a commit SHA, and only a SHA.
+
 `npm run profiles` rebuilds all three from their pinned commits, and
 `npm run profiles -- --latest <target>` re-pins exactly one of them. Refreshing
 one target can never move another, which is what keeps the legacy claim honest.
@@ -127,13 +131,19 @@ above the code viewer.
   A query string or fragment is kept as written: `/contact?ref=hero` becomes
   `/contact/?ref=hero`, not `/contact?ref=hero/`.
 
-  On **v4** a destination is resolved at runtime against the project's own
-  `src/data/navData.json`, then prefixed by `getRoute`. That split is v4's:
-  `getRoute` adds `/fr` but does not translate `about` into `a-propos`, and the
-  translation lives in navData. Reading it at runtime means the link follows
-  *your* routes rather than the ones the pinned kit shipped with. Whole paths
-  are checked against the pages v4 actually ships, so a link to `/projects` is
-  reported — it is a navigation parent with a dropdown and no page of its own.
+  On **v4** a destination goes through `getLocalizedRoute` from `@js/routes`,
+  which translates the slug against the project's own `src/data/navData.json`
+  and then adds the locale prefix. It takes the default-locale path, so
+  `/about` becomes `/fr/a-propos/` and a nested `/projects/project-1` resolves
+  too. Beware the name: v3.0.2 exports a `getLocalizedRoute` as well, from
+  `@js/translationUtils`, and that one translates a path one segment at a time
+  from a separate config. Same name, different module, different behaviour —
+  which is a large part of why the two versions are separate targets rather
+  than one kit with a flag. A query string or fragment is concatenated outside
+  the call, because the helper normalises whatever it is given to a trailing
+  slash. Whole paths are checked against the pages v4 actually ships, so a link
+  to `/projects` is reported — it is a navigation parent with a dropdown and no
+  page of its own.
   Destinations that exist only while a removable feature is installed
   (`/about` is demo content, `/blog` is the CMS) are pointed out without
   withholding Ready, since only you know how the project was set up.

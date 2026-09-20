@@ -16,6 +16,18 @@ import { join } from "node:path";
 const DIST = join(process.cwd(), "dist");
 const FIXTURE_PAGES = join(process.cwd(), "tests", "fixtures", "pages");
 
+/**
+ * The commit the default target is pinned to, read from the profile rather
+ * than written out here: the panel's job is to show whichever commit a Ready
+ * verdict is about, and re-pinning the kit should not need a test edited.
+ */
+const V4_PROFILE = JSON.parse(
+	readFileSync(
+		join(process.cwd(), "src", "core", "kits", "profiles", "advanced-v4.json"),
+		"utf8",
+	),
+) as { sha: string; label: string };
+
 const STITCH = {
 	notFound: "2501",
 	faq: "1741",
@@ -522,9 +534,11 @@ test.describe("Componentize extension", () => {
 		);
 		// The subtitle has to say which kit a verdict is about, by version.
 		await expect(page.locator(`${PANEL} >> .subtitle`)).toContainText(
-			"Advanced Astro v4",
+			V4_PROFILE.label,
 		);
-		await expect(page.locator(`${PANEL} >> .subtitle`)).toContainText("a2eb8fd0");
+		await expect(page.locator(`${PANEL} >> .subtitle`)).toContainText(
+			V4_PROFILE.sha.slice(0, 8),
+		);
 
 		// Both Advanced versions are offered, each named.
 		const options = page.locator(`${PANEL} >> .field select`).first().locator("option");
@@ -601,7 +615,7 @@ test.describe("Componentize extension", () => {
 		const clipboard = await page.evaluate(() => navigator.clipboard.readText());
 		expect(clipboard).toContain('import { getSiteContext } from "@js/getSiteContext"');
 		expect(clipboard).toContain("content.faq1741.");
-		expect(clipboard).toContain('href={routeFor("/about/")}');
+		expect(clipboard).toContain('href={getLocalizedRoute(locale, "/about/")}');
 		// The helpers v4 replaced must not appear.
 		expect(clipboard).not.toContain("@js/translationUtils");
 	});
