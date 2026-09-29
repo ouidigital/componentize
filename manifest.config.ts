@@ -4,8 +4,8 @@ import pkg from "./package.json" with { type: "json" };
 /**
  * Production manifest — CodeStitch only.
  *
- * The E2E suite never widens these match patterns; it uses Playwright request
- * interception against real codestitch.app URLs instead (see tests/e2e).
+ * The E2E suite uses Playwright request interception against real CodeStitch
+ * origins so it exercises the same host match patterns users install.
  */
 export default defineManifest({
 	manifest_version: 3,
@@ -20,13 +20,21 @@ export default defineManifest({
 	},
 	content_scripts: [
 		{
-			matches: ["https://codestitch.app/app/dashboard/stitches/*"],
+			// Keep the apex host for existing bookmarks while allowing the app (and
+			// future CodeStitch app subdomains) to receive the panel.
+			matches: [
+				"https://codestitch.app/app/dashboard/stitches/*",
+				"https://*.codestitch.app/app/dashboard/stitches/*",
+			],
 			// /stitches/<id>/rendered is the live preview of the stitch and holds
 			// no code fields; the panel has nothing to do there.
 			exclude_matches: [
 				"https://codestitch.app/app/dashboard/stitches/*/rendered",
 				"https://codestitch.app/app/dashboard/stitches/*/rendered/*",
 				"https://codestitch.app/app/dashboard/stitches/*/*",
+				"https://*.codestitch.app/app/dashboard/stitches/*/rendered",
+				"https://*.codestitch.app/app/dashboard/stitches/*/rendered/*",
+				"https://*.codestitch.app/app/dashboard/stitches/*/*",
 			],
 			js: ["src/content/content-script.ts"],
 			run_at: "document_idle",

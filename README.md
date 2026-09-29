@@ -4,7 +4,7 @@ A Chrome extension that turns a CodeStitch stitch into a ready-to-use Astro
 component in one click, replacing the copy-each-field-then-clean-it-up routine.
 
 It adds a panel to any stitch page at
-`https://codestitch.app/app/dashboard/stitches/<id>` and produces a component
+`https://app.codestitch.app/app/dashboard/stitches/<id>` and produces a component
 for one of the two official CodeStitch kits.
 
 ## What it promises
@@ -60,8 +60,9 @@ npm install && npm run build
 ```
 
 Then open `chrome://extensions`, enable Developer mode, choose **Load unpacked**
-and select the `dist/` directory. Open any stitch page and the panel appears
-above the code viewer.
+and select the `dist/` directory. After rebuilding, click **Reload** on the
+extension and refresh any already-open CodeStitch tabs. Open a stitch page at
+`app.codestitch.app` and the panel appears above the code viewer.
 
 `npm run dev` runs the same build with hot reload.
 

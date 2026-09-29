@@ -15,6 +15,7 @@ import { join } from "node:path";
 
 const DIST = join(process.cwd(), "dist");
 const FIXTURE_PAGES = join(process.cwd(), "tests", "fixtures", "pages");
+const APP_ORIGIN = "https://app.codestitch.app";
 
 /**
  * The commit the default target is pinned to, read from the profile rather
@@ -35,8 +36,8 @@ const STITCH = {
 	nav: "757",
 } as const;
 
-function stitchUrl(id: string): string {
-	return `https://codestitch.app/app/dashboard/stitches/${id}`;
+function stitchUrl(id: string, origin = APP_ORIGIN): string {
+	return `${origin}/app/dashboard/stitches/${id}`;
 }
 
 async function launch(): Promise<BrowserContext> {
@@ -150,6 +151,29 @@ test.describe("Componentize extension", () => {
 		expect(isBeforeCodeTabs).toBe(true);
 	});
 
+	test("injects on the apex host and arbitrary CodeStitch subdomains", async () => {
+		const cases = [
+			{ origin: "https://codestitch.app", label: "apex" },
+			{ origin: "https://preview.codestitch.app", label: "subdomain" },
+		];
+		const html = readFileSync(join(FIXTURE_PAGES, `stitch-${STITCH.notFound}.html`), "utf8");
+
+		await context.route("**/*", async (route) => {
+			const url = route.request().url();
+			if (cases.some(({ origin }) => url.startsWith(stitchUrl(STITCH.notFound, origin)))) {
+				await route.fulfill({ status: 200, contentType: "text/html", body: html });
+				return;
+			}
+			await route.abort();
+		});
+
+		for (const { origin, label } of cases) {
+			const page = await context.newPage();
+			await page.goto(stitchUrl(STITCH.notFound, origin));
+			await expect(page.locator(PANEL), label).toBeVisible();
+		}
+	});
+
 	test("shows the hero priority toggle only for asset mode and resets it per stitch", async () => {
 		const page = await context.newPage();
 		await serveFixture(context, STITCH.hero, STITCH.notFound);
@@ -224,7 +248,7 @@ test.describe("Componentize extension", () => {
 
 	test("copies a component to the clipboard", async () => {
 		await context.grantPermissions(["clipboard-read", "clipboard-write"], {
-			origin: "https://codestitch.app",
+			origin: APP_ORIGIN,
 		});
 		const page = await context.newPage();
 		await serveFixture(context, STITCH.notFound);
@@ -269,7 +293,7 @@ test.describe("Componentize extension", () => {
 
 	test("a nav stitch's toggle says its script is left out, and the copy agrees", async () => {
 		await context.grantPermissions(["clipboard-read", "clipboard-write"], {
-			origin: "https://codestitch.app",
+			origin: APP_ORIGIN,
 		});
 		const page = await context.newPage();
 		await serveFixture(context, STITCH.nav);
@@ -294,7 +318,7 @@ test.describe("Componentize extension", () => {
 
 	test("ticking the nav toggle includes the script and makes the result a Draft", async () => {
 		await context.grantPermissions(["clipboard-read", "clipboard-write"], {
-			origin: "https://codestitch.app",
+			origin: APP_ORIGIN,
 		});
 		const page = await context.newPage();
 		await serveFixture(context, STITCH.nav);
@@ -316,7 +340,7 @@ test.describe("Componentize extension", () => {
 
 	test("an ordinary stitch's toggle stays ticked and its script is copied", async () => {
 		await context.grantPermissions(["clipboard-read", "clipboard-write"], {
-			origin: "https://codestitch.app",
+			origin: APP_ORIGIN,
 		});
 		const page = await context.newPage();
 		await serveFixture(context, STITCH.faq);
@@ -378,7 +402,7 @@ test.describe("Componentize extension", () => {
 
 	test("warns that a copied component alone is missing its companion files", async () => {
 		await context.grantPermissions(["clipboard-read", "clipboard-write"], {
-			origin: "https://codestitch.app",
+			origin: APP_ORIGIN,
 		});
 		const page = await context.newPage();
 		await serveFixture(context, STITCH.faq);
@@ -400,7 +424,7 @@ test.describe("Componentize extension", () => {
 
 	test("the copied file carries the verdict for what was copied", async () => {
 		await context.grantPermissions(["clipboard-read", "clipboard-write"], {
-			origin: "https://codestitch.app",
+			origin: APP_ORIGIN,
 		});
 		const page = await context.newPage();
 		await serveFixture(context, STITCH.faq);
@@ -602,7 +626,7 @@ test.describe("Componentize extension", () => {
 
 	test("a v4 component reads its copy from content and resolves its links", async () => {
 		await context.grantPermissions(["clipboard-read", "clipboard-write"], {
-			origin: "https://codestitch.app",
+			origin: APP_ORIGIN,
 		});
 		const page = await context.newPage();
 		await serveFixture(context, STITCH.faq);
@@ -657,6 +681,34 @@ test.describe("Componentize extension", () => {
 		await page.waitForTimeout(1500);
 
 		expect(await page.locator("#componentize-root").count()).toBe(0);
+	});
+
+	test("does not inject on marketing, login, catalog, nested, or unrelated pages", async () => {
+		const urls = [
+			"https://codestitch.app/",
+			"https://app.codestitch.app/login",
+			"https://app.codestitch.app/app/dashboard/catalog/3",
+			`${stitchUrl(STITCH.notFound)}/figma`,
+			"https://example.com/app/dashboard/stitches/2501",
+		];
+		await context.route("**/*", async (route) => {
+			if (urls.includes(route.request().url())) {
+				await route.fulfill({
+					status: 200,
+					contentType: "text/html",
+					body: "<html><body><h1>fixture</h1></body></html>",
+				});
+				return;
+			}
+			await route.abort();
+		});
+
+		for (const url of urls) {
+			const page = await context.newPage();
+			await page.goto(url);
+			await page.waitForTimeout(400);
+			expect(await page.locator("#componentize-root").count(), url).toBe(0);
+		}
 	});
 
 	test("explains itself when the page layout is unrecognisable", async () => {

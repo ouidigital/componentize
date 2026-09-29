@@ -22,7 +22,7 @@ if (!stitchId || !/^\d+$/.test(stitchId)) {
 	process.exit(1);
 }
 
-const url = `https://codestitch.app/app/dashboard/stitches/${stitchId}`;
+const url = `https://app.codestitch.app/app/dashboard/stitches/${stitchId}`;
 console.log(`Fetching ${url} …`);
 
 const res = await fetch(url, {

@@ -1,7 +1,7 @@
 {
 	"name": "componentize-extension",
 	"private": true,
-	"version": "0.1.1",
+	"version": "0.1.2",
 	"type": "module",
 	"description": "Chrome extension that converts CodeStitch snippets into kit-ready Astro components in one click.",
 	"scripts": {

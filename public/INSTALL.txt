@@ -1,0 +1,39 @@
+Componentize - CodeStitch to Astro (v0.1.2)
+Converts CodeStitch snippets into kit-ready Astro components in one click.
+
+INSTALL (Chrome / Edge / Brave / Arc - any Chromium browser)
+
+1. Unzip this archive. You should end up with a folder named
+   "componentize-extension" containing manifest.json.
+   Keep the folder somewhere permanent - Chrome loads it from this path
+   every time it starts, so don't leave it in Downloads or the Trash.
+
+2. Open chrome://extensions
+
+3. Turn on "Developer mode" (toggle, top right).
+
+4. Click "Load unpacked" and select the "componentize-extension" folder
+   (the one with manifest.json directly inside it - not its parent).
+
+5. Open a CodeStitch stitch page:
+   https://app.codestitch.app/app/dashboard/stitches/...
+   The Componentize panel appears above the code viewer.
+
+NOTES
+
+- A CodeStitch account is required. The extension activates on CodeStitch
+  stitch pages under codestitch.app, including app.codestitch.app.
+- Permissions requested: "storage" (remembers your panel settings) and
+  access to digitaloceanspaces.com (where CodeStitch hosts demo images, so
+  they can be downloaded into the component ZIP).
+- Chrome may show the extension as "unpacked" with a developer-mode warning
+  on each launch. That is normal for an extension installed outside the Web
+  Store.
+- Read the Ready / Draft verdict in the panel. "Ready" is a claim about two
+  specific pinned kit commits. If your kit is customised, treat every result
+  as a draft.
+
+UPDATING
+
+Replace the folder contents with a newer build, click the reload icon on the
+extension's card in chrome://extensions, then refresh any open CodeStitch tabs.

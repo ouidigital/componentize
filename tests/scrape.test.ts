@@ -12,8 +12,8 @@ function docFrom(html: string): Document {
 	return new DOMParser().parseFromString(html, "text/html");
 }
 
-const STITCH_URL = (id: string) =>
-	`https://codestitch.app/app/dashboard/stitches/${id}`;
+const STITCH_URL = (id: string, origin = "https://app.codestitch.app") =>
+	`${origin}/app/dashboard/stitches/${id}`;
 
 describe("scrapeStitch", () => {
 	it("extracts every code field from a real stitch page", () => {
@@ -77,20 +77,26 @@ describe("scrapeStitch", () => {
 
 	it("only recognises a stitch's own code page", () => {
 		const id = (url: string) => stitchIdFromUrl(url);
-		const base = "https://codestitch.app/app/dashboard/stitches";
+		for (const origin of [
+			"https://app.codestitch.app",
+			"https://codestitch.app",
+			"https://preview.codestitch.app",
+		]) {
+			const base = `${origin}/app/dashboard/stitches`;
 
-		expect(id(`${base}/1982`)).toBe("1982");
-		expect(id(`${base}/1982/`)).toBe("1982");
-		expect(id(`${base}/1982?tab=css`)).toBe("1982");
-		expect(id(`${base}/1982#top`)).toBe("1982");
+			expect(id(`${base}/1982`)).toBe("1982");
+			expect(id(`${base}/1982/`)).toBe("1982");
+			expect(id(`${base}/1982?tab=css`)).toBe("1982");
+			expect(id(`${base}/1982#top`)).toBe("1982");
 
-		// The live preview has no code fields; the panel must not appear there.
-		expect(id(`${base}/1982/rendered`)).toBeUndefined();
-		expect(id(`${base}/1982/rendered/`)).toBeUndefined();
-		// Nor on any other sub-page a redesign might add.
-		expect(id(`${base}/1982/figma`)).toBeUndefined();
-		expect(id(`${base}`)).toBeUndefined();
-		expect(id("https://codestitch.app/app/dashboard/catalog/3")).toBeUndefined();
+			// The live preview has no code fields; the panel must not appear there.
+			expect(id(`${base}/1982/rendered`)).toBeUndefined();
+			expect(id(`${base}/1982/rendered/`)).toBeUndefined();
+			// Nor on any other sub-page a redesign might add.
+			expect(id(`${base}/1982/figma`)).toBeUndefined();
+			expect(id(`${base}`)).toBeUndefined();
+		}
+		expect(id("https://app.codestitch.app/app/dashboard/catalog/3")).toBeUndefined();
 		expect(id("not a url")).toBeUndefined();
 	});
 
