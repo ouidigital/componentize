@@ -1,39 +1,58 @@
 /**
  * Every CodeStitch selector lives here, so a platform redesign is a one-file fix.
  *
- * Verified live on codestitch.app (demo dashboard, 2026-08-24) and against the
- * site's own main.js: all code variants are present in the DOM simultaneously as
- * hidden textareas — no clicking or network round-trips are needed to read any of them.
+ * Verified live on app.codestitch.app (logged-out demo stitches 2501, 2274, 757,
+ * 1741) on 2026-10-13, against the redesigned "Get code" screen and its own
+ * scripts (site/js/get-code.js, get-code-export.js).
+ *
+ * The stitch itself is no longer in the DOM as code fields: the server renders
+ * it as inline JSON, `window.GET_CODE = {...};`, and CodeStitch's own script
+ * builds the screen from that. A content script runs in an isolated world and
+ * cannot see the page's globals, so it reads the script element's text instead.
+ *
+ * The inspector's controls (format, styles, dark mode, file name, images, links)
+ * are read by host-fields.ts; their selectors live here too.
  */
 
 export const SEL = {
-	/** Root of the code viewer. */
-	codeTabs: "#CODE_TABS",
-	/** One .tab per code variant, keyed by data-codeid. */
-	tabs: "#CODE_TABS .CODE_TABS__BODY div.tab[data-codeid]",
-	/**
-	 * Source of truth for code content. The visible CodeMirror 5 editor is
-	 * virtualized (renders only the viewport), so it must never be scraped —
-	 * the site's own copy button reads this textarea too.
-	 */
-	textarea: "textarea.CODE-TEXTAREA",
-	/** Tab links carry data-codeid + data-codetype (html|js|css|core-styles). */
-	tabLinks: "a.code_list_link[data-codeid][data-codetype]",
-	/** CSS flavor radios; data-css-type is authoritative, value = target codeid. */
-	cssRadios: "input.radio-styles[data-css-type]",
-	/** Stitch category name, e.g. "Landing + Services". */
-	heading: "h2.heading",
+	/** Inline scripts; the one starting with GET_CODE_PREFIX holds the stitch. */
+	getCodeScript: "script:not([src])",
+	/** The Get code inspector (right-hand column). */
+	inspector: "aside.gc-inspector",
+	/** Scrollable settings area: Code, Images and Links sections, then Reset. */
+	inspectorScroll: ".gc-inspector__scroll",
+	/** Code viewer under the settings; the fallback mount point. */
+	codeWrap: ".gc-code-wrap",
+
+	formats: "#formats",
+	flavours: "#flavours",
+	imageModes: "#image-modes",
+	/** The selected button of a segmented control. */
+	segPressed: 'button[data-id][aria-pressed="true"]',
+	darkStyles: "#dark-styles",
+	includeJs: "#include-js",
+	/** Hidden under the Shopify format, which names its file from a section id. */
+	fileRow: "#file-row",
+	fileName: "#file-name",
+	folderRow: "#folder-row",
+	imagesFolder: "#images-folder",
+	replaceLinks: "#replace-links",
+	guessRoutes: "#guess-routes",
+	/** Re-rendered with innerHTML on every settings change. */
+	linkRows: "#link-rows",
+	linkRow: "div.gc-link-row[data-i]",
+	linkRowInput: "input[data-link]",
+	linkRowLabel: "label",
+	linkRowMeta: ".gc-link-row__meta",
 } as const;
 
-/** data-codetype values on the tab links. */
-export type CodeType = "html" | "js" | "css" | "core-styles";
+/** Matches the stitch script, and not the `window.GET_CODE.icons = …` one after it. */
+export const GET_CODE_PREFIX = /^\s*window\.GET_CODE\s*=\s*/;
 
-/** data-cmtype values on the textareas — fallback classification. */
-export const CM_TYPE = {
-	html: "application/xml",
-	js: "javascript",
-	css: "css",
-} as const;
+/** Hidden textarea holding the core styles in one flavour; absent on private stitches. */
+export function coreTextarea(flavour: "css" | "less" | "scss"): string {
+	return `#gc-core-${flavour}`;
+}
 
 export class SelectorDriftError extends Error {
 	override readonly name = "SelectorDriftError";
@@ -48,7 +67,7 @@ export class SelectorDriftError extends Error {
  * The stitch page loaded, but CodeStitch would not serve its contents — a 403
  * on a stitch outside the current plan, an expired session, and so on.
  *
- * Worth its own error: the code viewer is missing, but nothing about the site
+ * Worth its own error: the stitch data is missing, but nothing about the site
  * has changed, and telling the user the extension needs an update would send
  * them looking in entirely the wrong place.
  */
@@ -85,26 +104,6 @@ export function pageErrorDetail(doc: Document): string | undefined {
 	// A real stitch page is long; an error page is a line or two.
 	if (body.length > 600) return undefined;
 	return [status, named?.toLowerCase()].filter(Boolean).join(" ");
-}
-
-export function queryRequired<T extends Element>(
-	root: ParentNode,
-	selector: string,
-	what: string,
-): T {
-	const el = root.querySelector<T>(selector);
-	if (!el) throw new SelectorDriftError(what);
-	return el;
-}
-
-export function queryAllRequired<T extends Element>(
-	root: ParentNode,
-	selector: string,
-	what: string,
-): T[] {
-	const els = Array.from(root.querySelectorAll<T>(selector));
-	if (els.length === 0) throw new SelectorDriftError(what);
-	return els;
 }
 
 /**

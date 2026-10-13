@@ -13,8 +13,14 @@ function base64ToBytes(base64: string): Uint8Array {
 	return bytes;
 }
 
+/*
+ * Primitives only. The panel composes them and checks, between building a file
+ * and handing it over, that the settings have not changed in the meantime; a
+ * helper here that built and downloaded in one call would hide that moment.
+ */
+
 /** Triggers a download without the `downloads` permission. */
-function downloadBlob(blob: Blob, filename: string): void {
+export function downloadBlob(blob: Blob, filename: string): void {
 	const url = URL.createObjectURL(blob);
 	const anchor = document.createElement("a");
 	anchor.href = url;
@@ -28,16 +34,17 @@ function downloadBlob(blob: Blob, filename: string): void {
 }
 
 /**
- * Downloads the component on its own.
+ * The component on its own, as a file.
  *
  * `source` comes from componentSourceFor(), so the verdict in its header
  * describes this delivery rather than the full file set.
  */
-export function downloadAstro(result: ConvertResult, source: string): void {
-	downloadBlob(
-		new Blob([source], { type: "text/plain;charset=utf-8" }),
-		`${result.componentName}.astro`,
-	);
+export function astroBlob(source: string): Blob {
+	return new Blob([source], { type: "text/plain;charset=utf-8" });
+}
+
+export function astroFileName(result: ConvertResult): string {
+	return `${result.componentName}.astro`;
 }
 
 function toZipEntries(files: OutputFile[]): Record<string, Uint8Array> {
@@ -67,9 +74,8 @@ export function buildZip(result: ConvertResult): Promise<Blob> {
 	});
 }
 
-export async function downloadZip(result: ConvertResult): Promise<void> {
-	const blob = await buildZip(result);
-	// The filename says whether this is drop-in or still needs work.
+/** The filename says whether this is drop-in or still needs work. */
+export function zipFileName(result: ConvertResult): string {
 	const suffix = result.readiness.state === "draft" ? "-draft" : "";
-	downloadBlob(blob, `${result.componentName}${suffix}.zip`);
+	return `${result.componentName}${suffix}.zip`;
 }

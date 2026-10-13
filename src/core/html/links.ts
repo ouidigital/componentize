@@ -280,6 +280,117 @@ function routeExistsInKit(route: string, profile: KitProfile): boolean {
 	);
 }
 
+/** What a destination resolves to, for conversion and for anything that checks one. */
+export type Resolved =
+	| { kind: "empty" }
+	/** "#contact": an anchor on the current page, written as-is. */
+	| { kind: "fragment"; href: string }
+	| { kind: "expression"; code: string; usesBusinessData: boolean }
+	/** http(s), protocol-relative, tel: or mailto:. */
+	| { kind: "external"; href: string; contact: boolean }
+	| {
+			kind: "route";
+			/** Normalised default-locale path the kit's helper expects, query/fragment kept. */
+			target: string;
+			/** The pristine kit has a page for it. */
+			shipped: boolean;
+			/** The page belongs to a feature the kit's setup script can remove. */
+			optionalFeature?: string;
+			/** A locale prefix was rewritten and the kit records the translation. */
+			localeNote?: string;
+			/** A locale prefix was dropped without a recorded translation. */
+			localeDraft?: string;
+	  };
+
+/**
+ * Resolves one destination exactly as conversion writes it.
+ *
+ * Shared by the links pass and by anything that reports on a destination before
+ * converting, so a check can never disagree with the output: `/fr/a-propos` is
+ * a shipped page in both, because both strip the prefix and map the slug.
+ *
+ * A fragment on its own is classified first. Treating `#contact` as a route
+ * would normalise it to `/#contact` and send the link to the home page.
+ */
+export function resolveDestination(
+	raw: string,
+	profile: KitProfile,
+	localize: boolean,
+): Resolved {
+	const value = raw.trim();
+	if (!value || value === "#") return { kind: "empty" };
+	if (isFragment(value)) return { kind: "fragment", href: value };
+	if (isExpression(value)) {
+		const code = value.slice(1, -1).trim();
+		return { kind: "expression", code, usesBusinessData: usesBusinessData(code, profile) };
+	}
+	if (isExternal(value)) {
+		return { kind: "external", href: value, contact: /^(tel:|mailto:)/i.test(value) };
+	}
+
+	let target = normalizeRoute(value);
+	let localeNote: string | undefined;
+	let localeDraft: string | undefined;
+	// A destination written in another locale has to be brought back to the
+	// path the kit's own helper expects before anything else reads it. The
+	// query string comes off first: a recorded slug would never match one
+	// carrying ?ref=hero on the end.
+	if (localize && profile.locales.length > 0) {
+		const { path, suffix } = splitRoute(target);
+		const resolved = unprefixLocale(path, profile);
+		target = `${resolved.path}${suffix}`;
+		localeNote = resolved.note;
+		localeDraft = resolved.draft;
+	}
+
+	const shipped = routeExistsInKit(target, profile);
+	const optionalFeature = shipped
+		? profile.optionalRoutes[comparableRoute(splitRoute(target).path)]
+		: undefined;
+	return {
+		kind: "route",
+		target,
+		shipped,
+		...(optionalFeature ? { optionalFeature } : {}),
+		...(localeNote ? { localeNote } : {}),
+		...(localeDraft ? { localeDraft } : {}),
+	};
+}
+
+/*
+ * CodeStitch's Get code screen lists links with a regex over the raw markup
+ * (site/js/get-code-export.js, read 2026-10-13):
+ *
+ *   ANCHOR     = /<a\b((?:[^>"']|"[^"]*"|'[^']*')*)>([\s\S]*?)<\/a>/gi
+ *   EMPTY_HREF = /(^|\s)href\s*=\s*(""|'')/i
+ *
+ * Its link fields are numbered by that list (input[data-link]), which counts
+ * anchors inside HTML comments that a DOM parser never sees. The same regexes
+ * are used here so those numbers can be mapped back to real anchors.
+ */
+const CS_ANCHOR = /<a\b((?:[^>"']|"[^"]*"|'[^']*')*)>([\s\S]*?)<\/a>/gi;
+const CS_EMPTY_HREF = /(^|\s)href\s*=\s*(""|'')/i;
+
+/** Every link CodeStitch's Get code lists, by its index there, and whether it sits in a comment. */
+export function codestitchLinkOccurrences(
+	html: string,
+): Array<{ index: number; inComment: boolean }> {
+	const comments: Array<[number, number]> = [];
+	for (const match of html.matchAll(/<!--[\s\S]*?(?:-->|$)/g)) {
+		comments.push([match.index, match.index + match[0].length]);
+	}
+	const out: Array<{ index: number; inComment: boolean }> = [];
+	for (const match of html.matchAll(CS_ANCHOR)) {
+		if (!CS_EMPTY_HREF.test(match[1] ?? "")) continue;
+		const at = match.index;
+		out.push({
+			index: out.length,
+			inComment: comments.some(([start, end]) => at >= start && at < end),
+		});
+	}
+	return out;
+}
+
 export interface LinksPassOptions {
 	roots: Element[];
 	kit: KitId;
@@ -335,11 +446,14 @@ export function applyLinksPass(options: LinksPassOptions): void {
 			if (isFragment(href)) continue;
 
 			const mapping = id ? byId.get(id) : undefined;
-			const typed = mapping?.route?.trim();
+			// A lone "#" typed into the field is no destination at all.
+			const typedRaw = mapping?.route?.trim();
+			const typed = typedRaw && typedRaw !== "#" ? typedRaw : undefined;
 			// A route the user typed always wins over one read off the label.
 			const suggested = useSuggestions ? mapping?.suggestedRoute : undefined;
 			const route = typed || suggested;
-			const wasGuessed = Boolean(!typed && suggested);
+			// A suggestion handed over as an explicit route is still a guess.
+			const wasGuessed = Boolean(!typed && suggested) || Boolean(typed && mapping?.routeFromSuggestion);
 
 			// Placeholder status comes from the markup, not from whether the panel
 			// happened to offer a mapping — an unmapped `href=""` is still unresolved.
@@ -358,50 +472,42 @@ export function applyLinksPass(options: LinksPassOptions): void {
 
 			if (!route && !href.trim()) continue;
 
-			// A destination is one of three things, and the field accepts all of
-			// them: an expression in braces, an absolute URL, or a site route.
+			// A destination is one of four things, and the field accepts all of
+			// them: an expression in braces, an absolute URL, an anchor on this
+			// page, or a site route.
 			const raw = (route ?? href).trim();
+			const resolved = resolveDestination(raw, profile, localize);
 
-			if (isExpression(raw)) {
-				const code = raw.slice(1, -1).trim();
-				anchor.setAttribute("href", expr(code));
-				if (usesBusinessData(code, profile)) onBusinessDataUsed?.();
-				if (wasGuessed) guessed.push(`${mapping?.text ?? "link"} → ${raw}`);
-				continue;
+			switch (resolved.kind) {
+				case "empty":
+					continue;
+				case "fragment":
+					anchor.setAttribute("href", resolved.href);
+					continue;
+				case "expression":
+					anchor.setAttribute("href", expr(resolved.code));
+					if (resolved.usesBusinessData) onBusinessDataUsed?.();
+					if (wasGuessed) guessed.push(`${mapping?.text ?? "link"} → ${raw}`);
+					continue;
+				case "external":
+					anchor.setAttribute("href", resolved.href);
+					if (wasGuessed) {
+						guessed.push(`${mapping?.text ?? "link"} → ${raw}`);
+						placeholderExternals.add(raw);
+					}
+					continue;
+				case "route":
+					break;
 			}
 
-			if (isExternal(raw)) {
-				anchor.setAttribute("href", raw);
-				if (wasGuessed) {
-					guessed.push(`${mapping?.text ?? "link"} → ${raw}`);
-					placeholderExternals.add(raw);
-				}
-				continue;
-			}
-
-			let target = normalizeRoute(raw);
-			if (!target) continue;
-
-			// A destination written in another locale has to be brought back to
-			// the path the kit's own helper expects before anything else reads
-			// it. The query string comes off first: a recorded slug would never
-			// match one carrying ?ref=hero on the end.
-			if (localize && profile.locales.length > 0) {
-				const { path, suffix } = splitRoute(target);
-				const resolved = unprefixLocale(path, profile);
-				target = `${resolved.path}${suffix}`;
-				if (resolved.note) rewritten.add(resolved.note);
-				if (resolved.draft) localePrefixed.add(resolved.draft);
-			}
+			const target = resolved.target;
+			if (resolved.localeNote) rewritten.add(resolved.localeNote);
+			if (resolved.localeDraft) localePrefixed.add(resolved.localeDraft);
 
 			if (route) {
 				if (wasGuessed) guessed.push(`${mapping?.text ?? "link"} → ${target}`);
-				if (routeExistsInKit(target, profile)) {
-					const feature = profile.optionalRoutes[comparableRoute(splitRoute(target).path)];
-					if (feature) optional.set(target, feature);
-				} else {
-					missingFromKit.add(target);
-				}
+				if (!resolved.shipped) missingFromKit.add(target);
+				else if (resolved.optionalFeature) optional.set(target, resolved.optionalFeature);
 			}
 
 			anchor.setAttribute("href", localize ? expr(routeExpression(target)) : target);

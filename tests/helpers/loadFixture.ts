@@ -10,6 +10,10 @@ export interface FixtureMeta {
 	url: string;
 	sectionIds: string[];
 	heading: string | null;
+	/** GET_CODE stitch.title, e.g. "404 - 2501" (fixtures captured after Oct 2026). */
+	title?: string | null;
+	/** GET_CODE stitch.section, e.g. "Interior Pages". */
+	section?: string | null;
 }
 
 const VARIANT_FILES: Record<string, CssVariant> = {
@@ -57,17 +61,34 @@ export function fixtureMeta(dirName: string): FixtureMeta {
 /**
  * Full saved stitch page, for scraper tests.
  *
- * Scripts, iframes and external stylesheets are stripped: happy-dom would
- * otherwise try to fetch analytics and embedded maps, and the resulting network
- * exceptions bury genuine failures in the test output. None of them affect the
- * DOM the scraper reads.
+ * External scripts, iframes and external stylesheets are stripped: happy-dom
+ * would otherwise try to fetch analytics and embedded maps, and the resulting
+ * network exceptions bury genuine failures in the test output. Inline scripts
+ * stay, because the stitch itself is one: `window.GET_CODE = {...};`. The test
+ * environment does not evaluate them.
  */
 export function loadPage(stitchId: string): string {
 	return readFileSync(join(FIXTURES, "pages", `stitch-${stitchId}.html`), "utf8")
-		.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, "")
+		.replace(/<script\b[^>]*\bsrc\s*=[^>]*>[\s\S]*?<\/script>/gi, "")
 		.replace(/<iframe\b[^>]*>[\s\S]*?<\/iframe>/gi, "")
 		.replace(/<iframe\b[^>]*\/?>/gi, "")
 		.replace(/<link\b[^>]*rel=["']?stylesheet["']?[^>]*>/gi, "");
+}
+
+/**
+ * Text as the contract test compares it.
+ *
+ * The pre-October fixtures were read from textareas that carried the page
+ * template's indentation (a leading newline, trailing spaces), so the same
+ * code compares equal only after trimming. Core styles also gained one blank
+ * line upstream since they were captured, which dropBlankLines absorbs.
+ */
+export function normalizeFixtureText(
+	text: string,
+	{ dropBlankLines = false }: { dropBlankLines?: boolean } = {},
+): string {
+	const trimmed = text.replace(/\r\n?/g, "\n").trim();
+	return dropBlankLines ? trimmed.replace(/\n[ \t]*(?=\n)/g, "") : trimmed;
 }
 
 export const FIXTURE_DIRS = {

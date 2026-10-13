@@ -50,6 +50,11 @@ export function kitCapabilities(kit: KitId): KitCapabilities {
 	return KITS[kit].capabilities;
 }
 
+/** Whether conversion sends site routes through the kit's route helper. */
+export function kitLocalizesLinks(options: ConvertOptions): boolean {
+	return KITS[options.kit].localizesLinks(options);
+}
+
 export class ConversionError extends Error {
 	override readonly name = "ConversionError";
 }
@@ -60,10 +65,16 @@ function variantFor(options: ConvertOptions): CssVariant {
 	return (options.darkMode ? `${base} Dark` : base) as CssVariant;
 }
 
-/** Reads the placeholder links a stitch contains, for the panel to offer. */
-export function inspectLinks(stitch: StitchData): LinkMapping[] {
+/**
+ * Reads the placeholder links a stitch contains, for the panel to offer.
+ *
+ * Pass the kit to get the suggestions conversion will actually use: a social
+ * link points at the kit's business data only when the kit has an entry for
+ * that network, and at the network's home page otherwise.
+ */
+export function inspectLinks(stitch: StitchData, kit?: KitId): LinkMapping[] {
 	const { roots } = parseStitchHtml(stitch.html);
-	return collectLinkMappings(roots);
+	return collectLinkMappings(roots, kit ? profileFor(kit) : undefined);
 }
 
 /** Default component file name for a stitch, shown pre-filled in the panel. */
@@ -121,6 +132,9 @@ export async function convert(
 	const warnings = new WarningCollector();
 	const profile = profileFor(options.kit);
 	const kit = KITS[options.kit]!;
+	for (const w of options.preflightWarnings ?? []) {
+		warnings.add(w.severity, w.code, w.message);
+	}
 
 	// --- 0. variant resolution ---
 	const variant = variantFor(options);
@@ -197,12 +211,14 @@ export async function convert(
 	const suppliedRoutes = new Map(
 		(options.linkMappings ?? [])
 			.filter((mapping) => mapping.route?.trim())
-			.map((mapping) => [mapping.id, mapping.route!.trim()]),
+			.map((mapping) => [mapping.id, mapping]),
 	);
-	const linkMappings = collectedLinks.map((mapping) => ({
-		...mapping,
-		route: suppliedRoutes.get(mapping.id) ?? mapping.route,
-	}));
+	const linkMappings = collectedLinks.map((mapping) => {
+		const supplied = suppliedRoutes.get(mapping.id);
+		return supplied
+			? { ...mapping, route: supplied.route!.trim(), routeFromSuggestion: supplied.routeFromSuggestion === true }
+			: mapping;
+	});
 	const images = await applyImagesPass({
 		doc,
 		roots,

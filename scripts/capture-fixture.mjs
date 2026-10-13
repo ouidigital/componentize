@@ -2,23 +2,33 @@
 /**
  * Captures a CodeStitch stitch page into tests/fixtures/.
  *
- * Usage: npm run fixtures -- <stitchId> [slug]
+ * Usage: npm run fixtures -- <stitchId> [slug] [--page-only]
  *
  * Works against the logged-out demo dashboard, so fixtures are reproducible
- * without credentials. Writes the raw code fields plus the full page HTML
- * (the latter feeds the scraper tests).
+ * without credentials. Writes the code fields plus the full page HTML (the
+ * latter feeds the scraper tests).
+ *
+ * --page-only writes only tests/fixtures/pages/stitch-<id>.html. The derived
+ * fixture folders feed the conversion snapshots, so refreshing the page a
+ * scraper reads should not silently rewrite what every snapshot is built from.
+ *
+ * Since the October 2026 redesign the stitch arrives as inline JSON,
+ * `window.GET_CODE = {...};`, with core styles in hidden textareas.
  */
 import { mkdir, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 import { parseHTML } from "linkedom";
+import { codeFiles, extractGetCode, lf } from "./lib/get-code.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const FIXTURES = join(__dirname, "..", "tests", "fixtures");
 
-const [, , stitchId, slugArg] = process.argv;
+const args = process.argv.slice(2);
+const pageOnly = args.includes("--page-only");
+const [stitchId, slugArg] = args.filter((a) => !a.startsWith("--"));
 if (!stitchId || !/^\d+$/.test(stitchId)) {
-	console.error("Usage: npm run fixtures -- <stitchId> [slug]");
+	console.error("Usage: npm run fixtures -- <stitchId> [slug] [--page-only]");
 	process.exit(1);
 }
 
@@ -37,19 +47,32 @@ if (!res.ok) {
 	process.exit(1);
 }
 const pageHtml = await res.text();
-const { document } = parseHTML(pageHtml);
 
-const tabs = [...document.querySelectorAll("#CODE_TABS .CODE_TABS__BODY div.tab[data-codeid]")];
-if (tabs.length === 0) {
-	console.error("No code tabs found — layout changed, or the page needs auth.");
+const data = extractGetCode(pageHtml);
+if (!data) {
+	console.error("No window.GET_CODE script — layout changed, or the page needs auth.");
 	process.exit(1);
+}
+
+await mkdir(join(FIXTURES, "pages"), { recursive: true });
+await writeFile(join(FIXTURES, "pages", `stitch-${stitchId}.html`), pageHtml, "utf8");
+
+const codes = data.stitch?.codes ?? [];
+const files = codeFiles(codes);
+if (!files["html.html"]) {
+	console.warn("Warning: the HTML code is empty — a premium stitch, or one that needs sign-in.");
+}
+
+if (pageOnly) {
+	console.log(`Wrote tests/fixtures/pages/stitch-${stitchId}.html (page only).`);
+	process.exit(0);
 }
 
 /**
  * A browser returns textarea.value already entity-decoded; linkedom hands back
  * the raw escaped source. Decode here so fixtures match runtime input exactly.
  */
-const NAMED = { amp: "&", lt: "<", gt: ">", quot: '"', apos: "'", nbsp: " " };
+const NAMED = { amp: "&", lt: "<", gt: ">", quot: '"', apos: "'", nbsp: " " };
 function decodeEntities(s) {
 	return s.replace(/&(#x?[0-9a-fA-F]+|[a-zA-Z]+);/g, (match, body) => {
 		if (body[0] === "#") {
@@ -63,38 +86,21 @@ function decodeEntities(s) {
 	});
 }
 
-const byId = new Map();
-for (const tab of tabs) {
-	const ta = tab.querySelector("textarea.CODE-TEXTAREA");
-	const raw = ta?.value ?? ta?.textContent ?? "";
-	const value = decodeEntities(raw);
-	if (value.trim()) byId.set(tab.getAttribute("data-codeid"), value);
+const { document } = parseHTML(pageHtml);
+for (const [flavour, key] of [["css", "CSS"], ["less", "LESS"], ["scss", "SCSS"]]) {
+	const ta = document.querySelector(`#gc-core-${flavour}`);
+	const value = decodeEntities(ta?.value ?? ta?.textContent ?? "");
+	if (value.trim()) files[`core-styles-${key}.txt`] = lf(value);
 }
 
-const files = {};
-const meta = { id: stitchId, url, sectionIds: [], heading: null };
-
-for (const a of document.querySelectorAll("a.code_list_link[data-codeid][data-codetype]")) {
-	const type = a.getAttribute("data-codetype");
-	const code = byId.get(a.getAttribute("data-codeid"));
-	if (!code) continue;
-	if (type === "html") files["html.html"] = code;
-	if (type === "js") files["js.js"] = code;
-}
-
-for (const radio of document.querySelectorAll("input.radio-styles[data-css-type]")) {
-	const variant = radio.getAttribute("data-css-type");
-	const code = byId.get(radio.getAttribute("value"));
-	if (code) files[`css-${variant.replace(/\s+/g, "-")}.txt`] = code;
-}
-
-for (const key of ["CSS", "LESS", "SCSS"]) {
-	const code = byId.get(`core-styles-${key}`);
-	if (code) files[`core-styles-${key}.txt`] = code;
-}
-
-meta.heading = document.querySelector("h2.heading")?.textContent?.trim() ?? null;
-
+const meta = {
+	id: stitchId,
+	url,
+	sectionIds: [],
+	heading: data.stitch?.category ?? null,
+	title: data.stitch?.title ?? null,
+	section: data.stitch?.section ?? null,
+};
 if (files["html.html"]) {
 	const { document: frag } = parseHTML(`<body>${files["html.html"]}</body>`);
 	meta.sectionIds = [...frag.querySelectorAll("section[id], header[id]")].map((el) =>
@@ -105,13 +111,11 @@ if (files["html.html"]) {
 const slug = slugArg ?? (meta.sectionIds[0] ?? "stitch").replace(/-\d+$/, "");
 const dir = join(FIXTURES, `stitch-${slug}-${stitchId}`);
 await mkdir(dir, { recursive: true });
-await mkdir(join(FIXTURES, "pages"), { recursive: true });
 
 for (const [name, contents] of Object.entries(files)) {
 	await writeFile(join(dir, name), contents, "utf8");
 }
 await writeFile(join(dir, "meta.json"), `${JSON.stringify(meta, null, 2)}\n`, "utf8");
-await writeFile(join(FIXTURES, "pages", `stitch-${stitchId}.html`), pageHtml, "utf8");
 
 console.log(`Wrote ${Object.keys(files).length + 1} files to tests/fixtures/stitch-${slug}-${stitchId}/`);
 console.log(`  sections: ${meta.sectionIds.join(", ") || "(none)"}  heading: ${meta.heading ?? "-"}`);

@@ -23,7 +23,10 @@ export interface StitchData {
 	js?: string;
 	css: Partial<Record<CssVariant, string>>;
 	coreStyles: Partial<Record<"CSS" | "LESS" | "SCSS", string>>;
-	/** h2.heading text, e.g. "Landing + Services". */
+	/**
+	 * The stitch's category, e.g. "Landing + Services" or "404"
+	 * (GET_CODE stitch.category; the old page showed it as h2.heading).
+	 */
 	categoryHeading?: string;
 }
 
@@ -45,6 +48,12 @@ export interface LinkMapping {
 	suggestedRoute?: string;
 	/** The social network this link points at, when it is one. */
 	social?: string;
+	/**
+	 * `route` is the link's own suggestion, passed on explicitly rather than
+	 * typed by anyone. It is treated as a guess: reported as one, and a social
+	 * network's home page stays a Draft placeholder.
+	 */
+	routeFromSuggestion?: boolean;
 }
 
 export interface ConvertOptions {
@@ -85,6 +94,12 @@ export interface ConvertOptions {
 	 * scripts would drive the same menu.
 	 */
 	keepKitNavScript?: boolean;
+	/**
+	 * Findings the caller made before converting, such as a CodeStitch setting
+	 * that could not be used as given. They join the result's warnings, so a
+	 * "draft" one makes the verdict Draft like any other.
+	 */
+	preflightWarnings?: Warning[];
 }
 
 /**

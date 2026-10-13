@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { deriveRouteFromText } from "@core/html/links";
+import {
+	codestitchLinkOccurrences,
+	deriveRouteFromText,
+	resolveDestination,
+} from "@core/html/links";
+import { profileFor } from "@core/kits/profile";
 import { convert, inspectLinks } from "@core/convert";
 import type { ConvertOptions } from "@core/types";
 import { FIXTURE_DIRS, loadFixture } from "./helpers/loadFixture";
@@ -167,5 +172,106 @@ describe("social links", () => {
 		// A social profile is an absolute destination, not a site route.
 		expect(astro).toContain("href={BUSINESS.socials.facebook}");
 		expect(astro).not.toContain("getLocalizedRoute(locale, \"{BUSINESS");
+	});
+});
+
+describe("typed fragments", () => {
+	const stitch = () =>
+		({
+			...loadFixture(FIXTURE_DIRS.notFound),
+			html: '<section id="not-found-2501"><a href="" class="cs-button-solid">Contact</a></section>',
+		});
+
+	for (const kit of ["advanced-v4", "i18n", "decap"] as const) {
+		it(`keeps a typed #fragment on the current page (${kit})`, async () => {
+			const s = stitch();
+			const [link] = inspectLinks(s);
+			const astro = (
+				await convert(
+					s,
+					options({ kit, i18n: kit !== "decap", linkMappings: [{ ...link!, route: "#contact" }] }),
+				)
+			).files[0]!.contents;
+			// Not "/#contact", and not the home page through the route helper.
+			expect(astro).toMatch(/href="#contact"/);
+			expect(astro).not.toContain('"/#contact');
+		});
+	}
+
+	it("still sends /#contact to the home page's anchor", async () => {
+		const s = stitch();
+		const [link] = inspectLinks(s);
+		const astro = (
+			await convert(s, options({ kit: "advanced-v4", i18n: true, linkMappings: [{ ...link!, route: "/#contact" }] }))
+		).files[0]!.contents;
+		expect(astro).toContain('getLocalizedRoute(locale, "/") + "#contact"');
+	});
+});
+
+describe("resolveDestination", () => {
+	const v4 = profileFor("advanced-v4");
+
+	it("classifies each kind of destination", () => {
+		expect(resolveDestination("", v4, true)).toEqual({ kind: "empty" });
+		expect(resolveDestination("  #contact ", v4, true)).toEqual({ kind: "fragment", href: "#contact" });
+		expect(resolveDestination("tel:5550100", v4, true)).toMatchObject({ kind: "external", contact: true });
+		expect(resolveDestination("https://x.test/", v4, true)).toMatchObject({ kind: "external", contact: false });
+		expect(resolveDestination("{BUSINESS.socials.facebook}", v4, true)).toMatchObject({
+			kind: "expression",
+			code: "BUSINESS.socials.facebook",
+			usesBusinessData: true,
+		});
+	});
+
+	it("checks routes against the pages the kit ships", () => {
+		expect(resolveDestination("/about", v4, true)).toMatchObject({ kind: "route", target: "/about/", shipped: true });
+		expect(resolveDestination("/return-to-home", v4, true)).toMatchObject({ kind: "route", shipped: false });
+		// A navigation parent with a dropdown has no page of its own.
+		expect(resolveDestination("/projects", v4, true)).toMatchObject({ kind: "route", shipped: false });
+	});
+
+	it("resolves a localized path the way conversion does", () => {
+		const resolved = resolveDestination("/fr/a-propos", v4, true);
+		expect(resolved).toMatchObject({ kind: "route", target: "/about/", shipped: true });
+		expect(resolved.kind === "route" && resolved.localeNote).toBeTruthy();
+	});
+});
+
+describe("codestitchLinkOccurrences", () => {
+	it("numbers empty-href anchors the way CodeStitch's Get code does", () => {
+		const html = [
+			'<a href="">One</a>',
+			'<!-- <a href="">Commented</a> -->',
+			"<a href='' class=\"x\">Two</a>",
+			'<a href="#">Hash</a>',
+			'<a href="/set">Set</a>',
+			'<a data-title="a>b" href="">Three</a>',
+		].join("\n");
+		expect(codestitchLinkOccurrences(html)).toEqual([
+			{ index: 0, inComment: false },
+			{ index: 1, inComment: true },
+			{ index: 2, inComment: false },
+			{ index: 3, inComment: false },
+		]);
+	});
+});
+
+describe("kit-aware link inspection", () => {
+	it("suggests the kit's business data for a social link when the kit is given", () => {
+		const stitch = {
+			...loadFixture(FIXTURE_DIRS.notFound),
+			html: '<section id="s-1"><a href="" aria-label="visit facebook profile"><img alt="facebook" src="x.svg"></a></section>',
+		};
+		expect(inspectLinks(stitch)[0]!.suggestedRoute).toBe("https://www.facebook.com/");
+		expect(inspectLinks(stitch, "advanced-v4")[0]!.suggestedRoute).toBe("{BUSINESS.socials.facebook}");
+	});
+
+	it("adds preflight findings to the verdict", async () => {
+		const result = await convert(
+			loadFixture(FIXTURE_DIRS.notFound),
+			options({ preflightWarnings: [{ severity: "draft", code: "x-pre", message: "Checked before converting." }] }),
+		);
+		expect(result.readiness.state).toBe("draft");
+		expect(result.readiness.reasons).toContain("Checked before converting.");
 	});
 });

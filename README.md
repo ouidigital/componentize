@@ -3,9 +3,13 @@
 A Chrome extension that turns a CodeStitch stitch into a ready-to-use Astro
 component in one click, replacing the copy-each-field-then-clean-it-up routine.
 
-It adds a panel to any stitch page at
+It adds a section to the **Get code** inspector of any stitch page at
 `https://app.codestitch.app/app/dashboard/stitches/<id>` and produces a component
-for one of the two official CodeStitch kits.
+for one of the two official CodeStitch kits. Since CodeStitch's October 2026
+redesign, Get code already handles the format, styles, dark mode, JavaScript,
+file name, image paths and links; Componentize reads those settings rather
+than repeating them, and adds what Get code does not do (see
+[Works with Get code](#works-with-codestitchs-get-code)).
 
 ## What it promises
 
@@ -62,24 +66,66 @@ npm install && npm run build
 Then open `chrome://extensions`, enable Developer mode, choose **Load unpacked**
 and select the `dist/` directory. After rebuilding, click **Reload** on the
 extension and refresh any already-open CodeStitch tabs. Open a stitch page at
-`app.codestitch.app` and the panel appears above the code viewer.
+`app.codestitch.app` and the panel appears at the bottom of the Get code
+settings, under CodeStitch's own Code, Images and Links sections.
 
 `npm run dev` runs the same build with hot reload.
 
+## Works with CodeStitch's Get code
+
+Every setting Get code offers is read from Get code, live, and saved by
+CodeStitch (to your account when signed in). Componentize only stores its own
+settings: the target kit, text extraction, multiple languages and core styles.
+
+| Get code setting | What Componentize does with it |
+| --- | --- |
+| Format | Ignored: the output is always a kit component. Single file and Shopify force CSS in Get code, so the panel then shows its own **Styles** choice. |
+| Styles (CSS/LESS/SCSS) | Used as the component's stylesheet flavour. |
+| Include dark mode styles | Used. CodeStitch marks some stitches' dark CSS as not dark (stitch 2501) and disables the box; the panel then shows its own **Dark mode styles**. |
+| Include JavaScript | Used. A navigation script that duplicates the kit's `nav.js` gets its own exception toggle. |
+| File name | Names the `.astro` file (`Not-found-2501.astro`). Shopify hides it, so the panel shows its own **File name**. |
+| CodeStitch CDN / Local folder | CDN keeps the image URLs; **Local folder** downloads the images and rewrites them to Astro image components. |
+| Images folder | Mapped to a kit folder under `src/assets`: CodeStitch's default `/assets/images` becomes `src/assets/images/<stitch>`, `/assets/images/team` becomes `src/assets/images/team`, and anything outside `assets/` falls back to the default with a Draft reason. |
+| Replace links, Guess routes, link fields | Each link field is the destination, paired with its anchor by position in CodeStitch's list, never by label. A field left empty is a TODO. Links CodeStitch does not list (`href="#"`) appear in the panel. |
+
+Kit-specific notes appear under CodeStitch's own link rows, marked
+"Componentize:": a route the pinned kit does not ship, a locale prefix that
+could not be mapped, and, for an empty social link the kit has data for, a
+**use BUSINESS.socials.facebook** checkbox. That checkbox is off by default,
+remembered per stitch, and voided as soon as you type a destination into the
+field, so clearing the field later gives a TODO rather than a link you did
+not choose.
+
+If CodeStitch's script does not run (a blocked CDN, a client-side page swap),
+the panel says so and shows its own controls for everything.
+
+### What changed in 0.2.0
+
+Defaults now follow Get code, so an account that never changed Get code gets:
+
+- **CSS instead of LESS.** Pick LESS once in Get code; CodeStitch saves it.
+- **Images left on the CDN instead of downloaded.** Choose **Local folder** to
+  bundle them, which also brings back **Prioritize first image**.
+- **`Not-found-2501` instead of `NotFound-2501`** as the file name, and
+  `Navigation` for navigation stitches. The import binding and locale
+  namespace are derived from the name as before.
+
+The panel's one-line summary under its title always says which flavour, name,
+image folder and links it took from Get code.
+
 ## What it does to a stitch
 
-- **Styles** — takes the flavour you pick (LESS is both kits' default) and the
-  dark variant when you want dark mode, then removes only what the kit already
+- **Styles** — takes the flavour picked in Get code (LESS is both kits'
+  default) and the dark variant when dark mode is on, then removes only what the kit already
   provides globally: `:root` variables it defines, redundant redeclarations of
   `.cs-topper`/`.cs-title`/`.cs-text`/`.cs-button-solid`, and CodeStitch's demo
   Roboto font. Per-stitch overrides are kept — CodeStitch's docs expect them.
   Everything runs through postcss, so LESS idioms like `(16/16rem)` and
   `~"min(...)"` survive untouched. If the stylesheet cannot be parsed it is
   passed through unchanged and the result is a Draft.
-- **Naming** — the file name is yours. It defaults to the CodeStitch convention
-  (`Hero-1621`, `SideBySide-1982`, `NotFound-2501` — the stitch id keeps a second
-  Hero from overwriting the first), and you can type anything you like in the
-  panel. Hyphens are fine in a file name even though they are not valid in a JS
+- **Naming** — the file name is Get code's **File name**, which defaults to
+  the stitch's first element id (`Hero-2274`, `Not-found-2501`; the stitch id
+  keeps a second Hero from overwriting the first). Hyphens are fine in a file name even though they are not valid in a JS
   identifier, so the component is imported under a derived binding
   (`Hero-1621.astro` → `import Hero1621`).
 - **Images** — downloads every CodeStitch CDN image referenced in the markup
@@ -89,14 +135,14 @@ extension and refresh any already-open CodeStitch tabs. Open a stitch page at
   to astro-icon `<Icon>`s. Astro owns responsive `srcset`/`sizes`
   generation for `<Image>` and `<Picture>`, so source-level responsive
   attributes are removed with one Draft warning; normal single-URL
-  `<source srcset>` inputs are kept without warning. The **Images folder**
-  field defaults to `src/assets/images/<stitch>` — matching how both kits
-  group images by section — and accepts any folder under `src/assets`, since
-  that is what the `@assets` alias resolves. File names get a short content
+  `<source srcset>` inputs are kept without warning. Images go to
+  `src/assets/images/<stitch>` by default — matching how both kits group
+  images by section — or to the folder named in Get code, mapped under
+  `src/assets` since that is what the `@assets` alias resolves. File names get a short content
   hash so two different images that share a basename cannot overwrite each
-  other. Switch to "Keep CodeStitch CDN" to leave the original markup alone.
+  other. Leave Get code on "CodeStitch CDN" to keep the original markup.
 
-  In asset mode, the panel offers **Prioritize first image**. It is a
+  With Local folder, the panel offers **Prioritize first image**. It is a
   non-persistent, per-stitch choice and starts on when any top-level section id
   begins with `hero-`; the conversion core never infers hero status.
   When enabled, only the first eligible CDN raster image in DOM order gets bare
@@ -116,22 +162,25 @@ extension and refresh any already-open CodeStitch tabs. Open a stitch page at
 - **Links** — CodeStitch ships every link as `href=""`. Rather than ask you to
   fill in a dozen destinations that usually are not decided yet, each link gets a
   route read from its own label: "Privacy Policy" → `/privacy-policy`, "About" →
-  `/about`, "Home" and the logo → `/`. They appear pre-filled in the panel, so
-  editing one is a choice rather than a chore, and **Guess routes from link text**
-  turns the whole thing off if you would rather mark them all TODO. Text that is
+  `/about`, "Home" and the logo → `/`. Get code fills its link fields this way,
+  so editing one is a choice rather than a chore, and its **Guess routes from
+  link text** turns it off if you would rather mark them all TODO. Text that is
   plainly not a page name — opening hours, a street address, a phone number —
-  is never slugified; those stay TODO. **Social links are recognised** and wired
-  to the kit's own data — `href={BUSINESS.socials.facebook}`, with the import
-  added — because "visit facebook profile" describes an action, not a page. A
-  network the kit has no entry for falls back to that network's home page and
-  says so, so you can add your profile to `src/data/client.ts`. Routes are
+  is never slugified; those stay TODO. **Social links are recognised**: where
+  the kit has data for the network, a checkbox under the link wires it to
+  `href={BUSINESS.socials.facebook}`, with the import added. In the panel's own
+  rows, a network the kit has no entry for falls back to that network's home
+  page and says so, so you can add your profile to `src/data/client.ts`. Routes are
   checked against the pinned kit and anything it does not ship is reported in a
   single line, not one per link.
 
-  The destination field takes all three forms: a route (`/about`), an absolute
-  URL (`https://…`), or an expression in braces (`{BUSINESS.socials.twitter}`).
-  A query string or fragment is kept as written: `/contact?ref=hero` becomes
-  `/contact/?ref=hero`, not `/contact?ref=hero/`.
+  A destination takes four forms: a route (`/about`), an absolute URL
+  (`https://…`), an expression in braces (`{BUSINESS.socials.twitter}`), or an
+  anchor on the same page (`#contact`, written as-is). A query string or
+  fragment after a route is kept as written: `/contact?ref=hero` becomes
+  `/contact/?ref=hero`, not `/contact?ref=hero/`. The notes under Get code's
+  rows use the same resolution as the conversion, so `/fr/a-propos` is
+  recognised as the shipped `/about` in both.
 
   On **v4** a destination goes through `getLocalizedRoute` from `@js/routes`,
   which translates the slug against the project's own `src/data/navData.json`
@@ -185,13 +234,16 @@ extension and refresh any already-open CodeStitch tabs. Open a stitch page at
   `AbortController` that is aborted on each run so they cannot pile up. Timers
   and observers it cannot tie to that controller are reported as Draft reasons.
   A navigation stitch whose script duplicates the kit's sitewide `nav.js` is
-  left out by default, so menus do not bind twice; the **Include JavaScript**
-  toggle then starts unticked and says so. Tick it to keep the script anyway —
+  left out by default, so menus do not bind twice; the panel's
+  **Include JavaScript (kit already ships this nav script)** toggle then
+  starts unticked and says so. Tick it to keep the script anyway —
   the result is a Draft until one of the two scripts is removed.
 - **Output** — copy the `.astro`, download it, or download a ZIP whose paths
   mirror the kit layout so it extracts straight over your project root. Choose
   the ZIP whenever there is more than one file; the badge tells you when the
-  single-file options are not enough.
+  single-file options are not enough. A build whose settings change while it
+  runs (image downloads can take a while) is never handed over: the panel
+  asks you to click again rather than deliver or grade a stale component.
 
 If an image cannot be downloaded, the original CDN markup is left in place and
 the result is a Draft — the extension never emits an import for a file it did
@@ -208,6 +260,22 @@ npm run test:all      # all of the above
 
 `tests/__snapshots__/` holds real `.astro`, `.json` and readiness files — review
 them like code; a diff there is a change to what users receive.
+
+The scraper's contract test reads each saved page in `tests/fixtures/pages/`
+and checks it reproduces the fixture folder the snapshots are built from.
+Refresh a page with `npm run fixtures -- <id> --page-only`; without the flag
+the fixture folder is rewritten too, which moves the snapshots. Fields
+CodeStitch has since edited are listed in `tests/scrape.test.ts` with the
+date, and a test fails once they match again.
+
+The E2E suite replaces CodeStitch's `site/js/get-code.js` with
+`tests/e2e/stubs/get-code.js`, which renders the Get code controls to the
+same DOM contract, so it never touches the network. One test checks that
+contract against the real site:
+
+```bash
+E2E_LIVE=1 npx playwright test -g "live:"
+```
 
 The acceptance run is the proof behind "Ready". For each fixture and target it
 clones the pinned kit, extracts the generated ZIP over it, writes a scratch page
@@ -269,12 +337,15 @@ defect the day one appears.
 ```
 src/
   content/     content-script.ts, selectors.ts, scrape.ts   — reading the stitch page
+               host-fields.ts                               — reading Get code's controls
   background/  worker.ts                                     — CDN downloads only
   core/        convert.ts + html/, css/, js/, kits/          — the pure pipeline
   ui/          panel.ts, panel.css, prefs.ts                 — the injected panel
+               host-options.ts                              — Get code settings → conversion options
   output/      clipboard, download, zip
 assets/        icon.svg, icon-16.svg                        — the mark, at two optical sizes
 scripts/       capture-fixture, build-kit-profiles, kit-acceptance, build-icons
+tests/e2e/stubs/get-code.js                                 — stand-in for CodeStitch's Get code script
 ```
 
 The panel's mark and the extension's icons are one drawing. `npm run icons`
@@ -293,7 +364,9 @@ holds an exact host allowlist, revalidates it on every redirect hop, requires an
 dishonest `Content-Length` cannot be used to exhaust memory.
 
 Every CodeStitch selector lives in `src/content/selectors.ts`, so a redesign of
-their site is a one-file fix. When the DOM stops matching, the panel says so
+their site is a one-file fix. The stitch itself comes from the inline
+`window.GET_CODE = {...}` script CodeStitch renders into the page, read as
+text because a content script cannot see the page's globals. When the DOM stops matching, the panel says so
 rather than failing silently — and it distinguishes the reasons, because they
 send you to different places:
 
@@ -301,7 +374,7 @@ send you to different places:
 | --- | --- |
 | No panel at all | Not a stitch's code page. The panel only runs on `/stitches/<id>`, never on `/stitches/<id>/rendered` or any other sub-page. |
 | "CodeStitch did not show this stitch (403…)" | The site refused the stitch — sign in, or it needs a higher plan. Nothing is wrong with the extension. |
-| "Code fields are empty" | The viewer is there but locked. |
-| "CodeStitch changed its page layout" | An actual redesign; the selectors need updating. |
+| "Code fields are empty" | The stitch data is there but its markup is empty: locked or premium. |
+| "CodeStitch changed its page layout" | The `GET_CODE` stitch data is missing or unreadable: an actual redesign, so the selectors need updating. |
 
 <sub>Built by [Oui Digital](https://oui.digital).</sub>

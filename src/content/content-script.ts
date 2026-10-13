@@ -1,7 +1,9 @@
 import type { AssetPayload } from "@core/types";
 import { scrapeStitch } from "./scrape";
+import { createHostBridge } from "./host-fields";
 import {
 	PremiumLockedError,
+	SEL,
 	SelectorDriftError,
 	StitchUnavailableError,
 	stitchIdFromUrl,
@@ -59,17 +61,22 @@ async function fetchAsset(
 	};
 }
 
-/** Puts the panel just above the code viewer, so it reads as part of the page. */
+/**
+ * Puts the panel at the end of CodeStitch's Get code settings, after their
+ * Code, Images and Links sections and Reset, so it reads as one more section
+ * of the same inspector.
+ */
 function mountPoint(): { parent: Element; before: Element | null } | undefined {
-	const codeTabs = document.querySelector("#CODE_TABS");
-	if (codeTabs?.parentElement) {
-		return { parent: codeTabs.parentElement, before: codeTabs };
-	}
-	const body = document.querySelector(".section-body") ?? document.body;
+	const scroll = document.querySelector(SEL.inspectorScroll);
+	if (scroll) return { parent: scroll, before: null };
+	const codeWrap = document.querySelector(SEL.codeWrap);
+	if (codeWrap?.parentElement) return { parent: codeWrap.parentElement, before: codeWrap };
+	const body = document.body;
 	return body ? { parent: body, before: body.firstElementChild } : undefined;
 }
 
 let mountedFor: string | undefined;
+let currentPanel: ComponentizePanel | undefined;
 
 async function mount(): Promise<void> {
 	const url = location.href;
@@ -78,6 +85,8 @@ async function mount(): Promise<void> {
 
 	const existing = document.getElementById(HOST_ID);
 	if (existing && mountedFor === stitchId && existing.isConnected) return;
+	currentPanel?.destroy();
+	currentPanel = undefined;
 	existing?.remove();
 
 	const point = mountPoint();
@@ -85,8 +94,10 @@ async function mount(): Promise<void> {
 
 	try {
 		const stitch = scrapeStitch(document, url);
-		const panel = new ComponentizePanel({ stitch, fetchAsset });
+		const host = createHostBridge(document, () => document.getElementById(HOST_ID));
+		const panel = new ComponentizePanel({ stitch, fetchAsset, host });
 		point.parent.insertBefore(panel.host, point.before);
+		currentPanel = panel;
 		mountedFor = stitchId;
 		await panel.init();
 	} catch (err) {

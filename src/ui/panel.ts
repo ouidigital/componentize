@@ -1,27 +1,42 @@
 import type {
-	ConvertOptions,
+	AssetPayload,
 	ConvertResult,
 	CssFlavor,
+	ImagesMode,
 	KitId,
-	LinkMapping,
 	Readiness,
 	StitchData,
 } from "@core/types";
-import {
-	componentSourceFor,
-	convert,
-	defaultAssetsDirFor,
-	defaultComponentName,
-	inspectJs,
-	inspectLinks,
-	kitCapabilities,
-} from "@core/convert";
+import { componentSourceFor, convert, kitCapabilities } from "@core/convert";
 import { profileFor } from "@core/kits/profile";
 import { InvalidNameError } from "@core/naming";
 import { parseStitchHtml } from "@core/html/parse";
-import { copyToClipboard, downloadAstro, downloadZip } from "@output/index";
+import {
+	astroBlob,
+	astroFileName,
+	buildZip,
+	copyToClipboard,
+	downloadBlob,
+	zipFileName,
+} from "@output/index";
 import { readinessFor, type Delivery } from "@core/readiness";
-import { DEFAULT_PREFS, loadPrefs, savePrefs, type Prefs } from "./prefs";
+import type { HostBridge, HostSettings } from "@content/host-fields";
+import {
+	DEFAULT_PREFS,
+	loadPrefs,
+	loadStitchState,
+	markupFingerprint,
+	savePrefs,
+	saveStitchState,
+	type Prefs,
+} from "./prefs";
+import {
+	codestitchDefaultFileName,
+	composeOptions,
+	defaultFallbacks,
+	type Composed,
+	type FallbackValues,
+} from "./host-options";
 import panelCss from "./panel.css?inline";
 
 /**
@@ -31,9 +46,9 @@ import panelCss from "./panel.css?inline";
 
 export interface PanelDeps {
 	stitch: StitchData;
-	fetchAsset: (url: string) => Promise<
-		{ base64: string; contentType: string; originalUrl: string } | undefined
-	>;
+	fetchAsset: (url: string, maxBytes?: number) => Promise<AssetPayload | undefined>;
+	/** CodeStitch's own Get code settings, read live. */
+	host: HostBridge;
 }
 
 /**
@@ -46,6 +61,7 @@ const KIT_LABELS: Array<{ value: KitId; label: string }> = [
 	{ value: "decap", label: "Intermediate Astro + Decap" },
 ];
 
+/** Only offered where Get code cannot set the flavour (Single file, Shopify). */
 const FLAVORS: Array<{ value: CssFlavor; label: string }> = [
 	{ value: "less", label: "LESS" },
 	{ value: "scss", label: "SCSS (needs sass)" },
@@ -198,21 +214,46 @@ function callout(
 	return node;
 }
 
+/** What an action does once the result is built; false means it held back. */
+type Deliver = (result: ConvertResult, current: () => boolean) => Promise<boolean>;
+
+/**
+ * The fourth section of CodeStitch's Get code inspector.
+ *
+ * Everything Get code already offers (styles, dark mode, JavaScript, file name,
+ * images, links) is read from CodeStitch's own controls. The panel shows only
+ * what is Componentize's: the target kit, locale handling, core styles, image
+ * priority, the nav-script exception, links Get code does not list, and the
+ * Ready/Draft verdict. Where a Get code control is locked or missing, the
+ * panel shows its own stand-in for exactly that one.
+ */
 export class ComponentizePanel {
 	readonly host: HTMLElement;
 	private readonly root: ShadowRoot;
 	private readonly stitch: StitchData;
 	private readonly fetchAsset: PanelDeps["fetchAsset"];
+	private readonly bridge: HostBridge;
+	private readonly fingerprint: string;
 
 	private prefs: Prefs = { ...DEFAULT_PREFS };
-	private componentName: string;
-	private assetsDir: string;
-	private links: LinkMapping[];
+	private hostSettings: HostSettings;
+	private composed: Composed;
 	private lastResult?: ConvertResult;
 	/** Readiness of the last delivery, which may be stricter than the conversion's. */
 	private lastReadiness?: Readiness;
 	private busy = false;
 	private busyAction?: BusyAction;
+	private disposed = false;
+	private disposeHost?: () => void;
+
+	/**
+	 * Bumped whenever the effective conversion settings change. A build that
+	 * started under an older revision is never delivered or shown as current.
+	 */
+	private settingsRevision = 0;
+	private lastOptionsKey = "";
+	private lastLayoutKey = "";
+
 	/**
 	 * Per-stitch override: include a navigation script the kit already ships.
 	 * Deliberately not a preference — it is a decision about this stitch, and
@@ -221,15 +262,23 @@ export class ComponentizePanel {
 	private keepNavJs = false;
 	/** Per-stitch choice; unlike Prefs, it must not carry to another stitch. */
 	private prioritizeFirstImage: boolean;
+	/** Destinations typed into the panel's own link rows. */
+	private readonly ownRoutes = new Map<string, string>();
+	/** Opt-ins to fill an empty social link from the kit's business data. */
+	private readonly socialChoices = new Map<string, boolean>();
+	/** Values for the stand-in controls, used only where Get code's are unusable. */
+	private fallback: FallbackValues;
 
 	constructor(deps: PanelDeps) {
 		this.stitch = deps.stitch;
 		this.fetchAsset = deps.fetchAsset;
-		this.componentName = defaultComponentName(deps.stitch);
-		this.assetsDir = defaultAssetsDirFor(deps.stitch);
-		this.links = inspectLinks(deps.stitch);
+		this.bridge = deps.host;
+		this.fingerprint = markupFingerprint(deps.stitch);
+		this.fallback = defaultFallbacks(deps.stitch);
 		const { rootIds } = parseStitchHtml(deps.stitch.html);
 		this.prioritizeFirstImage = rootIds.some((id) => id.startsWith("hero-"));
+		this.hostSettings = this.bridge.read();
+		this.composed = this.compose();
 
 		this.host = document.createElement("div");
 		this.host.id = "componentize-root";
@@ -242,33 +291,105 @@ export class ComponentizePanel {
 	}
 
 	async init(): Promise<void> {
-		this.prefs = await loadPrefs();
+		const [prefs, state] = await Promise.all([
+			loadPrefs(),
+			loadStitchState(this.stitch.id, this.fingerprint),
+		]);
+		if (this.disposed) return;
+		this.prefs = prefs;
+		for (const [id, checked] of Object.entries(state.socialChoices)) {
+			this.socialChoices.set(id, checked);
+		}
+		this.disposeHost = this.bridge.observe(() => this.onHostChange());
+		this.hostSettings = this.bridge.read();
+		// A saved opt-in is void if Get code's field already holds a URL, or
+		// clearing that URL first would bring the substitution back.
+		this.composed = this.composeVoidingOverriddenSocials();
+		this.lastOptionsKey = this.composed.optionsKey;
+		this.lastLayoutKey = this.composed.layoutKey;
 		this.render();
 	}
 
-	private get options(): ConvertOptions {
-		const { duplicatesKitNav } = inspectJs(this.stitch, this.prefs.kit);
-		return {
-			...this.prefs,
-			// A duplicate nav script is the core's call: left out with a note, or
-			// kept as a Draft. It is always handed over, and the toggle decides
-			// only whether to override that default.
-			includeJs: duplicatesKitNav ? true : this.prefs.includeJs,
-			keepKitNavScript: duplicatesKitNav && this.keepNavJs,
-			componentName: this.componentName,
-			assetsDir: this.assetsDir,
-			linkMappings: this.links,
-			prioritizeFirstImage:
-				this.prefs.imagesMode === "assets" && this.prioritizeFirstImage,
-		};
+	/** Stops listening to the page; any build in flight is then discarded. */
+	destroy(): void {
+		this.disposed = true;
+		this.disposeHost?.();
+		this.disposeHost = undefined;
+	}
+
+	private compose(): Composed {
+		return composeOptions(this.stitch, this.prefs, this.hostSettings, {
+			keepNavJs: this.keepNavJs,
+			prioritizeFirstImage: this.prioritizeFirstImage,
+			ownRoutes: this.ownRoutes,
+			socialChoices: this.socialChoices,
+			fallback: this.fallback,
+		});
+	}
+
+	/**
+	 * Composes, after voiding the opt-in of every social link whose Get code
+	 * field holds a destination: clearing that field later must give a TODO,
+	 * not a silently restored link.
+	 */
+	private composeVoidingOverriddenSocials(): Composed {
+		const composed = this.compose();
+		const voided = composed.overriddenSocials.filter((id) => this.socialChoices.get(id));
+		if (voided.length === 0) return composed;
+		for (const id of voided) this.socialChoices.set(id, false);
+		this.saveStitchState();
+		return this.compose();
+	}
+
+	private onHostChange(): void {
+		if (this.disposed) return;
+		this.hostSettings = this.bridge.read();
+		this.changed();
+	}
+
+	/**
+	 * Recomposes after any change, here or in Get code.
+	 *
+	 * The verdict is dropped and the revision moves only when the conversion
+	 * itself would change, so focusing a field or re-clicking the current
+	 * flavour cancels nothing. The panel re-renders only when the set of
+	 * controls changes, and otherwise refreshes in place, keeping the caret.
+	 */
+	private changed(): void {
+		const composed = this.composeVoidingOverriddenSocials();
+		this.composed = composed;
+
+		if (composed.optionsKey !== this.lastOptionsKey) {
+			this.lastOptionsKey = composed.optionsKey;
+			this.settingsRevision++;
+			this.invalidateResult();
+		}
+		if (composed.layoutKey !== this.lastLayoutKey) {
+			this.lastLayoutKey = composed.layoutKey;
+			this.render();
+		} else {
+			this.refreshInPlace();
+		}
 	}
 
 	private update(patch: Partial<Prefs>): void {
 		this.prefs = { ...this.prefs, ...patch };
 		savePrefs(this.prefs);
-		this.lastResult = undefined;
-		this.lastReadiness = undefined;
+		this.changed();
+		// Kit and language toggles change labels and hints, not just layout.
 		this.render();
+	}
+
+	private readonly onSocialToggle = (mappingId: string, checked: boolean): void => {
+		this.socialChoices.set(mappingId, checked);
+		this.saveStitchState();
+		this.changed();
+	};
+
+	private saveStitchState(): void {
+		saveStitchState(this.stitch.id, this.fingerprint, {
+			socialChoices: Object.fromEntries(this.socialChoices),
+		});
 	}
 
 	/**
@@ -288,32 +409,75 @@ export class ComponentizePanel {
 			panel.querySelector(selector)?.remove();
 		}
 		const status = panel.querySelector(".status");
-		if (status) status.textContent = "";
+		if (status && !this.busy) status.textContent = "";
 		this.pendingStatus = undefined;
 	}
 
-	private async generate(): Promise<ConvertResult> {
-		return convert(this.stitch, this.options, this.fetchAsset);
+	/** Updates text that follows the settings without rebuilding any control. */
+	private refreshInPlace(): void {
+		const summary = this.root.querySelector(".host-summary");
+		if (summary) summary.replaceChildren(...this.summaryNodes());
+
+		for (const input of this.root.querySelectorAll<HTMLInputElement>(".link-row input")) {
+			const id = input.dataset["mapping"];
+			const row = this.composed.ownRows.find((r) => r.id === id);
+			if (!id || !row || this.ownRoutes.has(id)) continue;
+			input.value = row.suggestedRoute ?? "";
+			if (row.suggestedRoute) input.dataset["suggested"] = "true";
+			else delete input.dataset["suggested"];
+		}
+		this.refreshLinkCount();
+		this.bridge.annotateLinkRows(this.composed.hostNotes, this.onSocialToggle);
 	}
 
+	private async generate(): Promise<ConvertResult> {
+		const { options, preflight } = this.compose();
+		return convert(this.stitch, { ...options, preflightWarnings: preflight }, this.fetchAsset);
+	}
+
+	/**
+	 * Builds and delivers, checking three times that the result still matches
+	 * the settings: after converting, immediately before handing anything over,
+	 * and again before showing a verdict, because a copy can complete after the
+	 * settings moved on.
+	 */
 	private async run(
-		action: (result: ConvertResult) => Promise<void> | void,
-		status: string,
+		deliver: Deliver,
+		done: { status: string; verb: string },
 		delivery: Delivery,
 		busyAction: BusyAction,
 	): Promise<void> {
 		if (this.busy) return;
+		const revision = this.settingsRevision;
+		const current = () => !this.disposed && revision === this.settingsRevision;
+		const stale = "Settings changed while building, click again.";
+
 		this.busy = true;
 		this.busyAction = busyAction;
 		this.render();
 		try {
 			const result = await this.generate();
+			if (!current()) {
+				this.setStatus(stale);
+				return;
+			}
+			const delivered = await deliver(result, current);
+			if (!delivered) {
+				this.setStatus(stale);
+				return;
+			}
+			if (!current()) {
+				this.setStatus(
+					`${done.verb}, but the settings changed meanwhile: build again for a current verdict.`,
+				);
+				return;
+			}
 			this.lastResult = result;
 			// The verdict must describe what the user actually walks away with.
 			this.lastReadiness = readinessFor(result, delivery);
-			await action(result);
-			this.setStatus(status);
+			this.setStatus(done.status);
 		} catch (err) {
+			if (this.disposed) return;
 			this.setError(
 				err instanceof InvalidNameError
 					? err.message
@@ -322,7 +486,7 @@ export class ComponentizePanel {
 		} finally {
 			this.busy = false;
 			this.busyAction = undefined;
-			this.render();
+			if (!this.disposed) this.render();
 		}
 	}
 
@@ -339,14 +503,27 @@ export class ComponentizePanel {
 
 	// ---------- rendering ----------
 
+	private summaryNodes(): Array<Node | string> {
+		const s = this.composed.summary;
+		if (!s.rendered) {
+			return ["Get code settings not detected, so Componentize's own defaults apply below."];
+		}
+		return [
+			"From Get code: ",
+			el("span", { class: "mono" }, [`${s.componentName}.astro`]),
+			` · ${s.flavourLabel}${s.dark ? " · dark" : ""} · ${s.imagesLabel} · ${s.linksLabel}`,
+		];
+	}
+
 	private render(): void {
+		if (this.disposed) return;
 		const panel = this.root.querySelector(".panel")!;
 		panel.replaceChildren();
 		this.nextId = 0;
 
+		const c = this.composed;
 		const profile = profileFor(this.prefs.kit);
 		const capabilities = kitCapabilities(this.prefs.kit);
-		const { hasJs, duplicatesKitNav } = inspectJs(this.stitch, this.prefs.kit);
 
 		// --- header ---
 		panel.setAttribute("role", "region");
@@ -375,50 +552,65 @@ export class ComponentizePanel {
 		);
 		panel.append(header);
 
+		const summary = el("p", { class: "host-summary" }, this.summaryNodes());
+		summary.setAttribute("aria-live", "polite");
+		panel.append(summary);
+
 		const settings = el("div", { class: "section" });
 
-		// --- selects ---
+		// --- kit and stand-ins for Get code controls ---
 		const controls = el("div", { class: "controls" });
 		controls.append(
 			this.selectField("Kit", this.prefs.kit, KIT_LABELS, (value) => {
-				const kit = value as KitId;
-				this.update({
-					kit,
-					// Text extraction only exists where the kit keeps locale files.
-					i18n: kitCapabilities(kit).textExtraction ? this.prefs.i18n : false,
-				});
+				this.update({ kit: value as KitId });
 			}),
-			this.selectField("Styles", this.prefs.cssFlavor, FLAVORS, (value) =>
-				this.update({ cssFlavor: value as CssFlavor }),
-			),
-			this.selectField(
-				"Images",
-				this.prefs.imagesMode,
-				[
-					{ value: "assets", label: "Download to src/assets" },
-					{ value: "raw", label: "Keep CodeStitch CDN" },
-				],
-				(value) => this.update({ imagesMode: value as "assets" | "raw" }),
-			),
-			this.textField(
-				"File name",
-				this.componentName,
-				(value) => {
-					this.componentName = value.trim();
-					this.invalidateResult();
-				},
-				"Hero-1621  →  src/components/Hero-1621/Hero-1621.astro",
-			),
 		);
-		if (this.prefs.imagesMode === "assets") {
+		if (c.fallbacks.has("flavour")) {
+			controls.append(
+				this.selectField(
+					"Styles",
+					this.fallback.flavour,
+					FLAVORS,
+					(value) => this.setFallback({ flavour: value as CssFlavor }),
+					this.hostSettings.rendered
+						? "Get code forces CSS for this format; Componentize uses this instead"
+						: undefined,
+				),
+			);
+		}
+		if (c.fallbacks.has("imagesMode")) {
+			controls.append(
+				this.selectField(
+					"Images",
+					this.fallback.imagesMode,
+					[
+						{ value: "assets", label: "Download to src/assets" },
+						{ value: "raw", label: "Keep CodeStitch CDN" },
+					],
+					(value) => this.setFallback({ imagesMode: value as ImagesMode }),
+				),
+			);
+		}
+		if (c.fallbacks.has("fileName")) {
+			controls.append(
+				this.textField(
+					"File name",
+					this.fallback.fileName,
+					(value) => this.setFallback({ fileName: value.trim() }, false),
+					this.hostSettings.rendered
+						? "Get code names Shopify sections by their id; this names the .astro file"
+						: "Hero-1621  →  src/components/Hero-1621/Hero-1621.astro",
+					false,
+					codestitchDefaultFileName(this.stitch.html),
+				),
+			);
+		}
+		if (c.fallbacks.has("assetsDir")) {
 			controls.append(
 				this.textField(
 					"Images folder",
-					this.assetsDir,
-					(value) => {
-						this.assetsDir = value.trim();
-						this.invalidateResult();
-					},
+					this.fallback.assetsDir,
+					(value) => this.setFallback({ assetsDir: value.trim() }, false),
 					"Where downloaded images are written; must be under src/assets",
 					true,
 				),
@@ -428,10 +620,27 @@ export class ComponentizePanel {
 
 		// --- toggles ---
 		const toggles = el("div", { class: "toggles" });
+		if (c.fallbacks.has("darkMode")) {
+			toggles.append(
+				this.toggle(
+					"Dark mode styles",
+					this.fallback.darkMode,
+					(v) => this.setFallback({ darkMode: v }),
+					false,
+					this.hostSettings.rendered
+						? "Get code's dark mode box is unavailable for this stitch in this flavour, but the stitch has dark styles"
+						: undefined,
+				),
+			);
+		}
+		if (c.fallbacks.has("includeJs")) {
+			toggles.append(
+				this.toggle("Include JavaScript", this.fallback.includeJs, (v) =>
+					this.setFallback({ includeJs: v }),
+				),
+			);
+		}
 		toggles.append(
-			this.toggle("Dark mode styles", this.prefs.darkMode, (v) =>
-				this.update({ darkMode: v }),
-			),
 			this.toggle(
 				"Extract text for translation",
 				this.prefs.i18n && capabilities.textExtraction,
@@ -450,27 +659,43 @@ export class ComponentizePanel {
 					? `Match the project: untick if it was set up without i18n, and only ${profile.defaultLocale ?? "the default locale"} is written`
 					: `${profile.label} has no single-language setup`,
 			),
-			this.jsToggle(hasJs, duplicatesKitNav, profile.label),
 			this.toggle("Include Core Styles", this.prefs.includeCoreStyles, (v) =>
 				this.update({ includeCoreStyles: v }),
 			),
-			this.toggle(
-				"Guess routes from link text",
-				this.prefs.guessRoutes !== false,
-				(v) => this.update({ guessRoutes: v }),
-				false,
-				'"Privacy Policy" becomes /privacy-policy; edit any of them below',
-			),
 		);
-		if (this.prefs.imagesMode === "assets") {
+		if (c.duplicatesKitNav && c.options.includeJs) {
+			toggles.append(
+				this.toggle(
+					"Include JavaScript (kit already ships this nav script)",
+					this.keepNavJs,
+					(v) => {
+						this.keepNavJs = v;
+						this.changed();
+					},
+					false,
+					`${profile.label} runs an equivalent navigation script sitewide, so this one is left out. Tick to include it anyway — the result becomes a Draft until one of them is removed.`,
+				),
+			);
+		}
+		if (c.fallbacks.has("guessRoutes")) {
+			toggles.append(
+				this.toggle(
+					"Guess routes from link text",
+					this.fallback.guessRoutes,
+					(v) => this.setFallback({ guessRoutes: v }),
+					false,
+					'"Privacy Policy" becomes /privacy-policy; edit any of them below',
+				),
+			);
+		}
+		if (c.options.imagesMode === "assets") {
 			toggles.append(
 				this.toggle(
 					"Prioritize first image",
 					this.prioritizeFirstImage,
 					(v) => {
 						this.prioritizeFirstImage = v;
-						this.invalidateResult();
-						this.render();
+						this.changed();
 					},
 					false,
 					"Panel-only hero suggestion; this choice is not saved and never affects raw CDN output",
@@ -480,43 +705,41 @@ export class ComponentizePanel {
 		settings.append(toggles);
 		panel.append(settings);
 
-		// --- link mapping ---
-		if (this.links.length > 0) {
-			const links = el("div", { class: "links" }, [
-				el("h3", {}, [this.linksHeading()]),
-			]);
+		// --- links Get code does not list ---
+		if (this.hostSettings.usable.links && !this.hostSettings.replaceLinks) {
+			panel.append(
+				el("p", { class: "hint" }, [
+					"Replace links is off in Get code, so every link is marked TODO.",
+				]),
+			);
+		}
+		if (c.ownRows.length > 0) {
+			const links = el("div", { class: "links" }, [el("h3", {}, [this.linksHeading()])]);
 			links.dataset["state"] = this.linksState();
-			for (const link of this.links) {
+			for (const link of c.ownRows) {
 				const id = this.id("route");
-				const suggested =
-					this.prefs.guessRoutes !== false ? link.suggestedRoute : undefined;
+				const typed = this.ownRoutes.get(link.id);
+				const suggested = link.suggestedRoute;
 				const input = el("input", {
 					type: "text",
 					// The derived route is shown as a real value, not a placeholder:
 					// it is what will be used, so it should be visible and editable.
-					value: link.route ?? suggested ?? "",
-					placeholder: suggested
-						? "/about"
-						: "/about  (leave empty to mark TODO)",
+					value: typed ?? suggested ?? "",
+					placeholder: suggested ? "/about" : "/about  (leave empty to mark TODO)",
 					id,
 				});
-				if (!link.route && suggested) input.dataset["suggested"] = "true";
+				input.dataset["mapping"] = link.id;
+				if (typed === undefined && suggested) input.dataset["suggested"] = "true";
 				input.addEventListener("input", () => {
-					link.route = input.value;
+					this.ownRoutes.set(link.id, input.value.trim());
 					// Once typed over, it is no longer a guess and must stop looking
 					// like one.
 					delete input.dataset["suggested"];
-					this.invalidateResult();
-					// The "n left" count is part of the same stale picture.
-					this.refreshLinkCount();
+					this.changed();
 				});
 				links.append(
 					el("div", { class: "link-row" }, [
-						el(
-							"label",
-							{ class: "link-text", title: link.text, htmlFor: id },
-							[link.text],
-						),
+						el("label", { class: "link-text", title: link.text, htmlFor: id }, [link.text]),
 						input,
 					]),
 				);
@@ -532,10 +755,13 @@ export class ComponentizePanel {
 		const copyBtn = this.actionButton("Copy .astro", "copy", "copy");
 		copyBtn.addEventListener("click", () => {
 			void this.run(
-				async (result) => {
-					await copyToClipboard(componentSourceFor(result, "component-only"));
+				async (result, current) => {
+					const source = componentSourceFor(result, "component-only");
+					if (!current()) return false;
+					await copyToClipboard(source);
+					return true;
 				},
-				"Component copied to the clipboard.",
+				{ status: "Component copied to the clipboard.", verb: "Copied" },
 				"component-only",
 				"copy",
 			);
@@ -544,10 +770,13 @@ export class ComponentizePanel {
 		const downloadBtn = this.actionButton("Download .astro", "download", "astro");
 		downloadBtn.addEventListener("click", () => {
 			void this.run(
-				(result) => {
-					downloadAstro(result, componentSourceFor(result, "component-only"));
+				async (result, current) => {
+					const blob = astroBlob(componentSourceFor(result, "component-only"));
+					if (!current()) return false;
+					downloadBlob(blob, astroFileName(result));
+					return true;
 				},
-				"Component downloaded.",
+				{ status: "Component downloaded.", verb: "Downloaded" },
 				"component-only",
 				"astro",
 			);
@@ -556,10 +785,13 @@ export class ComponentizePanel {
 		const zipBtn = this.actionButton("Download ZIP", "zip", "zip", true);
 		zipBtn.addEventListener("click", () => {
 			void this.run(
-				async (result) => {
-					await downloadZip(result);
+				async (result, current) => {
+					const blob = await buildZip(result);
+					if (!current()) return false;
+					downloadBlob(blob, zipFileName(result));
+					return true;
 				},
-				"ZIP downloaded — extract it over your project root.",
+				{ status: "ZIP downloaded — extract it over your project root.", verb: "Downloaded" },
 				"zip",
 				"zip",
 			);
@@ -579,9 +811,7 @@ export class ComponentizePanel {
 
 		// --- feedback ---
 		if (this.pendingError) {
-			panel.append(
-				callout("error", "alert", el("span", {}, [this.pendingError])),
-			);
+			panel.append(callout("error", "alert", el("span", {}, [this.pendingError])));
 			this.pendingError = undefined;
 		}
 
@@ -592,12 +822,7 @@ export class ComponentizePanel {
 				const list = el("ul");
 				for (const reason of readiness.reasons) list.append(el("li", {}, [reason]));
 				panel.append(
-					callout(
-						"reasons",
-						"draft",
-						el("strong", {}, ["Draft — before this ships:"]),
-						list,
-					),
+					callout("reasons", "draft", el("strong", {}, ["Draft — before this ships:"]), list),
 				);
 			}
 
@@ -605,9 +830,7 @@ export class ComponentizePanel {
 			if (notes.length > 0) {
 				const list = el("ul");
 				for (const note of notes) list.append(el("li", {}, [note.message]));
-				panel.append(
-					callout("notes", "note", el("strong", {}, ["Notes:"]), list),
-				);
+				panel.append(callout("notes", "note", el("strong", {}, ["Notes:"]), list));
 			}
 
 			if (files.length > 1) {
@@ -625,6 +848,14 @@ export class ComponentizePanel {
 		panel.append(footer());
 
 		this.pendingStatus = undefined;
+		this.bridge.annotateLinkRows(c.hostNotes, this.onSocialToggle);
+	}
+
+	/** Sets a stand-in value; text fields skip the re-render to keep the caret. */
+	private setFallback(patch: Partial<FallbackValues>, rerender = true): void {
+		this.fallback = { ...this.fallback, ...patch };
+		this.changed();
+		if (rerender) this.render();
 	}
 
 	/** Unique ids so every control has a programmatically associated label. */
@@ -633,18 +864,21 @@ export class ComponentizePanel {
 		return `cz-${prefix}-${this.nextId++}`;
 	}
 
-	/** How many links still have no destination, typed or derived. */
+	/** How many of the panel's own links still have no destination. */
 	private unresolvedLinks(): number {
-		return this.links.filter((link) => {
-			if (link.route?.trim()) return false;
-			return !(this.prefs.guessRoutes !== false && link.suggestedRoute);
+		return this.composed.ownRows.filter((link) => {
+			const value = this.ownRoutes.get(link.id) ?? link.suggestedRoute ?? "";
+			return !value.trim();
 		}).length;
 	}
 
 	private linksHeading(): string {
+		const total = this.composed.ownRows.length;
 		const left = this.unresolvedLinks();
-		if (left === 0) return `Links (${this.links.length}, all set)`;
-		return `Links — ${left} still need a destination`;
+		const what =
+			this.composed.pairing === "paired" ? "Links Get code does not list" : "Links";
+		if (left === 0) return `${what} (${total}, all set)`;
+		return `${what} — ${left} still need a destination`;
 	}
 
 	/** Drives the heading's colour and dot; kept in step with the count. */
@@ -686,6 +920,7 @@ export class ComponentizePanel {
 		value: string,
 		options: Array<{ value: string; label: string }>,
 		onChange: (value: string) => void,
+		title?: string,
 	): HTMLElement {
 		const id = this.id("select");
 		const select = el("select", { id });
@@ -694,11 +929,9 @@ export class ComponentizePanel {
 			if (option.value === value) opt.selected = true;
 			select.append(opt);
 		}
+		if (title) select.title = title;
 		select.addEventListener("change", () => onChange(select.value));
-		return el("div", { class: "field" }, [
-			el("label", { htmlFor: id }, [label]),
-			select,
-		]);
+		return el("div", { class: "field" }, [el("label", { htmlFor: id }, [label]), select]);
 	}
 
 	private textField(
@@ -707,54 +940,17 @@ export class ComponentizePanel {
 		onInput: (value: string) => void,
 		title?: string,
 		wide = false,
+		placeholder?: string,
 	): HTMLElement {
 		const id = this.id("text");
 		const input = el("input", { type: "text", value, id });
 		if (title) input.title = title;
+		if (placeholder) input.placeholder = placeholder;
 		input.addEventListener("input", () => onInput(input.value));
 		return el("div", { class: wide ? "field field--wide" : "field" }, [
 			el("label", { htmlFor: id }, [label]),
 			input,
 		]);
-	}
-
-	/**
-	 * The JavaScript toggle may never be ticked while the output has no script.
-	 *
-	 * A navigation stitch whose script duplicates the kit's sitewide nav.js is
-	 * left out by default, so its toggle starts unticked and says why; ticking
-	 * it is a per-stitch override that keeps the script and makes the result a
-	 * Draft. Every other stitch is bound to the saved preference.
-	 */
-	private jsToggle(
-		hasJs: boolean,
-		duplicatesKitNav: boolean,
-		kitLabel: string,
-	): HTMLElement {
-		if (!hasJs) {
-			return this.toggle(
-				"Include JavaScript (none in this stitch)",
-				false,
-				(v) => this.update({ includeJs: v }),
-				true,
-			);
-		}
-		if (duplicatesKitNav) {
-			return this.toggle(
-				"Include JavaScript (kit already ships this nav script)",
-				this.keepNavJs,
-				(v) => {
-					this.keepNavJs = v;
-					this.invalidateResult();
-					this.render();
-				},
-				false,
-				`${kitLabel} runs an equivalent navigation script sitewide, so this one is left out. Tick to include it anyway — the result becomes a Draft until one of them is removed.`,
-			);
-		}
-		return this.toggle("Include JavaScript", this.prefs.includeJs, (v) =>
-			this.update({ includeJs: v }),
-		);
 	}
 
 	/**
